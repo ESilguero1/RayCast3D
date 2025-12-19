@@ -1,34 +1,72 @@
-#include "Graphics.h"
-#include "Buffer.h"
-#include "ST7735_SDC.h"
-#include "Font.h"
+#include "buffer.h"
+#include "../services/graphics.h"
+#include "../drivers/ST7735.h"
+#include "../bus/SPI.h"
+#include "../assets/font.h"
 
 uint16_t renderBuffer[BUFFER_WIDTH * BUFFER_HEIGHT];
 
+// Configurable colors (defaults)
+static uint16_t floorColor = 0x0000;
+static uint16_t skyColor = 0x0000;
+static double gradientIntensity = 1.0;  // 1.0 = full gradient, 0.0 = solid color
+
 uint16_t floorGradient[SCREEN_HEIGHT / 2];
 
-void PrecalculateFloorGradient() {
+static void PrecalculateFloorGradient(void) {
+    // Format: BBBBBGGGGGGRRRRR (blue in high bits, red in low bits)
+    uint16_t r = floorColor & 0x1F;           // bits 0-4
+    uint16_t g = (floorColor >> 5) & 0x3F;    // bits 5-10
+    uint16_t b = (floorColor >> 11) & 0x1F;   // bits 11-15
+
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
-        double factor = (double)y / (SCREEN_HEIGHT / 2);
-        uint16_t baseGreen = MATRIX_DARKER_GREEN & 0x07E0; // Extract green component
-        uint16_t scaledGreen = (uint16_t)(baseGreen * (1 - factor)) & 0x07E0;
-        floorGradient[y] = scaledGreen;
+        // intensity=1.0: factor goes 1.0->0.0 (full gradient to black)
+        // intensity=0.0: factor stays at 1.0 (solid color)
+        double baseFactor = (double)y / (SCREEN_HEIGHT / 2);
+        double factor = 1.0 - (gradientIntensity * baseFactor);
+        uint16_t scaledR = (uint16_t)(r * factor);
+        uint16_t scaledG = (uint16_t)(g * factor);
+        uint16_t scaledB = (uint16_t)(b * factor);
+        // Put channels back at their original positions
+        floorGradient[y] = (scaledB << 11) | (scaledG << 5) | scaledR;
     }
 }
 
-void clearRenderBuffer() {
+void Buffer_Init(void) {
+    SPI_Init();
+    ST7735_InitR(INITR_REDTAB);
+    ST7735_SetRotation(1);
+    PrecalculateFloorGradient();
+}
+
+void Buffer_SetFloorColor(uint16_t color) {
+    floorColor = color;
+    PrecalculateFloorGradient();
+}
+
+void Buffer_SetSkyColor(uint16_t color) {
+    skyColor = color;
+}
+
+void Buffer_SetFloorGradient(double intensity) {
+    if (intensity < 0.0) intensity = 0.0;
+    if (intensity > 1.0) intensity = 1.0;
+    gradientIntensity = intensity;
+    PrecalculateFloorGradient();
+}
+
+void clearRenderBuffer(void) {
     // Render pre-calculated floor gradient in the bottom half of the buffer
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
-        uint16_t floorColor = floorGradient[y];
         int startIndex = y * BUFFER_WIDTH;
         for (int x = 0; x < BUFFER_WIDTH; x++) {
-            renderBuffer[startIndex + x] = floorColor;
+            renderBuffer[startIndex + x] = floorGradient[y];
         }
     }
 
-    // Clear the top half (sky) to background color
+    // Clear the top half (sky) to sky color
     for (int i = (BUFFER_WIDTH * BUFFER_HEIGHT) / 2; i < (BUFFER_WIDTH * BUFFER_HEIGHT); i++) {
-        renderBuffer[i] = BACKGROUND_COLOR;
+        renderBuffer[i] = skyColor;
     }
 }
 
@@ -100,7 +138,7 @@ void drawForegroundSpriteToBuffer(int side, Sprite sprite) {
                             uint16_t pixelColor = sprite.image[index];
 
                             if (pixelColor != sprite.transparent) {
-                                setPixelBuffer(bufferX, BUFFER_HEIGHT - 1 - y, pixelColor); // Use setPixelBuffer and invert y
+                                setPixelBuffer(bufferX, BUFFER_HEIGHT - 1 - y, pixelColor);
                             }
                         }
                     }
@@ -115,20 +153,23 @@ void drawCharToBuffer(char ch, int screenX, int screenY, uint16_t color, int sid
 
     int charIndex = ch * FONT_BYTES_PER_CHAR;
     int bufferBoundary = SCREEN_WIDTH / 2;
-    int bufferX = -1;
 
-    if (side == 0 && screenX >= 0 && screenX < bufferBoundary) {
-        bufferX = screenX;
-    } else if (side == 1 && screenX >= bufferBoundary && screenX < SCREEN_WIDTH) {
-        bufferX = screenX - bufferBoundary;
-    }
+    for (int col = 0; col < FONT_WIDTH; col++) {
+        int pixelScreenX = screenX + col;
+        int bufferX = -1;
 
-    if (bufferX != -1) {
-        for (int col = 0; col < FONT_WIDTH; col++) {
+        // Check if this column falls on the current side
+        if (side == 0 && pixelScreenX >= 0 && pixelScreenX < bufferBoundary) {
+            bufferX = pixelScreenX;
+        } else if (side == 1 && pixelScreenX >= bufferBoundary && pixelScreenX < SCREEN_WIDTH) {
+            bufferX = pixelScreenX - bufferBoundary;
+        }
+
+        if (bufferX != -1) {
             uint8_t colData = Font[charIndex + col];
             for (int row = 0; row < FONT_HEIGHT; row++) {
                 if ((colData >> row) & 0x01) {
-                    setPixelBuffer(bufferX + col, BUFFER_HEIGHT - 1 - (screenY + row), color);
+                    setPixelBuffer(bufferX, BUFFER_HEIGHT - 1 - (screenY + row), color);
                 }
             }
         }
@@ -142,18 +183,14 @@ void printToBuffer(const char *text, int screenX, int screenY, uint16_t color, i
     for (int i = 0; text[i] != '\0'; i++) {
         // Calculate the screen range for the current character
         int charStartX = currentScreenX;
-        int charEndX = currentScreenX + FONT_WIDTH + FONT_SPACE - 1; // End of character + space
+        int charEndX = currentScreenX + FONT_WIDTH - 1;
 
         // Check if any part of the character falls within the current side's screen range
-        if ((side == 0 && charStartX < bufferBoundary) || (side == 1 && charStartX >= bufferBoundary && charStartX < SCREEN_WIDTH)) {
-            // Calculate the effective screenX for drawing on the current side
-            int drawScreenX = currentScreenX;
-            if (side == 1) {
-                drawScreenX = currentScreenX - bufferBoundary;
-            }
-            if (drawScreenX >= 0 && drawScreenX < BUFFER_WIDTH) {
-                drawCharToBuffer(text[i], currentScreenX, screenY, color, side);
-            }
+        int onSide0 = (side == 0 && charStartX < bufferBoundary);
+        int onSide1 = (side == 1 && charEndX >= bufferBoundary && charStartX < SCREEN_WIDTH);
+
+        if (onSide0 || onSide1) {
+            drawCharToBuffer(text[i], currentScreenX, screenY, color, side);
         }
         currentScreenX += FONT_WIDTH + FONT_SPACE;
     }

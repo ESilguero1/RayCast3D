@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-typedef struct{
+// Sprite structure for world sprites
+typedef struct {
     double x;
     double y;
     const uint16_t* image;
@@ -14,10 +15,20 @@ typedef struct{
     int8_t type;
 } Sprite;
 
+// Maximum number of sprites in the world
+#define MAX_SPRITES 16
+
+// Sprite array and count (defined in sprites.c)
+extern int numSprites;
+extern Sprite sprites[MAX_SPRITES];
+
+// Core sprite functions
 void RenderSprites(int side);
+void RenderSprite(Sprite sprite, int side, int spriteIndex);
 
-void RenderForegroundSprites(int side);
-
-void generateSprite();
+// Sprite management
+int Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
+void Sprite_Clear(void);
+void Sprite_Remove(int index);
 
 #endif /* SPRITES_H_ */

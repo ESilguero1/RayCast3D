@@ -1,27 +1,56 @@
-#include <stdint.h>
+#ifndef GRAPHICS_H_
+#define GRAPHICS_H_
 
+#include <stdint.h>
+#include "../drivers/ST7735.h"
+
+// Map dimensions
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
+
+// Screen dimensions
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 128
-#define BUFFER_WIDTH SCREEN_WIDTH / 2
+#define BUFFER_WIDTH (SCREEN_WIDTH / 2)
 #define BUFFER_HEIGHT SCREEN_HEIGHT
-#define BACKGROUND_COLOR ST7735_BLACK
 
-#define MATRIX_DARK_GREEN   0x0320  // Dark green, subtle glow
-#define MATRIX_DARKER_GREEN 0x0150  // Even darker green
-#define MATRIX_GREEN        0x07E0  // Standard bright green
-#define MATRIX_NEON_GREEN   0x07F0  // Intense neon green
-#define MATRIX_LIME_GREEN   0x07E6  // Almost white-green
-#define MATRIX_EMERALD      0x03C0  // Deep emerald green
-#define MATRIX_SOFT_GREEN   0x05A0  // Muted soft green
-#define MATRIX_GLOW_GREEN   0x06E0  // Slight glow effect
-#define MATRIX_HACKER_GREEN 0x04E0  // Classic "hacker" terminal green
+// Camera state structure (owned by library)
+typedef struct {
+    double posX;
+    double posY;
+    double dirX;
+    double dirY;
+    double planeX;
+    double planeY;
+} Camera;
 
-#define SKY_HEIGHT_START (SCREEN_HEIGHT / 2)
-#define MAX_FALLING_BARS 10
-#define BAR_THICKNESS 2
+// World map and depth buffer
+extern uint8_t worldMap[MAP_WIDTH][MAP_HEIGHT];
+extern double ZBuffer[SCREEN_WIDTH];
 
-void Graphics_Init();
-void RenderScene();
+// Core functions
+void Graphics_Init(void);
+void Graphics_SetFloorColor(uint16_t color);
+void Graphics_SetSkyColor(uint16_t color);
+void Graphics_SetFloorGradient(double intensity);
+void RenderScene(void);
 void FillMap(const uint8_t map[MAP_WIDTH][MAP_HEIGHT]);
+void CastRays(int side);
+
+// Camera control functions
+void Camera_SetPosition(double x, double y);
+void Camera_Move(double forward, double strafe);
+void Camera_Rotate(double degrees);
+const Camera* Camera_Get(void);
+
+// FPS display - enables/disables FPS overlay on screen
+void Graphics_DisplayFPS(int x, int y, uint16_t color);
+void Graphics_DisableFPS(void);
+
+// Per-frame text rendering (call before RenderScene, cleared after render)
+void Graphics_Text(const char* text, int x, int y, uint16_t color);
+
+// Per-frame foreground sprite rendering (call before RenderScene, cleared after render)
+void Graphics_ForegroundSprite(const uint16_t* image, int x, int y, int width, int height, int scale, uint16_t transparent);
+
+#endif /* GRAPHICS_H_ */

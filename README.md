@@ -11,6 +11,15 @@ RayCast3D is designed for ECE 319K students working with the MSPM0 microcontroll
 - MSPM0 MCU
 - ST7735R LCD Display
 
+## Dependencies
+
+This library requires the following external Valvanoware files:
+
+- `inc/Clock.h` / `Clock.c` - Clock configuration and delay functions
+- `file.h` / `file.c` - File system support
+
+These files are provided in the ECE 319K Valvanoware distribution and should be placed in an `inc/` directory at the same level as the `RayCast3D/` folder.
+
 ## Getting Started
 
 See the course materials for integration instructions and usage examples.
