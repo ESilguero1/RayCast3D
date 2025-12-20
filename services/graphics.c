@@ -153,7 +153,7 @@ void CastRays(int side) {
         int drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2;
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
-        int texNum = (worldMap[mapX][mapY] % 5) - 1; // Texture index based on map value (0-4)
+        int texNum = (worldMap[mapX][mapY] - 1) % NUM_TEXTURES; // Texture index based on map value (1-NUM_TEXTURES)
         double wallX; // Where exactly the wall was hit
         if (sideHit == 0) wallX = camera.posY + perpWallDist * rayDirY;
         else              wallX = camera.posX + perpWallDist * rayDirX;
