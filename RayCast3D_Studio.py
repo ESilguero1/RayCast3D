@@ -1,6 +1,6 @@
 """
 RayCast3D Studio
-A GUI application for building maps, managing textures, and sprites for the RayCast3D game.
+A GUI application for building maps, managing textures, and sprites for the RayCast3D graphics library.
 Automatically saves project state and exports to assets folder.
 """
 
@@ -137,7 +137,11 @@ class RayCast3DStudio:
         # Data
         self.textures = []  # List of Texture objects
         self.sprites = []   # List of Sprite objects
-        self.map_data = [[0 for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]
+
+        # Multiple maps support
+        self.maps = [{"name": "map1", "data": [[0 for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]}]
+        self.current_map_idx = 0
+
         self.selected_texture_idx = 1  # 0 = erase, 1+ = texture
         self.is_drawing = False
         self.tile_images = {}  # Cache for tile PhotoImages on canvas
@@ -149,7 +153,7 @@ class RayCast3DStudio:
         self.selected_texture_row = None
         self.selected_sprite_row = None
 
-        # Initialize perimeter walls
+        # Initialize perimeter walls for the first map
         self._init_perimeter()
 
         # Build UI
@@ -181,6 +185,13 @@ class RayCast3DStudio:
         self.root.bind('<Control-Key-2>', lambda e: self.notebook.select(1))  # Textures tab
         self.root.bind('<Control-Key-3>', lambda e: self.notebook.select(2))  # Sprites tab
 
+        # Arrow key navigation
+        self.root.bind('<Up>', self._on_arrow_up)
+        self.root.bind('<Down>', self._on_arrow_down)
+
+        # Escape to deselect
+        self.root.bind('<Escape>', self._on_escape_key)
+
     def _save_and_export(self):
         """Manual save and export."""
         self._save_project()
@@ -195,6 +206,46 @@ class RayCast3DStudio:
         elif current_tab == 2 and self.selected_sprite_row is not None:
             self._remove_sprite()
 
+    def _on_arrow_up(self, event):
+        """Handle up arrow key - move selection up."""
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 1:  # Textures tab
+            if self.selected_texture_row is None:
+                if self.textures:
+                    self._select_texture_row(len(self.textures) - 1)
+            elif self.selected_texture_row > 0:
+                self._select_texture_row(self.selected_texture_row - 1)
+        elif current_tab == 2:  # Sprites tab
+            if self.selected_sprite_row is None:
+                if self.sprites:
+                    self._select_sprite_row(len(self.sprites) - 1)
+            elif self.selected_sprite_row > 0:
+                self._select_sprite_row(self.selected_sprite_row - 1)
+
+    def _on_arrow_down(self, event):
+        """Handle down arrow key - move selection down."""
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 1:  # Textures tab
+            if self.selected_texture_row is None:
+                if self.textures:
+                    self._select_texture_row(0)
+            elif self.selected_texture_row < len(self.textures) - 1:
+                self._select_texture_row(self.selected_texture_row + 1)
+        elif current_tab == 2:  # Sprites tab
+            if self.selected_sprite_row is None:
+                if self.sprites:
+                    self._select_sprite_row(0)
+            elif self.selected_sprite_row < len(self.sprites) - 1:
+                self._select_sprite_row(self.selected_sprite_row + 1)
+
+    def _on_escape_key(self, event):
+        """Handle escape key - deselect current selection."""
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 1:
+            self._deselect_texture_row()
+        elif current_tab == 2:
+            self._deselect_sprite_row()
+
     def _on_close(self):
         """Handle window close - save and export before closing."""
         print("Closing - saving project...")
@@ -202,13 +253,26 @@ class RayCast3DStudio:
         self._auto_export()
         self.root.destroy()
 
-    def _init_perimeter(self):
+    @property
+    def map_data(self):
+        """Get current map data (for backwards compatibility)."""
+        return self.maps[self.current_map_idx]["data"]
+
+    @property
+    def current_map_name(self):
+        """Get current map name."""
+        return self.maps[self.current_map_idx]["name"]
+
+    def _init_perimeter(self, map_idx=None):
         """Initialize perimeter with texture 1 (default wall)."""
+        if map_idx is None:
+            map_idx = self.current_map_idx
+        data = self.maps[map_idx]["data"]
         for i in range(MAP_SIZE):
-            self.map_data[0][i] = 1       # Top row
-            self.map_data[MAP_SIZE-1][i] = 1  # Bottom row
-            self.map_data[i][0] = 1       # Left column
-            self.map_data[i][MAP_SIZE-1] = 1  # Right column
+            data[0][i] = 1       # Top row
+            data[MAP_SIZE-1][i] = 1  # Bottom row
+            data[i][0] = 1       # Left column
+            data[i][MAP_SIZE-1] = 1  # Right column
 
     def _build_ui(self):
         """Build the main UI."""
@@ -227,7 +291,7 @@ class RayCast3DStudio:
         self.status_label.pack(side='right')
 
         # Keyboard shortcuts hint
-        shortcuts_label = ttk.Label(memory_frame, text="Ctrl+T: Add Texture | Ctrl+P: Add Sprite | Del: Remove | Ctrl+1/2/3: Switch Tabs",
+        shortcuts_label = ttk.Label(memory_frame, text="Ctrl+T/P: Add | Del: Remove | ↑↓: Navigate | Esc: Deselect | Ctrl+1/2/3: Tabs",
                                     font=('Consolas', 8), foreground='gray')
         shortcuts_label.pack(side='right', padx=20)
 
@@ -252,6 +316,26 @@ class RayCast3DStudio:
 
     def _build_map_tab(self):
         """Build the map editor tab."""
+        # Map selection controls at top
+        map_ctrl_frame = ttk.Frame(self.map_tab)
+        map_ctrl_frame.pack(fill='x', padx=10, pady=5)
+
+        ttk.Label(map_ctrl_frame, text="Current Map:", font=('Arial', 10, 'bold')).pack(side='left', padx=5)
+
+        self.map_selector_var = tk.StringVar(value=self.maps[0]["name"])
+        self.map_selector = ttk.Combobox(map_ctrl_frame, textvariable=self.map_selector_var,
+                                          state='readonly', width=15)
+        self.map_selector['values'] = [m["name"] for m in self.maps]
+        self.map_selector.pack(side='left', padx=5)
+        self.map_selector.bind('<<ComboboxSelected>>', self._on_map_selected)
+
+        ttk.Button(map_ctrl_frame, text="Add Map", command=self._add_map).pack(side='left', padx=5)
+        ttk.Button(map_ctrl_frame, text="Rename", command=self._rename_map).pack(side='left', padx=5)
+        ttk.Button(map_ctrl_frame, text="Delete", command=self._delete_map).pack(side='left', padx=5)
+
+        ttk.Label(map_ctrl_frame, text=f"({len(self.maps)} map(s))", font=('Arial', 9)).pack(side='left', padx=10)
+        self.map_count_label = map_ctrl_frame.winfo_children()[-1]  # Reference to update later
+
         main_frame = ttk.Frame(self.map_tab)
         main_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
@@ -388,7 +472,7 @@ class RayCast3DStudio:
 
         ttk.Label(ctrl_frame, text="Default Resolution:").pack(side='left', padx=(20, 5))
         self.sprite_res_var = tk.StringVar(value="32")
-        ttk.Combobox(ctrl_frame, textvariable=self.sprite_res_var, values=["16", "32", "64"], width=5).pack(side='left')
+        ttk.Combobox(ctrl_frame, textvariable=self.sprite_res_var, values=["16", "32", "64", "128"], width=5).pack(side='left')
 
         # Header row
         header_frame = ttk.Frame(main_frame)
@@ -489,6 +573,91 @@ class RayCast3DStudio:
         self._auto_export()
         self._save_project()
 
+    def _on_map_selected(self, event=None):
+        """Handle map selection from dropdown."""
+        selected_name = self.map_selector_var.get()
+        for i, m in enumerate(self.maps):
+            if m["name"] == selected_name:
+                self.current_map_idx = i
+                self._draw_map_grid()
+                break
+
+    def _add_map(self):
+        """Add a new map."""
+        # Generate unique name
+        base_name = "map"
+        counter = len(self.maps) + 1
+        while any(m["name"] == f"{base_name}{counter}" for m in self.maps):
+            counter += 1
+        new_name = f"{base_name}{counter}"
+
+        name = simpledialog.askstring("New Map", "Enter map name:", initialvalue=new_name)
+        if not name:
+            return
+
+        # Clean name for C variable
+        name = ''.join(c if c.isalnum() or c == '_' else '_' for c in name)
+
+        # Check for duplicate
+        if any(m["name"] == name for m in self.maps):
+            messagebox.showerror("Error", f"Map '{name}' already exists.")
+            return
+
+        # Create new map with perimeter
+        new_map = {"name": name, "data": [[0 for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]}
+        self.maps.append(new_map)
+        self.current_map_idx = len(self.maps) - 1
+        self._init_perimeter()
+
+        self._update_map_selector()
+        self._draw_map_grid()
+        self._auto_export()
+        self._save_project()
+
+    def _rename_map(self):
+        """Rename the current map."""
+        old_name = self.maps[self.current_map_idx]["name"]
+        new_name = simpledialog.askstring("Rename Map", "Enter new name:", initialvalue=old_name)
+        if not new_name or new_name == old_name:
+            return
+
+        # Clean name for C variable
+        new_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in new_name)
+
+        # Check for duplicate
+        if any(m["name"] == new_name for m in self.maps):
+            messagebox.showerror("Error", f"Map '{new_name}' already exists.")
+            return
+
+        self.maps[self.current_map_idx]["name"] = new_name
+        self._update_map_selector()
+        self._auto_export()
+        self._save_project()
+
+    def _delete_map(self):
+        """Delete the current map."""
+        if len(self.maps) <= 1:
+            messagebox.showwarning("Cannot Delete", "At least one map must exist.")
+            return
+
+        name = self.maps[self.current_map_idx]["name"]
+        if not messagebox.askyesno("Delete Map", f"Delete map '{name}'?"):
+            return
+
+        del self.maps[self.current_map_idx]
+        self.current_map_idx = min(self.current_map_idx, len(self.maps) - 1)
+
+        self._update_map_selector()
+        self._draw_map_grid()
+        self._auto_export()
+        self._save_project()
+
+    def _update_map_selector(self):
+        """Update the map selector dropdown."""
+        self.map_selector['values'] = [m["name"] for m in self.maps]
+        self.map_selector_var.set(self.maps[self.current_map_idx]["name"])
+        self.map_count_label.config(text=f"({len(self.maps)} map(s))")
+
     def _paint_cell(self, event):
         """Paint a cell at mouse position."""
         col = event.x // CELL_SIZE
@@ -562,39 +731,52 @@ class RayCast3DStudio:
 
     def _create_wall_preview(self, texture_img, tex_resolution):
         """
-        Create a preview that simulates how the texture looks on a wall in-game.
-        Simulates the raycaster's vertical stretching and sampling at 128x160 resolution.
+        Create a SQUARE preview that simulates how the texture looks on a wall in-game.
+
+        Accurately shows horizontal banding artifacts caused by the raycaster's
+        integer division when vertically stretching textures to fill wall height.
+
+        The banding occurs because when a 32x32 texture is stretched to ~120 pixels,
+        some texture rows are displayed more times than others due to integer math:
+        tex_y = (screen_y * tex_resolution) // wall_height
+
+        This creates visible horizontal bands where rows "bunch up".
         """
-        # Simulate a wall at moderate distance - texture fills about 120 pixels tall
-        wall_height = 120
-        wall_width = 64  # Show multiple columns to see the texture pattern
+        # Use a square preview for accurate representation
+        preview_size = 128  # Square preview
+
+        # Simulate typical wall rendering: texture stretched to ~120 pixels on 160px screen
+        simulated_wall_height = 120
 
         # Create preview image
-        preview = Image.new("RGB", (wall_width, wall_height), (0, 0, 0))
+        preview = Image.new("RGB", (preview_size, preview_size), (0, 0, 0))
         preview_pixels = preview.load()
 
         texture_pixels = texture_img.convert("RGB").load()
 
-        # Simulate raycaster sampling for each column
-        for x in range(wall_width):
-            # Map x to texture column
-            tex_x = (x * tex_resolution) // wall_width
+        # For each preview pixel, simulate the double-sampling that creates banding:
+        # 1. First, simulate stretching: map preview_y -> simulated wall position
+        # 2. Then, simulate raycaster sampling: wall position -> texture coordinate
 
-            for y in range(wall_height):
-                # Simulate the integer division sampling the raycaster uses
-                # This is the key to matching in-game appearance
-                tex_y = (y * tex_resolution) // wall_height
+        for x in range(preview_size):
+            # Map preview x to texture x (simple scaling)
+            tex_x = (x * tex_resolution) // preview_size
+            tex_x = min(tex_x, tex_resolution - 1)
 
-                # Clamp to valid range
-                tex_x = min(tex_x, tex_resolution - 1)
+            for y in range(preview_size):
+                # Step 1: Map preview coordinate to simulated wall position
+                # (scale preview down to simulated wall height proportionally)
+                wall_y = (y * simulated_wall_height) // preview_size
+
+                # Step 2: Simulate raycaster's integer division sampling
+                # This is where banding originates - integer division causes
+                # some texture rows to be selected multiple times
+                tex_y = (wall_y * tex_resolution) // simulated_wall_height
                 tex_y = min(tex_y, tex_resolution - 1)
 
                 preview_pixels[x, y] = texture_pixels[tex_x, tex_y]
 
-        # Scale up for visibility (2x)
-        display_preview = preview.resize((wall_width * 2, wall_height * 2), Image.NEAREST)
-
-        return ImageTk.PhotoImage(display_preview)
+        return ImageTk.PhotoImage(preview)
 
     def _refresh_texture_list(self):
         """Refresh the texture list with inline dropdown."""
@@ -630,12 +812,30 @@ class RayCast3DStudio:
 
             self.texture_rows.append((row_frame, res_var, name_label, mem_label))
 
+    def _deselect_texture_row(self):
+        """Deselect the currently selected texture row."""
+        if self.selected_texture_row is not None and self.selected_texture_row < len(self.texture_rows):
+            old_frame = self.texture_rows[self.selected_texture_row][0]
+            for child in old_frame.winfo_children():
+                if isinstance(child, ttk.Label):
+                    child.configure(background='')
+        self.selected_texture_row = None
+        self.tex_preview_label.config(image='')
+        self.tex_preview_info.config(text='Select a texture to see preview')
+
     def _select_texture_row(self, idx):
-        """Select a texture row and show preview."""
+        """Select a texture row and show preview. Click again to deselect."""
+        # If clicking the same row, deselect it
+        if self.selected_texture_row == idx:
+            self._deselect_texture_row()
+            return
+
         # Deselect previous
         if self.selected_texture_row is not None and self.selected_texture_row < len(self.texture_rows):
             old_frame = self.texture_rows[self.selected_texture_row][0]
-            old_frame.configure(style='TFrame')
+            for child in old_frame.winfo_children():
+                if isinstance(child, ttk.Label):
+                    child.configure(background='')
 
         self.selected_texture_row = idx
 
@@ -653,11 +853,7 @@ class RayCast3DStudio:
             if tex.preview:
                 self.tex_preview_label.config(image=tex.preview)
             self.tex_preview_info.config(text=f"Resolution: {tex.resolution}x{tex.resolution}\n"
-                                              f"Memory: {tex.memory_bytes()} bytes\n\n"
-                                              f"Preview shows how texture\n"
-                                              f"appears on a wall at\n"
-                                              f"moderate distance in the\n"
-                                              f"128x160 game display.")
+                                              f"Memory: {tex.memory_bytes()} bytes")
 
     def _on_texture_resolution_change(self, idx, var):
         """Handle texture resolution dropdown change."""
@@ -857,7 +1053,7 @@ class RayCast3DStudio:
 
             # Resolution dropdown (always visible)
             res_var = tk.StringVar(value=str(sprite.resolution))
-            res_combo = ttk.Combobox(row_frame, textvariable=res_var, values=["16", "32", "64"],
+            res_combo = ttk.Combobox(row_frame, textvariable=res_var, values=["16", "32", "64", "128"],
                                      width=8, state='readonly')
             res_combo.pack(side='left', padx=5)
             res_combo.bind('<<ComboboxSelected>>', lambda e, idx=i, var=res_var: self._on_sprite_resolution_change(idx, var))
@@ -869,8 +1065,24 @@ class RayCast3DStudio:
 
             self.sprite_rows.append((row_frame, res_var, name_label, mem_label))
 
+    def _deselect_sprite_row(self):
+        """Deselect the currently selected sprite row."""
+        if self.selected_sprite_row is not None and self.selected_sprite_row < len(self.sprite_rows):
+            old_frame = self.sprite_rows[self.selected_sprite_row][0]
+            for child in old_frame.winfo_children():
+                if isinstance(child, ttk.Label):
+                    child.configure(background='')
+        self.selected_sprite_row = None
+        self.sprite_preview_label.config(image='')
+        self.sprite_preview_info.config(text='Select a sprite to see preview')
+
     def _select_sprite_row(self, idx):
-        """Select a sprite row and show preview."""
+        """Select a sprite row and show preview. Click again to deselect."""
+        # If clicking the same row, deselect it
+        if self.selected_sprite_row == idx:
+            self._deselect_sprite_row()
+            return
+
         # Deselect previous
         if self.selected_sprite_row is not None and self.selected_sprite_row < len(self.sprite_rows):
             old_frame = self.sprite_rows[self.selected_sprite_row][0]
@@ -1027,8 +1239,8 @@ class RayCast3DStudio:
         Create a transparency-aware sprite preview that simulates in-game appearance.
         Shows checkerboard pattern behind transparent pixels, scaled as it would appear in-game.
         """
-        # Simulate sprite at moderate scale - about 80 pixels tall on 160 pixel screen
-        scale = max(1, 80 // height)
+        # Simulate sprite at larger scale for better visibility
+        scale = max(2, 128 // height)
         display_w = width * scale
         display_h = height * scale
 
@@ -1064,12 +1276,12 @@ class RayCast3DStudio:
         """Update the memory usage display."""
         tex_memory = sum(t.memory_bytes() for t in self.textures)
         sprite_memory = sum(s.memory_bytes() for s in self.sprites)
-        map_memory = MAP_SIZE * MAP_SIZE  # 1 byte per cell
+        map_memory = MAP_SIZE * MAP_SIZE * len(self.maps)  # 1 byte per cell per map
         total = tex_memory + sprite_memory + map_memory
 
         self.memory_label.config(text=f"Memory Usage: {total:,} bytes")
         self.memory_detail.config(
-            text=f"(Textures: {tex_memory:,} | Sprites: {sprite_memory:,} | Map: {map_memory})"
+            text=f"(Textures: {tex_memory:,} | Sprites: {sprite_memory:,} | Maps: {map_memory} ({len(self.maps)} maps))"
         )
 
     # ========== Project Save/Load ==========
@@ -1078,13 +1290,14 @@ class RayCast3DStudio:
         """Save project state to JSON file."""
         try:
             project = {
-                'map_data': self.map_data,
+                'maps': self.maps,  # List of {"name": str, "data": 2D list}
+                'current_map_idx': self.current_map_idx,
                 'textures': [t.to_dict() for t in self.textures],
                 'sprites': [s.to_dict() for s in self.sprites]
             }
             with open(PROJECT_FILE, 'w') as f:
                 json.dump(project, f, indent=2)
-            print(f"Saved: {len(self.textures)} textures, {len(self.sprites)} sprites")
+            print(f"Saved: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps")
         except Exception as e:
             print(f"Error saving project: {e}")
             messagebox.showerror("Save Error", f"Failed to save project: {e}")
@@ -1100,9 +1313,20 @@ class RayCast3DStudio:
             with open(PROJECT_FILE, 'r') as f:
                 project = json.load(f)
 
-            # Load map data
-            if 'map_data' in project:
-                self.map_data = project['map_data']
+            # Load maps (new format: multiple maps)
+            if 'maps' in project:
+                self.maps = project['maps']
+                self.current_map_idx = project.get('current_map_idx', 0)
+                # Ensure index is valid
+                self.current_map_idx = min(self.current_map_idx, len(self.maps) - 1)
+            # Backwards compatibility: load old single map format
+            elif 'map_data' in project:
+                self.maps = [{"name": "map1", "data": project['map_data']}]
+                self.current_map_idx = 0
+
+            # Update map selector if it exists
+            if hasattr(self, 'map_selector'):
+                self._update_map_selector()
 
             # Load textures
             if 'textures' in project:
@@ -1162,7 +1386,7 @@ class RayCast3DStudio:
                     "\n\nPlease re-add these textures/sprites."
                 )
 
-            print(f"Loaded: {len(self.textures)} textures, {len(self.sprites)} sprites")
+            print(f"Loaded: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps")
 
         except Exception as e:
             print(f"Error loading project: {e}")
@@ -1198,26 +1422,24 @@ class RayCast3DStudio:
             self.status_label.config(text=f"Export error: {e}", foreground='red')
 
     def _generate_textures_h(self):
-        """Generate textures.h content."""
+        """Generate textures.h content with per-texture resolution support."""
         lines = [
             "#ifndef TEXTURES_H_",
             "#define TEXTURES_H_",
             "",
             "#include <stdint.h>",
+            "#include \"../services/graphics.h\"  // For TextureInfo struct",
             "",
         ]
 
         if self.textures:
-            res = self.textures[0].resolution
-            lines.append(f"#define TEX_WIDTH {res}")
-            lines.append(f"#define TEX_HEIGHT {res}")
             lines.append(f"#define NUM_TEXTURES {len(self.textures)}")
             lines.append("")
 
-        # Generate texture arrays
+        # Generate texture data arrays (row-major order)
         for tex in self.textures:
-            lines.append(f"// {tex.name}")
-            lines.append(f"const uint16_t {tex.name}[{tex.resolution} * {tex.resolution}] = {{")
+            lines.append(f"// {tex.name} ({tex.resolution}x{tex.resolution})")
+            lines.append(f"static const uint16_t {tex.name}_data[{tex.resolution} * {tex.resolution}] = {{")
 
             # Format array in rows
             row_size = tex.resolution
@@ -1228,11 +1450,14 @@ class RayCast3DStudio:
             lines.append("};")
             lines.append("")
 
-        # Generate texture pointer array
+        # Generate TextureInfo array with per-texture resolution
         if self.textures:
-            tex_names = [t.name for t in self.textures]
-            lines.append("// Texture lookup array: map value 1 -> textures[0], etc.")
-            lines.append(f"const uint16_t* textures[] = {{" + ", ".join(tex_names) + "};")
+            lines.append("// Texture lookup array with per-texture resolution")
+            lines.append("// Map value 1 -> textures[0], value 2 -> textures[1], etc.")
+            lines.append("const TextureInfo textures[] = {")
+            for tex in self.textures:
+                lines.append(f"    {{{tex.name}_data, {tex.resolution}}},  // {tex.name}")
+            lines.append("};")
             lines.append("")
 
         lines.append("#endif /* TEXTURES_H_ */")
@@ -1240,19 +1465,32 @@ class RayCast3DStudio:
         return "\n".join(lines)
 
     def _generate_map_h(self):
-        """Generate map.h content."""
+        """Generate map.h content with all maps and pointer array."""
         lines = [
             "#ifndef MAP_H_",
             "#define MAP_H_",
             "",
             "#include <stdint.h>",
             "",
-            f"static const uint8_t testMap[{MAP_SIZE}][{MAP_SIZE}] = {{",
+            f"#define MAP_COUNT {len(self.maps)}",
+            "",
         ]
 
-        for row in self.map_data:
-            lines.append("    {" + ",".join(str(v) for v in row) + "},")
+        # Export each map with its name
+        for map_info in self.maps:
+            map_name = map_info["name"]
+            map_data = map_info["data"]
+            lines.append(f"static const uint8_t {map_name}[{MAP_SIZE}][{MAP_SIZE}] = {{")
+            for row in map_data:
+                lines.append("    {" + ",".join(str(v) for v in row) + "},")
+            lines.append("};")
+            lines.append("")
 
+        # Create pointer array for easy map switching
+        lines.append("// Map pointer array for easy switching by index")
+        lines.append(f"static const uint8_t (*const mapList[{len(self.maps)}])[{MAP_SIZE}] = {{")
+        for map_info in self.maps:
+            lines.append(f"    {map_info['name']},")
         lines.append("};")
         lines.append("")
         lines.append("#endif /* MAP_H_ */")

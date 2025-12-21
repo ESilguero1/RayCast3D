@@ -1,12 +1,17 @@
+/* graphics.h
+ * RayCast3D Graphics Library
+ * Main header - includes all sub-modules
+ */
+
 #ifndef GRAPHICS_H_
 #define GRAPHICS_H_
 
 #include <stdint.h>
 #include "../drivers/ST7735.h"
 
-// Map dimensions
-#define MAP_WIDTH 24
-#define MAP_HEIGHT 24
+// Include sub-modules
+#include "camera.h"
+#include "map.h"
 
 // Screen dimensions
 #define SCREEN_WIDTH 160
@@ -14,18 +19,13 @@
 #define BUFFER_WIDTH (SCREEN_WIDTH / 2)
 #define BUFFER_HEIGHT SCREEN_HEIGHT
 
-// Camera state structure (owned by library)
+// Texture info structure (allows per-texture resolution)
 typedef struct {
-    double posX;
-    double posY;
-    double dirX;
-    double dirY;
-    double planeX;
-    double planeY;
-} Camera;
+    const uint16_t* data;
+    int resolution;  // Texture dimension (e.g., 16, 32, 64, 128)
+} TextureInfo;
 
-// World map and depth buffer
-extern uint8_t worldMap[MAP_WIDTH][MAP_HEIGHT];
+// Depth buffer for sprite sorting
 extern double ZBuffer[SCREEN_WIDTH];
 
 // Core functions
@@ -34,14 +34,7 @@ void Graphics_SetFloorColor(uint16_t color);
 void Graphics_SetSkyColor(uint16_t color);
 void Graphics_SetFloorGradient(double intensity);
 void RenderScene(void);
-void FillMap(const uint8_t map[MAP_WIDTH][MAP_HEIGHT]);
 void CastRays(int side);
-
-// Camera control functions
-void Camera_SetPosition(double x, double y);
-void Camera_Move(double forward, double strafe);
-void Camera_Rotate(double degrees);
-const Camera* Camera_Get(void);
 
 // FPS display - enables/disables FPS overlay on screen
 void Graphics_DisplayFPS(int x, int y, uint16_t color);

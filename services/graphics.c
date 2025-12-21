@@ -12,21 +12,8 @@
 #include "../utils/fastmath.h"
 #include "../utils/fpscounter.h"
 
-// World map
-uint8_t worldMap[MAP_WIDTH][MAP_HEIGHT];
-
 // Z-buffer for depth sorting
 double ZBuffer[SCREEN_WIDTH];
-
-// Camera state (owned by library)
-static Camera camera = {
-    .posX = 12.0,
-    .posY = 12.0,
-    .dirX = -1.0,
-    .dirY = 0.0,
-    .planeX = 0.0,
-    .planeY = 0.66
-};
 
 // FPS display state
 static int fpsEnabled = 0;
@@ -65,15 +52,9 @@ static void drawFPSOverlay(int side);
 static void drawTextQueue(int side);
 static void drawFGSpriteQueue(int side);
 
-void FillMap(const uint8_t map[MAP_WIDTH][MAP_HEIGHT]) {
-    for (int i = 0; i < MAP_WIDTH; i++) {
-        for (int j = 0; j < MAP_HEIGHT; j++) {
-            worldMap[i][j] = map[i][j];
-        }
-    }
-}
-
 void CastRays(int side) {
+    const Camera* cam = Camera_Get();
+
     // Determine loop bounds
     int startX = (side == 0) ? 0 : SCREEN_WIDTH / 2;
     int endX = (side == 0) ? SCREEN_WIDTH / 2 : SCREEN_WIDTH;
@@ -81,12 +62,12 @@ void CastRays(int side) {
     for (int x = startX; x < endX; x++) {
         // Calculate ray position and direction
         double cameraX = 2 * x / (double)SCREEN_WIDTH - 1;
-        double rayDirX = camera.dirX + camera.planeX * cameraX;
-        double rayDirY = camera.dirY + camera.planeY * cameraX;
+        double rayDirX = cam->dirX + cam->planeX * cameraX;
+        double rayDirY = cam->dirY + cam->planeY * cameraX;
 
         // Which box of the map we're in
-        int mapX = (int)camera.posX;
-        int mapY = (int)camera.posY;
+        int mapX = (int)cam->posX;
+        int mapY = (int)cam->posY;
 
         // Length of ray from current position to next x or y-side
         double sideDistX;
@@ -107,17 +88,17 @@ void CastRays(int side) {
         // Calculate step and initial sideDist
         if (rayDirX < 0) {
             stepX = -1;
-            sideDistX = (camera.posX - mapX) * deltaDistX;
+            sideDistX = (cam->posX - mapX) * deltaDistX;
         } else {
             stepX = 1;
-            sideDistX = (mapX + 1.0 - camera.posX) * deltaDistX;
+            sideDistX = (mapX + 1.0 - cam->posX) * deltaDistX;
         }
         if (rayDirY < 0) {
             stepY = -1;
-            sideDistY = (camera.posY - mapY) * deltaDistY;
+            sideDistY = (cam->posY - mapY) * deltaDistY;
         } else {
             stepY = 1;
-            sideDistY = (mapY + 1.0 - camera.posY) * deltaDistY;
+            sideDistY = (mapY + 1.0 - cam->posY) * deltaDistY;
         }
 
         // Perform DDA
@@ -154,25 +135,31 @@ void CastRays(int side) {
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
         int texNum = (worldMap[mapX][mapY] - 1) % NUM_TEXTURES; // Texture index based on map value (1-NUM_TEXTURES)
+        int texRes = textures[texNum].resolution;  // Per-texture resolution
+
         double wallX; // Where exactly the wall was hit
-        if (sideHit == 0) wallX = camera.posY + perpWallDist * rayDirY;
-        else              wallX = camera.posX + perpWallDist * rayDirX;
+        if (sideHit == 0) wallX = cam->posY + perpWallDist * rayDirY;
+        else              wallX = cam->posX + perpWallDist * rayDirX;
         wallX -= floor(wallX);
 
-        int texX = (int)(wallX * (double)TEX_WIDTH);
-        if (sideHit == 0 && rayDirX > 0) texX = TEX_WIDTH - texX - 1;
-        if (sideHit == 1 && rayDirY < 0) texX = TEX_WIDTH - texX - 1;
+        int texX = (int)(wallX * (double)texRes);
+        if (sideHit == 0 && rayDirX > 0) texX = texRes - texX - 1;
+        if (sideHit == 1 && rayDirY < 0) texX = texRes - texX - 1;
+        if (texX < 0) texX = 0;
+        if (texX >= texRes) texX = texRes - 1;
 
         // Calculate how much to increase the texture coordinate per screen pixel
-        double step = 1.0 * TEX_HEIGHT / lineHeight;
+        double step = 1.0 * texRes / lineHeight;
         // Starting texture coordinate
         double texPos = (drawStart - SCREEN_HEIGHT / 2.0 + lineHeight / 2.0) * step;
 
         for (int y = drawStart; y < drawEnd; y++) {
-            // Integer texture coordinate
-            int texY = (TEX_HEIGHT - 1) - ((int)texPos & (TEX_HEIGHT - 1)); // Flip texture vertically
+            // Integer texture coordinate with bounds checking
+            int texY = (texRes - 1) - ((int)texPos & (texRes - 1)); // Flip texture vertically
+            if (texY < 0) texY = 0;
+            if (texY >= texRes) texY = texRes - 1;
             texPos += step;
-            uint16_t color = textures[texNum][texY * TEX_WIDTH + texX];
+            uint16_t color = textures[texNum].data[texY * texRes + texX];
 
             // Make color darker for y-sides
             if (sideHit == 1) { color = (color >> 1) & 0x7BEF; }
@@ -221,51 +208,6 @@ void Graphics_SetSkyColor(uint16_t color) {
 
 void Graphics_SetFloorGradient(double intensity) {
     Buffer_SetFloorGradient(intensity);
-}
-
-// Camera control functions
-
-void Camera_SetPosition(double x, double y) {
-    camera.posX = x;
-    camera.posY = y;
-}
-
-void Camera_Move(double forward, double strafe) {
-    // Move forward/backward along direction vector
-    double newX = camera.posX + camera.dirX * forward;
-    double newY = camera.posY + camera.dirY * forward;
-
-    // Strafe (move perpendicular to direction)
-    newX += camera.planeX * strafe;
-    newY += camera.planeY * strafe;
-
-    // Simple collision detection - only move if not hitting a wall
-    if (worldMap[(int)newX][(int)camera.posY] == 0) {
-        camera.posX = newX;
-    }
-    if (worldMap[(int)camera.posX][(int)newY] == 0) {
-        camera.posY = newY;
-    }
-}
-
-void Camera_Rotate(double degrees) {
-    double radians = degrees * DEG_TO_RAD;
-    double cosA = fast_cos(radians);
-    double sinA = fast_sin(radians);
-
-    // Rotate direction vector
-    double oldDirX = camera.dirX;
-    camera.dirX = camera.dirX * cosA - camera.dirY * sinA;
-    camera.dirY = oldDirX * sinA + camera.dirY * cosA;
-
-    // Rotate camera plane (must rotate same amount to maintain FOV)
-    double oldPlaneX = camera.planeX;
-    camera.planeX = camera.planeX * cosA - camera.planeY * sinA;
-    camera.planeY = oldPlaneX * sinA + camera.planeY * cosA;
-}
-
-const Camera* Camera_Get(void) {
-    return &camera;
 }
 
 static void drawFPSOverlay(int side) {

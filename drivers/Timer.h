@@ -239,19 +239,19 @@ void TimerG12_IntArm(uint32_t period, uint32_t priority);
  * simply read TIMG12->COUNTERREGS.CTR for 32 bit time
  * - resolution is bus clock, for 80 MHz clock, 12.5ns
  * - precision is 32 bits,
- * 
- * TimerG12 is on power Domain PD1 
+ *
+ * TimerG12 is on power Domain PD1
  * - 32MHz bus clock, Timer clock is 32MHz
  * - 40MHz bus clock, Timer clock is ULPCLK 40MHz
  * - 80MHz bus clock, Timer clock is ULPCLK 80MHz
  *
  * @param none
- * @return none 
+ * @return none
  * @brief  Initialize Timer G12
  * @note Example use to measure execution time of myfunction
  * @code
 uint32_t elapsed,start,end;
-  TimerG12_Init(); // start timer G12 
+  TimerG12_Init(); // start timer G12
   start = TIMG12->COUNTERREGS.CTR;
   myfunction();
   end = TIMG12->COUNTERREGS.CTR;
