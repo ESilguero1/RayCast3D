@@ -3,6 +3,7 @@
 
 #include "assets/map.h"
 #include "assets/images.h"
+#include "assets/colors.h"
 #include "services/graphics.h"
 #include "services/sprites.h"
 

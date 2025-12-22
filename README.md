@@ -20,9 +20,42 @@ This library requires the following external Valvanoware files:
 
 These files are provided in the ECE 319K Valvanoware distribution and should be placed in an `inc/` directory at the same level as the `RayCast3D/` folder.
 
-## Getting Started
+## RayCast3D Studio
 
-See the course materials for integration instructions and usage examples.
+A GUI application for creating and managing game assets. Run `RayCast3D_Studio.py` with Python 3.
+
+### Features
+
+- **Map Editor** — 24×24 grid editor with click-and-drag wall placement. Supports multiple maps with add/rename/delete. Perimeter walls are enforced automatically.
+
+- **Texture Manager** — Import textures from image files (PNG, JPG, etc.). Supports 16×16, 32×32, 64×64, and 128×128 resolutions. Each texture can have a different resolution for quality/memory trade-offs.
+
+- **Sprite Manager** — Import sprite images with automatic transparent color detection. Supports alpha channel transparency or top-left pixel as transparent key. Preview shows simulated in-game appearance.
+
+- **Color Picker** — Define named colors with a visual color picker. Colors are exported as BGR565 constants for use with `Graphics_SetFloorColor()`, `Graphics_SetSkyColor()`, etc.
+
+### Auto-Export
+
+The Studio automatically exports to the `assets/` folder:
+
+| File | Contents |
+|------|----------|
+| `textures.h` | Wall textures with `TextureInfo` structs |
+| `map.h` | Map data arrays and `mapList[]` pointer array |
+| `images.h` | Sprite images with `SpriteImage` structs |
+| `colors.h` | Named color constants in BGR565 format |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+1/2/3/4` | Switch tabs (Map/Textures/Sprites/Colors) |
+| `Ctrl+T` | Add texture |
+| `Ctrl+P` | Add sprite |
+| `Ctrl+S` | Save and export |
+| `Delete` | Remove selected item |
+| `↑/↓` | Navigate list items |
+| `Escape` | Deselect |
 
 ## UI Overlay Functions
 

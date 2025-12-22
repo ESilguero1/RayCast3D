@@ -5,7 +5,7 @@ Automatically saves project state and exports to assets folder.
 """
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
+from tkinter import ttk, filedialog, messagebox, simpledialog, colorchooser
 from PIL import Image, ImageTk
 import os
 import json
@@ -128,6 +128,33 @@ class Sprite:
                       transparent=d.get('transparent', 0x0000))
 
 
+class Color:
+    """Represents a named color for the game."""
+    def __init__(self, name, r, g, b):
+        self.name = name
+        self.r = r  # 0-255
+        self.g = g  # 0-255
+        self.b = b  # 0-255
+
+    def to_bgr565(self):
+        """Convert RGB to BGR565 format."""
+        blue5 = self.b >> 3
+        green6 = self.g >> 2
+        red5 = self.r >> 3
+        return ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
+
+    def to_hex_string(self):
+        """Return color as #RRGGBB hex string for tkinter."""
+        return f"#{self.r:02X}{self.g:02X}{self.b:02X}"
+
+    def to_dict(self):
+        return {'name': self.name, 'r': self.r, 'g': self.g, 'b': self.b}
+
+    @staticmethod
+    def from_dict(d):
+        return Color(d['name'], d['r'], d['g'], d['b'])
+
+
 class RayCast3DStudio:
     def __init__(self, root):
         self.root = root
@@ -137,6 +164,7 @@ class RayCast3DStudio:
         # Data
         self.textures = []  # List of Texture objects
         self.sprites = []   # List of Sprite objects
+        self.colors = []    # List of Color objects
 
         # Multiple maps support
         self.maps = [{"name": "map1", "data": [[0 for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]}]
@@ -150,8 +178,17 @@ class RayCast3DStudio:
         # UI references for list items
         self.texture_rows = []  # List of (frame, combo_var) tuples
         self.sprite_rows = []
-        self.selected_texture_row = None
-        self.selected_sprite_row = None
+        self.color_rows = []
+
+        # Multi-selection support (sets of selected indices)
+        self.selected_texture_rows = set()
+        self.selected_sprite_rows = set()
+        self.selected_color_rows = set()
+
+        # Last clicked index for Shift+Click range selection
+        self.last_texture_click = None
+        self.last_sprite_click = None
+        self.last_color_click = None
 
         # Initialize perimeter walls for the first map
         self._init_perimeter()
@@ -184,6 +221,7 @@ class RayCast3DStudio:
         self.root.bind('<Control-Key-1>', lambda e: self.notebook.select(0))  # Map tab
         self.root.bind('<Control-Key-2>', lambda e: self.notebook.select(1))  # Textures tab
         self.root.bind('<Control-Key-3>', lambda e: self.notebook.select(2))  # Sprites tab
+        self.root.bind('<Control-Key-4>', lambda e: self.notebook.select(3))  # Colors tab
 
         # Arrow key navigation
         self.root.bind('<Up>', self._on_arrow_up)
@@ -199,52 +237,68 @@ class RayCast3DStudio:
         self.status_label.config(text="Saved!", foreground='green')
 
     def _on_delete_key(self, event):
-        """Handle delete key press."""
+        """Handle delete key press - supports multi-select deletion."""
         current_tab = self.notebook.index(self.notebook.select())
-        if current_tab == 1 and self.selected_texture_row is not None:
-            self._remove_texture()
-        elif current_tab == 2 and self.selected_sprite_row is not None:
-            self._remove_sprite()
+        if current_tab == 1 and self.selected_texture_rows:
+            self._remove_textures()
+        elif current_tab == 2 and self.selected_sprite_rows:
+            self._remove_sprites()
+        elif current_tab == 3 and self.selected_color_rows:
+            self._remove_colors()
 
     def _on_arrow_up(self, event):
-        """Handle up arrow key - move selection up."""
+        """Handle up arrow key - move selection up (clears multi-select)."""
         current_tab = self.notebook.index(self.notebook.select())
         if current_tab == 1:  # Textures tab
-            if self.selected_texture_row is None:
+            if not self.selected_texture_rows:
                 if self.textures:
-                    self._select_texture_row(len(self.textures) - 1)
-            elif self.selected_texture_row > 0:
-                self._select_texture_row(self.selected_texture_row - 1)
+                    self._select_texture_row(len(self.textures) - 1, event)
+            elif self.last_texture_click is not None and self.last_texture_click > 0:
+                self._select_texture_row(self.last_texture_click - 1, event)
         elif current_tab == 2:  # Sprites tab
-            if self.selected_sprite_row is None:
+            if not self.selected_sprite_rows:
                 if self.sprites:
-                    self._select_sprite_row(len(self.sprites) - 1)
-            elif self.selected_sprite_row > 0:
-                self._select_sprite_row(self.selected_sprite_row - 1)
+                    self._select_sprite_row(len(self.sprites) - 1, event)
+            elif self.last_sprite_click is not None and self.last_sprite_click > 0:
+                self._select_sprite_row(self.last_sprite_click - 1, event)
+        elif current_tab == 3:  # Colors tab
+            if not self.selected_color_rows:
+                if self.colors:
+                    self._select_color_row(len(self.colors) - 1, event)
+            elif self.last_color_click is not None and self.last_color_click > 0:
+                self._select_color_row(self.last_color_click - 1, event)
 
     def _on_arrow_down(self, event):
-        """Handle down arrow key - move selection down."""
+        """Handle down arrow key - move selection down (clears multi-select)."""
         current_tab = self.notebook.index(self.notebook.select())
         if current_tab == 1:  # Textures tab
-            if self.selected_texture_row is None:
+            if not self.selected_texture_rows:
                 if self.textures:
-                    self._select_texture_row(0)
-            elif self.selected_texture_row < len(self.textures) - 1:
-                self._select_texture_row(self.selected_texture_row + 1)
+                    self._select_texture_row(0, event)
+            elif self.last_texture_click is not None and self.last_texture_click < len(self.textures) - 1:
+                self._select_texture_row(self.last_texture_click + 1, event)
         elif current_tab == 2:  # Sprites tab
-            if self.selected_sprite_row is None:
+            if not self.selected_sprite_rows:
                 if self.sprites:
-                    self._select_sprite_row(0)
-            elif self.selected_sprite_row < len(self.sprites) - 1:
-                self._select_sprite_row(self.selected_sprite_row + 1)
+                    self._select_sprite_row(0, event)
+            elif self.last_sprite_click is not None and self.last_sprite_click < len(self.sprites) - 1:
+                self._select_sprite_row(self.last_sprite_click + 1, event)
+        elif current_tab == 3:  # Colors tab
+            if not self.selected_color_rows:
+                if self.colors:
+                    self._select_color_row(0, event)
+            elif self.last_color_click is not None and self.last_color_click < len(self.colors) - 1:
+                self._select_color_row(self.last_color_click + 1, event)
 
     def _on_escape_key(self, event):
-        """Handle escape key - deselect current selection."""
+        """Handle escape key - deselect all in current tab."""
         current_tab = self.notebook.index(self.notebook.select())
         if current_tab == 1:
-            self._deselect_texture_row()
+            self._deselect_all_textures()
         elif current_tab == 2:
-            self._deselect_sprite_row()
+            self._deselect_all_sprites()
+        elif current_tab == 3:
+            self._deselect_all_colors()
 
     def _on_close(self):
         """Handle window close - save and export before closing."""
@@ -313,6 +367,11 @@ class RayCast3DStudio:
         self.sprite_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.sprite_tab, text='Sprites (Ctrl+3)')
         self._build_sprite_tab()
+
+        # Tab 4: Color Manager
+        self.color_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.color_tab, text='Colors (Ctrl+4)')
+        self._build_color_tab()
 
     def _build_map_tab(self):
         """Build the map editor tab."""
@@ -408,8 +467,11 @@ class RayCast3DStudio:
         add_btn = ttk.Button(ctrl_frame, text="Add Texture (Ctrl+T)", command=self._add_texture)
         add_btn.pack(side='left', padx=5)
 
-        remove_btn = ttk.Button(ctrl_frame, text="Remove Selected (Del)", command=self._remove_texture)
+        remove_btn = ttk.Button(ctrl_frame, text="Remove Selected (Del)", command=self._remove_textures)
         remove_btn.pack(side='left', padx=5)
+
+        rename_btn = ttk.Button(ctrl_frame, text="Rename", command=self._rename_texture)
+        rename_btn.pack(side='left', padx=5)
 
         ttk.Label(ctrl_frame, text="Default Resolution:").pack(side='left', padx=(20, 5))
         self.tex_res_var = tk.StringVar(value="64")
@@ -467,8 +529,11 @@ class RayCast3DStudio:
         add_btn = ttk.Button(ctrl_frame, text="Add Sprite (Ctrl+P)", command=self._add_sprite)
         add_btn.pack(side='left', padx=5)
 
-        remove_btn = ttk.Button(ctrl_frame, text="Remove Selected (Del)", command=self._remove_sprite)
+        remove_btn = ttk.Button(ctrl_frame, text="Remove Selected (Del)", command=self._remove_sprites)
         remove_btn.pack(side='left', padx=5)
+
+        rename_btn = ttk.Button(ctrl_frame, text="Rename", command=self._rename_sprite)
+        rename_btn.pack(side='left', padx=5)
 
         ttk.Label(ctrl_frame, text="Default Resolution:").pack(side='left', padx=(20, 5))
         self.sprite_res_var = tk.StringVar(value="32")
@@ -512,6 +577,271 @@ class RayCast3DStudio:
 
         self.sprite_preview_info = ttk.Label(preview_inner, text="", font=('Consolas', 9), justify='left')
         self.sprite_preview_info.pack(side='left', padx=10)
+
+    def _build_color_tab(self):
+        """Build the color manager tab."""
+        main_frame = ttk.Frame(self.color_tab)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Controls
+        ctrl_frame = ttk.Frame(main_frame)
+        ctrl_frame.pack(fill='x', pady=(0, 10))
+
+        add_btn = ttk.Button(ctrl_frame, text="Add Color", command=self._add_color)
+        add_btn.pack(side='left', padx=5)
+
+        remove_btn = ttk.Button(ctrl_frame, text="Remove Selected", command=self._remove_colors)
+        remove_btn.pack(side='left', padx=5)
+
+        edit_btn = ttk.Button(ctrl_frame, text="Edit Color", command=self._edit_color)
+        edit_btn.pack(side='left', padx=5)
+
+        rename_btn = ttk.Button(ctrl_frame, text="Rename", command=self._rename_color)
+        rename_btn.pack(side='left', padx=5)
+
+        # Header row
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill='x', pady=(5, 0))
+        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), width=20, anchor='w').pack(side='left', padx=5)
+        ttk.Label(header_frame, text="Color", font=('Arial', 10, 'bold'), width=10, anchor='w').pack(side='left', padx=5)
+        ttk.Label(header_frame, text="BGR565", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
+        ttk.Label(header_frame, text="RGB", font=('Arial', 10, 'bold'), width=15, anchor='w').pack(side='left', padx=5)
+
+        # Scrollable color list
+        list_container = ttk.Frame(main_frame)
+        list_container.pack(fill='both', expand=True, pady=5)
+
+        self.color_canvas = tk.Canvas(list_container, highlightthickness=0)
+        color_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.color_canvas.yview)
+        self.color_list_frame = ttk.Frame(self.color_canvas)
+
+        self.color_canvas.configure(yscrollcommand=color_scrollbar.set)
+        color_scrollbar.pack(side='right', fill='y')
+        self.color_canvas.pack(side='left', fill='both', expand=True)
+        self.color_canvas_window = self.color_canvas.create_window((0, 0), window=self.color_list_frame, anchor='nw')
+
+        self.color_list_frame.bind('<Configure>', lambda e: self.color_canvas.configure(scrollregion=self.color_canvas.bbox('all')))
+        self.color_canvas.bind('<Configure>', lambda e: self.color_canvas.itemconfig(self.color_canvas_window, width=e.width))
+
+        # Mouse wheel scrolling
+        self.color_canvas.bind('<MouseWheel>', lambda e: self.color_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
+
+        # Color rows tracking
+        self.color_rows = []
+        self.selected_color_row = None
+
+        # Info area
+        info_frame = ttk.LabelFrame(main_frame, text="Info")
+        info_frame.pack(fill='x', pady=10)
+
+        info_text = ttk.Label(info_frame, text="Colors are exported to assets/colors.h as BGR565 constants.\n"
+                                               "Use them in your code like: Graphics_SetFloorColor(COLOR_SKY);",
+                              font=('Consolas', 9), justify='left')
+        info_text.pack(padx=10, pady=10)
+
+    def _refresh_color_list(self):
+        """Refresh the color list display."""
+        # Clear existing rows
+        for widget in self.color_list_frame.winfo_children():
+            widget.destroy()
+        self.color_rows = []
+        self.selected_color_rows = set()
+        self.last_color_click = None
+
+        for i, color in enumerate(self.colors):
+            row_frame = ttk.Frame(self.color_list_frame)
+            row_frame.pack(fill='x', pady=1)
+
+            # Make row clickable for selection (pass event for modifier detection)
+            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
+            row_frame.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
+
+            # Name label
+            name_label = ttk.Label(row_frame, text=color.name, width=20, anchor='w')
+            name_label.pack(side='left', padx=5)
+            name_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
+            name_label.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
+
+            # Color swatch (using a small canvas)
+            swatch = tk.Canvas(row_frame, width=40, height=20, highlightthickness=1, highlightbackground='gray')
+            swatch.create_rectangle(0, 0, 40, 20, fill=color.to_hex_string(), outline='')
+            swatch.pack(side='left', padx=5)
+            swatch.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
+            swatch.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
+
+            # BGR565 value
+            bgr565_label = ttk.Label(row_frame, text=f"0x{color.to_bgr565():04X}", width=12, anchor='w', font=('Consolas', 9))
+            bgr565_label.pack(side='left', padx=5)
+            bgr565_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
+
+            # RGB values
+            rgb_label = ttk.Label(row_frame, text=f"({color.r}, {color.g}, {color.b})", width=15, anchor='w')
+            rgb_label.pack(side='left', padx=5)
+            rgb_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
+
+            self.color_rows.append((row_frame, name_label, swatch, bgr565_label, rgb_label))
+
+    def _deselect_all_colors(self):
+        """Deselect all color rows."""
+        for idx in list(self.selected_color_rows):
+            if idx < len(self.color_rows):
+                frame = self.color_rows[idx][0]
+                for child in frame.winfo_children():
+                    if isinstance(child, ttk.Label):
+                        child.configure(background='')
+        self.selected_color_rows = set()
+        self.last_color_click = None
+
+    def _update_color_highlights(self):
+        """Update visual highlighting for all color rows based on selection."""
+        for idx, row_data in enumerate(self.color_rows):
+            frame = row_data[0]
+            bg = '#cce5ff' if idx in self.selected_color_rows else ''
+            for child in frame.winfo_children():
+                if isinstance(child, ttk.Label):
+                    child.configure(background=bg)
+
+    def _select_color_row(self, idx, event=None):
+        """Select a color row with multi-select support.
+
+        - Normal click: Select only this row
+        - Ctrl+Click: Toggle this row in selection
+        - Shift+Click: Select range from last click to this row
+        """
+        ctrl_held = event and (event.state & 0x4)  # Control key
+        shift_held = event and (event.state & 0x1)  # Shift key
+
+        if ctrl_held:
+            # Toggle this row in selection
+            if idx in self.selected_color_rows:
+                self.selected_color_rows.discard(idx)
+            else:
+                self.selected_color_rows.add(idx)
+            self.last_color_click = idx
+        elif shift_held and self.last_color_click is not None:
+            # Select range from last click to current
+            start = min(self.last_color_click, idx)
+            end = max(self.last_color_click, idx)
+            self.selected_color_rows = set(range(start, end + 1))
+        else:
+            # Normal click - select only this row (or deselect if already only selection)
+            if self.selected_color_rows == {idx}:
+                self.selected_color_rows = set()
+                self.last_color_click = None
+            else:
+                self.selected_color_rows = {idx}
+                self.last_color_click = idx
+
+        self._update_color_highlights()
+
+    def _add_color(self):
+        """Add a new color using the color picker."""
+        # Open color chooser
+        result = colorchooser.askcolor(title="Choose a Color")
+        if result[0] is None:
+            return
+
+        rgb = result[0]  # (r, g, b) tuple
+        r, g, b = int(rgb[0]), int(rgb[1]), int(rgb[2])
+
+        # Ask for name
+        name = simpledialog.askstring("Color Name", "Enter a name for this color:")
+        if not name:
+            return
+
+        # Clean name for C constant (uppercase with underscores)
+        name = ''.join(c.upper() if c.isalnum() else '_' for c in name)
+        if not name[0].isalpha():
+            name = 'COLOR_' + name
+
+        # Check for duplicate
+        if any(c.name == name for c in self.colors):
+            messagebox.showerror("Error", f"Color '{name}' already exists.")
+            return
+
+        color = Color(name, r, g, b)
+        self.colors.append(color)
+
+        self._refresh_color_list()
+        self._auto_export()
+        self._save_project()
+
+    def _edit_color(self):
+        """Edit the selected color (edits last clicked if multiple selected)."""
+        if not self.selected_color_rows or self.last_color_click is None:
+            messagebox.showinfo("Info", "Please select a color to edit.")
+            return
+        self._edit_color_at(self.last_color_click)
+
+    def _edit_color_at(self, idx):
+        """Edit color at the given index."""
+        if idx >= len(self.colors):
+            return
+
+        color = self.colors[idx]
+
+        # Open color chooser with current color
+        result = colorchooser.askcolor(
+            initialcolor=color.to_hex_string(),
+            title=f"Edit Color: {color.name}"
+        )
+        if result[0] is None:
+            return
+
+        rgb = result[0]
+        color.r, color.g, color.b = int(rgb[0]), int(rgb[1]), int(rgb[2])
+
+        self._refresh_color_list()
+        self._auto_export()
+        self._save_project()
+
+    def _rename_color(self):
+        """Rename the selected color."""
+        if not self.selected_color_rows or self.last_color_click is None:
+            messagebox.showinfo("Info", "Please select a color to rename.")
+            return
+
+        idx = self.last_color_click
+        if idx >= len(self.colors):
+            return
+
+        color = self.colors[idx]
+        old_name = color.name
+
+        new_name = simpledialog.askstring("Rename Color", "Enter new name:", initialvalue=old_name)
+        if not new_name or new_name == old_name:
+            return
+
+        # Clean name for C variable
+        new_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in new_name)
+
+        # Check for duplicate
+        if any(c.name == new_name for c in self.colors):
+            messagebox.showerror("Error", f"Color '{new_name}' already exists.")
+            return
+
+        color.name = new_name
+        self._refresh_color_list()
+        self._auto_export()
+        self._save_project()
+
+    def _remove_colors(self):
+        """Remove all selected colors (supports multi-select)."""
+        if not self.selected_color_rows:
+            return
+
+        # Sort indices in reverse order to delete from end first
+        indices_to_remove = sorted(self.selected_color_rows, reverse=True)
+
+        for idx in indices_to_remove:
+            if idx < len(self.colors):
+                del self.colors[idx]
+
+        self.selected_color_rows = set()
+        self.last_color_click = None
+        self._refresh_color_list()
+        self._auto_export()
+        self._save_project()
 
     def _is_perimeter(self, row, col):
         """Check if a cell is on the perimeter."""
@@ -784,19 +1114,20 @@ class RayCast3DStudio:
         for widget in self.texture_list_frame.winfo_children():
             widget.destroy()
         self.texture_rows = []
-        self.selected_texture_row = None
+        self.selected_texture_rows = set()
+        self.last_texture_click = None
 
         for i, tex in enumerate(self.textures):
             row_frame = ttk.Frame(self.texture_list_frame)
             row_frame.pack(fill='x', pady=1)
 
-            # Make row clickable for selection
-            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx))
+            # Make row clickable for selection (pass event for modifier detection)
+            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
 
             # Name label
             name_label = ttk.Label(row_frame, text=tex.name, width=20, anchor='w')
             name_label.pack(side='left', padx=5)
-            name_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx))
+            name_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
 
             # Resolution dropdown (always visible)
             res_var = tk.StringVar(value=str(tex.resolution))
@@ -808,52 +1139,81 @@ class RayCast3DStudio:
             # Memory label
             mem_label = ttk.Label(row_frame, text=f"{tex.memory_bytes()} bytes", width=12, anchor='w')
             mem_label.pack(side='left', padx=5)
-            mem_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx))
+            mem_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
 
             self.texture_rows.append((row_frame, res_var, name_label, mem_label))
 
-    def _deselect_texture_row(self):
-        """Deselect the currently selected texture row."""
-        if self.selected_texture_row is not None and self.selected_texture_row < len(self.texture_rows):
-            old_frame = self.texture_rows[self.selected_texture_row][0]
-            for child in old_frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background='')
-        self.selected_texture_row = None
+    def _deselect_all_textures(self):
+        """Deselect all texture rows."""
+        for idx in list(self.selected_texture_rows):
+            if idx < len(self.texture_rows):
+                frame = self.texture_rows[idx][0]
+                for child in frame.winfo_children():
+                    if isinstance(child, ttk.Label):
+                        child.configure(background='')
+        self.selected_texture_rows = set()
+        self.last_texture_click = None
         self.tex_preview_label.config(image='')
         self.tex_preview_info.config(text='Select a texture to see preview')
 
-    def _select_texture_row(self, idx):
-        """Select a texture row and show preview. Click again to deselect."""
-        # If clicking the same row, deselect it
-        if self.selected_texture_row == idx:
-            self._deselect_texture_row()
-            return
-
-        # Deselect previous
-        if self.selected_texture_row is not None and self.selected_texture_row < len(self.texture_rows):
-            old_frame = self.texture_rows[self.selected_texture_row][0]
-            for child in old_frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background='')
-
-        self.selected_texture_row = idx
-
-        # Highlight selected
-        if idx < len(self.texture_rows):
-            frame = self.texture_rows[idx][0]
-            # Use a different background
+    def _update_texture_highlights(self):
+        """Update visual highlighting for all texture rows based on selection."""
+        for idx, row_data in enumerate(self.texture_rows):
+            frame = row_data[0]
+            bg = '#cce5ff' if idx in self.selected_texture_rows else ''
             for child in frame.winfo_children():
                 if isinstance(child, ttk.Label):
-                    child.configure(background='#cce5ff')
+                    child.configure(background=bg)
 
-        # Show preview
-        if idx < len(self.textures):
-            tex = self.textures[idx]
+    def _select_texture_row(self, idx, event=None):
+        """Select a texture row with multi-select support.
+
+        - Normal click: Select only this row
+        - Ctrl+Click: Toggle this row in selection
+        - Shift+Click: Select range from last click to this row
+        """
+        ctrl_held = event and (event.state & 0x4)  # Control key
+        shift_held = event and (event.state & 0x1)  # Shift key
+
+        if ctrl_held:
+            # Toggle this row in selection
+            if idx in self.selected_texture_rows:
+                self.selected_texture_rows.discard(idx)
+            else:
+                self.selected_texture_rows.add(idx)
+            self.last_texture_click = idx
+        elif shift_held and self.last_texture_click is not None:
+            # Select range from last click to current
+            start = min(self.last_texture_click, idx)
+            end = max(self.last_texture_click, idx)
+            self.selected_texture_rows = set(range(start, end + 1))
+        else:
+            # Normal click - select only this row (or deselect if already only selection)
+            if self.selected_texture_rows == {idx}:
+                self.selected_texture_rows = set()
+                self.last_texture_click = None
+            else:
+                self.selected_texture_rows = {idx}
+                self.last_texture_click = idx
+
+        self._update_texture_highlights()
+
+        # Show preview for last clicked item
+        if self.last_texture_click is not None and self.last_texture_click < len(self.textures):
+            tex = self.textures[self.last_texture_click]
             if tex.preview:
                 self.tex_preview_label.config(image=tex.preview)
-            self.tex_preview_info.config(text=f"Resolution: {tex.resolution}x{tex.resolution}\n"
-                                              f"Memory: {tex.memory_bytes()} bytes")
+            count = len(self.selected_texture_rows)
+            if count > 1:
+                self.tex_preview_info.config(text=f"{count} textures selected\n\n"
+                                                  f"Showing: {tex.name}\n"
+                                                  f"Resolution: {tex.resolution}x{tex.resolution}")
+            else:
+                self.tex_preview_info.config(text=f"Resolution: {tex.resolution}x{tex.resolution}\n"
+                                                  f"Memory: {tex.memory_bytes()} bytes")
+        elif not self.selected_texture_rows:
+            self.tex_preview_label.config(image='')
+            self.tex_preview_info.config(text='Select a texture to see preview')
 
     def _on_texture_resolution_change(self, idx, var):
         """Handle texture resolution dropdown change."""
@@ -935,45 +1295,49 @@ class RayCast3DStudio:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load texture: {e}")
 
-    def _remove_texture(self):
-        """Remove selected texture."""
-        if self.selected_texture_row is None or self.selected_texture_row >= len(self.textures):
+    def _remove_textures(self):
+        """Remove all selected textures (supports multi-select)."""
+        if not self.selected_texture_rows:
             return
 
-        idx = self.selected_texture_row
-        removed_idx = idx + 1
-
-        # Check if this texture is used on perimeter
-        perimeter_uses = False
-        for row in range(MAP_SIZE):
-            for col in range(MAP_SIZE):
-                if self._is_perimeter(row, col) and self.map_data[row][col] == removed_idx:
-                    perimeter_uses = True
-                    break
-
-        if perimeter_uses and len(self.textures) == 1:
-            messagebox.showwarning("Cannot Remove", "Cannot remove the only texture - perimeter walls need at least one texture.")
+        # Check if we'd be removing all textures (perimeter needs at least one)
+        remaining = len(self.textures) - len(self.selected_texture_rows)
+        if remaining < 1:
+            messagebox.showwarning("Cannot Remove", "Cannot remove all textures - perimeter walls need at least one texture.")
             return
 
-        del self.textures[idx]
+        # Sort indices in reverse order to delete from end first (preserves earlier indices)
+        indices_to_remove = sorted(self.selected_texture_rows, reverse=True)
 
-        # Update indices
+        # Remove textures and update map cells
+        for idx in indices_to_remove:
+            if idx >= len(self.textures):
+                continue
+
+            removed_tex_num = idx + 1  # 1-based texture number in map
+
+            del self.textures[idx]
+
+            # Update map cells: shift texture references down
+            for row in range(MAP_SIZE):
+                for col in range(MAP_SIZE):
+                    cell_val = self.map_data[row][col]
+                    if cell_val == removed_tex_num:
+                        # This cell used the removed texture
+                        if self._is_perimeter(row, col):
+                            self.map_data[row][col] = 1  # Reset to texture 1
+                        else:
+                            self.map_data[row][col] = 0  # Erase
+                    elif cell_val > removed_tex_num:
+                        # Shift down
+                        self.map_data[row][col] = cell_val - 1
+
+        # Update texture indices
         for i, tex in enumerate(self.textures):
             tex.index = i + 1
 
-        # Update map cells
-        for row in range(MAP_SIZE):
-            for col in range(MAP_SIZE):
-                if self.map_data[row][col] == removed_idx:
-                    # If perimeter, set to texture 1, else erase
-                    if self._is_perimeter(row, col):
-                        self.map_data[row][col] = 1 if self.textures else 1
-                    else:
-                        self.map_data[row][col] = 0
-                elif self.map_data[row][col] > removed_idx:
-                    self.map_data[row][col] -= 1
-
-        self.selected_texture_row = None
+        self.selected_texture_rows = set()
+        self.last_texture_click = None
         self._refresh_texture_list()
         self._update_texture_palette()
         self._draw_map_grid()
@@ -984,6 +1348,36 @@ class RayCast3DStudio:
         # Clear preview
         self.tex_preview_label.config(image='')
         self.tex_preview_info.config(text='')
+
+    def _rename_texture(self):
+        """Rename the selected texture."""
+        if not self.selected_texture_rows or self.last_texture_click is None:
+            messagebox.showinfo("Info", "Please select a texture to rename.")
+            return
+
+        idx = self.last_texture_click
+        if idx >= len(self.textures):
+            return
+
+        texture = self.textures[idx]
+        old_name = texture.name
+
+        new_name = simpledialog.askstring("Rename Texture", "Enter new name:", initialvalue=old_name)
+        if not new_name or new_name == old_name:
+            return
+
+        # Clean name for C variable
+        new_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in new_name)
+
+        # Check for duplicate
+        if any(t.name == new_name for t in self.textures):
+            messagebox.showerror("Error", f"Texture '{new_name}' already exists.")
+            return
+
+        texture.name = new_name
+        self._refresh_texture_list()
+        self._auto_export()
+        self._save_project()
 
     def _detect_transparent_color(self, img, width, height):
         """
@@ -1037,19 +1431,20 @@ class RayCast3DStudio:
         for widget in self.sprite_list_frame.winfo_children():
             widget.destroy()
         self.sprite_rows = []
-        self.selected_sprite_row = None
+        self.selected_sprite_rows = set()
+        self.last_sprite_click = None
 
         for i, sprite in enumerate(self.sprites):
             row_frame = ttk.Frame(self.sprite_list_frame)
             row_frame.pack(fill='x', pady=1)
 
-            # Make row clickable for selection
-            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx))
+            # Make row clickable for selection (pass event for modifier detection)
+            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
 
             # Name label
             name_label = ttk.Label(row_frame, text=sprite.name, width=20, anchor='w')
             name_label.pack(side='left', padx=5)
-            name_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx))
+            name_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
 
             # Resolution dropdown (always visible)
             res_var = tk.StringVar(value=str(sprite.resolution))
@@ -1061,55 +1456,85 @@ class RayCast3DStudio:
             # Memory label
             mem_label = ttk.Label(row_frame, text=f"{sprite.memory_bytes()} bytes", width=12, anchor='w')
             mem_label.pack(side='left', padx=5)
-            mem_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx))
+            mem_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
 
             self.sprite_rows.append((row_frame, res_var, name_label, mem_label))
 
-    def _deselect_sprite_row(self):
-        """Deselect the currently selected sprite row."""
-        if self.selected_sprite_row is not None and self.selected_sprite_row < len(self.sprite_rows):
-            old_frame = self.sprite_rows[self.selected_sprite_row][0]
-            for child in old_frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background='')
-        self.selected_sprite_row = None
+    def _deselect_all_sprites(self):
+        """Deselect all sprite rows."""
+        for idx in list(self.selected_sprite_rows):
+            if idx < len(self.sprite_rows):
+                frame = self.sprite_rows[idx][0]
+                for child in frame.winfo_children():
+                    if isinstance(child, ttk.Label):
+                        child.configure(background='')
+        self.selected_sprite_rows = set()
+        self.last_sprite_click = None
         self.sprite_preview_label.config(image='')
         self.sprite_preview_info.config(text='Select a sprite to see preview')
 
-    def _select_sprite_row(self, idx):
-        """Select a sprite row and show preview. Click again to deselect."""
-        # If clicking the same row, deselect it
-        if self.selected_sprite_row == idx:
-            self._deselect_sprite_row()
-            return
-
-        # Deselect previous
-        if self.selected_sprite_row is not None and self.selected_sprite_row < len(self.sprite_rows):
-            old_frame = self.sprite_rows[self.selected_sprite_row][0]
-            for child in old_frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background='')
-
-        self.selected_sprite_row = idx
-
-        # Highlight selected
-        if idx < len(self.sprite_rows):
-            frame = self.sprite_rows[idx][0]
+    def _update_sprite_highlights(self):
+        """Update visual highlighting for all sprite rows based on selection."""
+        for idx, row_data in enumerate(self.sprite_rows):
+            frame = row_data[0]
+            bg = '#cce5ff' if idx in self.selected_sprite_rows else ''
             for child in frame.winfo_children():
                 if isinstance(child, ttk.Label):
-                    child.configure(background='#cce5ff')
+                    child.configure(background=bg)
 
-        # Show preview
-        if idx < len(self.sprites):
-            sprite = self.sprites[idx]
+    def _select_sprite_row(self, idx, event=None):
+        """Select a sprite row with multi-select support.
+
+        - Normal click: Select only this row
+        - Ctrl+Click: Toggle this row in selection
+        - Shift+Click: Select range from last click to this row
+        """
+        ctrl_held = event and (event.state & 0x4)  # Control key
+        shift_held = event and (event.state & 0x1)  # Shift key
+
+        if ctrl_held:
+            # Toggle this row in selection
+            if idx in self.selected_sprite_rows:
+                self.selected_sprite_rows.discard(idx)
+            else:
+                self.selected_sprite_rows.add(idx)
+            self.last_sprite_click = idx
+        elif shift_held and self.last_sprite_click is not None:
+            # Select range from last click to current
+            start = min(self.last_sprite_click, idx)
+            end = max(self.last_sprite_click, idx)
+            self.selected_sprite_rows = set(range(start, end + 1))
+        else:
+            # Normal click - select only this row (or deselect if already only selection)
+            if self.selected_sprite_rows == {idx}:
+                self.selected_sprite_rows = set()
+                self.last_sprite_click = None
+            else:
+                self.selected_sprite_rows = {idx}
+                self.last_sprite_click = idx
+
+        self._update_sprite_highlights()
+
+        # Show preview for last clicked item
+        if self.last_sprite_click is not None and self.last_sprite_click < len(self.sprites):
+            sprite = self.sprites[self.last_sprite_click]
             if sprite.preview:
                 self.sprite_preview_label.config(image=sprite.preview)
-            self.sprite_preview_info.config(text=f"Resolution: {sprite.resolution}x{sprite.resolution}\n"
-                                                 f"Memory: {sprite.memory_bytes()} bytes\n"
-                                                 f"Transparent: 0x{sprite.transparent:04X}\n\n"
-                                                 f"Preview shows sprite at\n"
-                                                 f"simulated in-game scale\n"
-                                                 f"with transparency.")
+            count = len(self.selected_sprite_rows)
+            if count > 1:
+                self.sprite_preview_info.config(text=f"{count} sprites selected\n\n"
+                                                     f"Showing: {sprite.name}\n"
+                                                     f"Resolution: {sprite.resolution}x{sprite.resolution}")
+            else:
+                self.sprite_preview_info.config(text=f"Resolution: {sprite.resolution}x{sprite.resolution}\n"
+                                                     f"Memory: {sprite.memory_bytes()} bytes\n"
+                                                     f"Transparent: 0x{sprite.transparent:04X}\n\n"
+                                                     f"Preview shows sprite at\n"
+                                                     f"simulated in-game scale\n"
+                                                     f"with transparency.")
+        elif not self.selected_sprite_rows:
+            self.sprite_preview_label.config(image='')
+            self.sprite_preview_info.config(text='Select a sprite to see preview')
 
     def _on_sprite_resolution_change(self, idx, var):
         """Handle sprite resolution dropdown change."""
@@ -1216,15 +1641,20 @@ class RayCast3DStudio:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load sprite: {e}")
 
-    def _remove_sprite(self):
-        """Remove selected sprite."""
-        if self.selected_sprite_row is None or self.selected_sprite_row >= len(self.sprites):
+    def _remove_sprites(self):
+        """Remove all selected sprites (supports multi-select)."""
+        if not self.selected_sprite_rows:
             return
 
-        idx = self.selected_sprite_row
-        del self.sprites[idx]
+        # Sort indices in reverse order to delete from end first
+        indices_to_remove = sorted(self.selected_sprite_rows, reverse=True)
 
-        self.selected_sprite_row = None
+        for idx in indices_to_remove:
+            if idx < len(self.sprites):
+                del self.sprites[idx]
+
+        self.selected_sprite_rows = set()
+        self.last_sprite_click = None
         self._refresh_sprite_list()
         self._update_memory_display()
         self._auto_export()
@@ -1233,6 +1663,36 @@ class RayCast3DStudio:
         # Clear preview
         self.sprite_preview_label.config(image='')
         self.sprite_preview_info.config(text='')
+
+    def _rename_sprite(self):
+        """Rename the selected sprite."""
+        if not self.selected_sprite_rows or self.last_sprite_click is None:
+            messagebox.showinfo("Info", "Please select a sprite to rename.")
+            return
+
+        idx = self.last_sprite_click
+        if idx >= len(self.sprites):
+            return
+
+        sprite = self.sprites[idx]
+        old_name = sprite.name
+
+        new_name = simpledialog.askstring("Rename Sprite", "Enter new name:", initialvalue=old_name)
+        if not new_name or new_name == old_name:
+            return
+
+        # Clean name for C variable
+        new_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in new_name)
+
+        # Check for duplicate
+        if any(s.name == new_name for s in self.sprites):
+            messagebox.showerror("Error", f"Sprite '{new_name}' already exists.")
+            return
+
+        sprite.name = new_name
+        self._refresh_sprite_list()
+        self._auto_export()
+        self._save_project()
 
     def _create_sprite_preview(self, img_rgb, width, height, transparent_bgr565):
         """
@@ -1293,11 +1753,12 @@ class RayCast3DStudio:
                 'maps': self.maps,  # List of {"name": str, "data": 2D list}
                 'current_map_idx': self.current_map_idx,
                 'textures': [t.to_dict() for t in self.textures],
-                'sprites': [s.to_dict() for s in self.sprites]
+                'sprites': [s.to_dict() for s in self.sprites],
+                'colors': [c.to_dict() for c in self.colors]
             }
             with open(PROJECT_FILE, 'w') as f:
                 json.dump(project, f, indent=2)
-            print(f"Saved: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps")
+            print(f"Saved: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps, {len(self.colors)} colors")
         except Exception as e:
             print(f"Error saving project: {e}")
             messagebox.showerror("Save Error", f"Failed to save project: {e}")
@@ -1371,10 +1832,17 @@ class RayCast3DStudio:
                     else:
                         missing_files.append(f"Sprite: {sprite.name} ({sprite.image_path})")
 
+            # Load colors
+            if 'colors' in project:
+                for cd in project['colors']:
+                    color = Color.from_dict(cd)
+                    self.colors.append(color)
+
             # Update UI
             self._refresh_texture_list()
             self._update_texture_palette()
             self._refresh_sprite_list()
+            self._refresh_color_list()
             self._draw_map_grid()
 
             # Warn about missing files
@@ -1386,7 +1854,7 @@ class RayCast3DStudio:
                     "\n\nPlease re-add these textures/sprites."
                 )
 
-            print(f"Loaded: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps")
+            print(f"Loaded: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps, {len(self.colors)} colors")
 
         except Exception as e:
             print(f"Error loading project: {e}")
@@ -1415,6 +1883,11 @@ class RayCast3DStudio:
             # Export images.h
             content = self._generate_images_h()
             with open(os.path.join(ASSETS_DIR, "images.h"), 'w') as f:
+                f.write(content)
+
+            # Export colors.h
+            content = self._generate_colors_h()
+            with open(os.path.join(ASSETS_DIR, "colors.h"), 'w') as f:
                 f.write(content)
 
             self.status_label.config(text="Auto-saved to assets/", foreground='green')
@@ -1544,6 +2017,28 @@ class RayCast3DStudio:
             lines.append("")
 
         lines.append("#endif /* IMAGES_H_ */")
+
+        return "\n".join(lines)
+
+    def _generate_colors_h(self):
+        """Generate colors.h content with BGR565 color constants."""
+        lines = [
+            "#ifndef COLORS_H_",
+            "#define COLORS_H_",
+            "",
+            "#include <stdint.h>",
+            "",
+            "// Color constants in BGR565 format",
+            "// Generated by RayCast3D Studio",
+            "",
+        ]
+
+        for color in self.colors:
+            bgr565 = color.to_bgr565()
+            lines.append(f"#define {color.name} 0x{bgr565:04X}  // RGB({color.r}, {color.g}, {color.b})")
+
+        lines.append("")
+        lines.append("#endif /* COLORS_H_ */")
 
         return "\n".join(lines)
 
