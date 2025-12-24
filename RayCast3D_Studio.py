@@ -22,7 +22,7 @@ GAME_HEIGHT = 160
 # Paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(SCRIPT_DIR, "assets")
-PROJECT_FILE = os.path.join(SCRIPT_DIR, "studio_project.json")
+PROJECT_FILE = os.path.join(SCRIPT_DIR, "RayCast3D_Studio/studio_project.json")
 
 
 def resize_and_letterbox(img, width, height, bg_color=(0, 0, 0)):

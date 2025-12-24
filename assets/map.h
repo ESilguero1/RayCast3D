@@ -5,7 +5,7 @@
 
 #define MAP_COUNT 1
 
-static const uint8_t testMap[24][24] = {
+static const uint8_t map1[24][24] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -34,7 +34,7 @@ static const uint8_t testMap[24][24] = {
 
 // Map pointer array for easy switching by index
 static const uint8_t (*const mapList[1])[24] = {
-    testMap,
+    map1,
 };
 
 #endif /* MAP_H_ */

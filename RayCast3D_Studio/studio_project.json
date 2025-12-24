@@ -1,7 +1,7 @@
 {
   "maps": [
     {
-      "name": "testMap",
+      "name": "map1",
       "data": [
         [
           1,
@@ -633,24 +633,18 @@
   "current_map_idx": 0,
   "textures": [
     {
-      "name": "marble1",
-      "image_path": "C:/Users/elsil/Downloads/walls/marble1.BMP",
-      "resolution": 64
+      "name": "cave3",
+      "image_path": "C:/Users/elsil/Downloads/walls/cave3.bmp",
+      "resolution": 32
     }
   ],
-  "sprites": [],
-  "colors": [
+  "sprites": [
     {
-      "name": "SLATE",
-      "r": 129,
-      "g": 166,
-      "b": 192
-    },
-    {
-      "name": "FORESTGREEN",
-      "r": 0,
-      "g": 128,
-      "b": 64
+      "name": "guard",
+      "image_path": "C:/Users/elsil/Downloads/Festive Armor JZ.png",
+      "resolution": 64,
+      "transparent": 34835
     }
-  ]
+  ],
+  "colors": []
 }

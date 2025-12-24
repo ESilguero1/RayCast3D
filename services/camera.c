@@ -50,13 +50,9 @@ void Camera_Move(double forward, double strafe) {
     newX += camera.planeX * strafe;
     newY += camera.planeY * strafe;
 
-    // Simple collision detection - only move if not hitting a wall
-    if (worldMap[(int)newX][(int)camera.posY] == 0) {
-        camera.posX = newX;
-    }
-    if (worldMap[(int)camera.posX][(int)newY] == 0) {
-        camera.posY = newY;
-    }
+    // No collision detection - up to the user!!
+    camera.posX = newX;
+    camera.posY = newY;
 }
 
 void Camera_Rotate(double degrees) {
