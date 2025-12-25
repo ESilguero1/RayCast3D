@@ -25,17 +25,6 @@ ASSETS_DIR = os.path.join(SCRIPT_DIR, "../assets")
 PROJECT_FILE = os.path.join(SCRIPT_DIR, "studio_project.json")
 
 
-def open_image_safe(file_path):
-    """
-    Open an image file and convert palette images with transparency to RGBA.
-    This prevents PIL warnings about palette images with transparency.
-    """
-    img = Image.open(file_path)
-    # Convert palette images (P mode) with transparency to RGBA to avoid warnings
-    if img.mode == 'P' and 'transparency' in img.info:
-        img = img.convert('RGBA')
-    return img
-
 def resize_and_letterbox(img, width, height, bg_color=(0, 0, 0)):
     """Resize image with aspect ratio preserved and letterbox padding."""
     img_copy = img.copy()
@@ -591,7 +580,7 @@ class RayCast3DStudio:
         self.sprite_preview_info.pack(side='left', padx=10)
 
         # Edit Transparency button
-        self.edit_transparency_btn = ttk.Button(preview_inner, text="Edit Transparency (Resets to original)", 
+        self.edit_transparency_btn = ttk.Button(preview_inner, text="Edit Transparency", 
                                                  command=self._edit_sprite_transparency, state='disabled')
         self.edit_transparency_btn.pack(side='left', padx=10)
 
@@ -1081,7 +1070,7 @@ class RayCast3DStudio:
     def _create_texture_previews(self, tex):
         """Create both large preview (simulating in-game wall) and tile preview for a texture."""
         try:
-            img = open_image_safe(tex.image_path)
+            img = Image.open(tex.image_path)
 
             # First resize to target resolution (this is what goes in-game)
             processed = resize_and_letterbox(img, tex.resolution, tex.resolution)
@@ -1279,7 +1268,7 @@ class RayCast3DStudio:
             return
 
         try:
-            img = open_image_safe(tex.image_path)
+            img = Image.open(tex.image_path)
             tex.resolution = new_res
             tex.c_array = image_to_bgr565_array(img, new_res)
             self._create_texture_previews(tex)
@@ -1312,7 +1301,7 @@ class RayCast3DStudio:
 
         try:
             resolution = int(self.tex_res_var.get())
-            img = open_image_safe(file_path)
+            img = Image.open(file_path)
             c_array = image_to_bgr565_array(img, resolution)
 
             tex = Texture(name, file_path, resolution, c_array)
@@ -1650,7 +1639,7 @@ class RayCast3DStudio:
         try:
             resolution = int(self.sprite_res_var.get())
 
-            img = open_image_safe(file_path)
+            img = Image.open(file_path)
 
             # Detect transparent color and get processed image
             transparent, img_rgb = self._detect_transparent_color(img, resolution, resolution)
@@ -1758,7 +1747,7 @@ class RayCast3DStudio:
             return
 
         try:
-            img = open_image_safe(sprite.image_path)
+            img = Image.open(sprite.image_path)
             # Process image to match sprite resolution
             img_resized = resize_and_letterbox(img, sprite.resolution, sprite.resolution)
             img_rgb = img_resized.convert("RGB")
@@ -2324,7 +2313,7 @@ class RayCast3DStudio:
                         self.sprites.append(sprite)
                     elif os.path.exists(sprite.image_path):
                         # Sprite not in images.h - load from original image (new sprite)
-                        img = open_image_safe(sprite.image_path)
+                        img = Image.open(sprite.image_path)
                         res = sprite.resolution
 
                         # Re-detect transparent color and get processed image

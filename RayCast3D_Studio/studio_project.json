@@ -649,6 +649,12 @@
       "image_path": "C:/Users/elsil/Downloads/foreground/ECWolf/PIS2A0.png",
       "resolution": 64,
       "transparent": 0
+    },
+    {
+      "name": "k77l2b",
+      "image_path": "C:/Users/elsil/Downloads/k77l2b.png",
+      "resolution": 64,
+      "transparent": 19336
     }
   ],
   "colors": [
