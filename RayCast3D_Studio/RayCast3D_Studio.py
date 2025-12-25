@@ -21,9 +21,20 @@ GAME_HEIGHT = 160
 
 # Paths
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_DIR = os.path.join(SCRIPT_DIR, "assets")
-PROJECT_FILE = os.path.join(SCRIPT_DIR, "RayCast3D_Studio/studio_project.json")
+ASSETS_DIR = os.path.join(SCRIPT_DIR, "../assets")
+PROJECT_FILE = os.path.join(SCRIPT_DIR, "studio_project.json")
 
+
+def open_image_safe(file_path):
+    """
+    Open an image file and convert palette images with transparency to RGBA.
+    This prevents PIL warnings about palette images with transparency.
+    """
+    img = Image.open(file_path)
+    # Convert palette images (P mode) with transparency to RGBA to avoid warnings
+    if img.mode == 'P' and 'transparency' in img.info:
+        img = img.convert('RGBA')
+    return img
 
 def resize_and_letterbox(img, width, height, bg_color=(0, 0, 0)):
     """Resize image with aspect ratio preserved and letterbox padding."""
@@ -172,6 +183,7 @@ class RayCast3DStudio:
 
         self.selected_texture_idx = 1  # 0 = erase, 1+ = texture
         self.is_drawing = False
+        self.is_erasing = False  # True when in temporary erase mode (clicked same texture)
         self.tile_images = {}  # Cache for tile PhotoImages on canvas
         self.auto_export_enabled = True  # Auto-export on changes
 
@@ -578,6 +590,11 @@ class RayCast3DStudio:
         self.sprite_preview_info = ttk.Label(preview_inner, text="", font=('Consolas', 9), justify='left')
         self.sprite_preview_info.pack(side='left', padx=10)
 
+        # Edit Transparency button
+        self.edit_transparency_btn = ttk.Button(preview_inner, text="Edit Transparency (Resets to original)", 
+                                                 command=self._edit_sprite_transparency, state='disabled')
+        self.edit_transparency_btn.pack(side='left', padx=10)
+
     def _build_color_tab(self):
         """Build the color manager tab."""
         main_frame = ttk.Frame(self.color_tab)
@@ -889,6 +906,20 @@ class RayCast3DStudio:
     def _on_map_click(self, event):
         """Handle map click."""
         self.is_drawing = True
+        
+        # Check if clicking a cell with the same texture - if so, enter erase mode
+        col = event.x // CELL_SIZE
+        row = event.y // CELL_SIZE
+        if 0 <= row < MAP_SIZE and 0 <= col < MAP_SIZE:
+            current_value = self.map_data[row][col]
+            is_perimeter = self._is_perimeter(row, col)
+            
+            # If clicking same texture on interior cell, enter erase mode
+            if current_value == self.selected_texture_idx and not is_perimeter:
+                self.is_erasing = True
+            else:
+                self.is_erasing = False
+        
         self._paint_cell(event)
 
     def _on_map_drag(self, event):
@@ -899,6 +930,7 @@ class RayCast3DStudio:
     def _on_map_release(self, event):
         """Handle mouse release."""
         self.is_drawing = False
+        self.is_erasing = False  # Reset erase mode
         # Auto-export and save on release
         self._auto_export()
         self._save_project()
@@ -996,6 +1028,14 @@ class RayCast3DStudio:
         if 0 <= row < MAP_SIZE and 0 <= col < MAP_SIZE:
             is_perimeter = self._is_perimeter(row, col)
 
+            # If in erase mode, erase the cell (but not perimeter)
+            if self.is_erasing:
+                if not is_perimeter:
+                    self.map_data[row][col] = 0  # Erase
+                    self._draw_map_grid()
+                return
+
+            # Normal painting mode
             # Perimeter cells can't be erased (must have texture >= 1)
             if is_perimeter and self.selected_texture_idx == 0:
                 return  # Can't erase perimeter
@@ -1041,7 +1081,7 @@ class RayCast3DStudio:
     def _create_texture_previews(self, tex):
         """Create both large preview (simulating in-game wall) and tile preview for a texture."""
         try:
-            img = Image.open(tex.image_path)
+            img = open_image_safe(tex.image_path)
 
             # First resize to target resolution (this is what goes in-game)
             processed = resize_and_letterbox(img, tex.resolution, tex.resolution)
@@ -1239,7 +1279,7 @@ class RayCast3DStudio:
             return
 
         try:
-            img = Image.open(tex.image_path)
+            img = open_image_safe(tex.image_path)
             tex.resolution = new_res
             tex.c_array = image_to_bgr565_array(img, new_res)
             self._create_texture_previews(tex)
@@ -1272,7 +1312,7 @@ class RayCast3DStudio:
 
         try:
             resolution = int(self.tex_res_var.get())
-            img = Image.open(file_path)
+            img = open_image_safe(file_path)
             c_array = image_to_bgr565_array(img, resolution)
 
             tex = Texture(name, file_path, resolution, c_array)
@@ -1525,6 +1565,7 @@ class RayCast3DStudio:
                 self.sprite_preview_info.config(text=f"{count} sprites selected\n\n"
                                                      f"Showing: {sprite.name}\n"
                                                      f"Resolution: {sprite.resolution}x{sprite.resolution}")
+                self.edit_transparency_btn.config(state='disabled')
             else:
                 self.sprite_preview_info.config(text=f"Resolution: {sprite.resolution}x{sprite.resolution}\n"
                                                      f"Memory: {sprite.memory_bytes()} bytes\n"
@@ -1532,9 +1573,11 @@ class RayCast3DStudio:
                                                      f"Preview shows sprite at\n"
                                                      f"simulated in-game scale\n"
                                                      f"with transparency.")
+                self.edit_transparency_btn.config(state='normal')
         elif not self.selected_sprite_rows:
             self.sprite_preview_label.config(image='')
             self.sprite_preview_info.config(text='Select a sprite to see preview')
+            self.edit_transparency_btn.config(state='disabled')
 
     def _on_sprite_resolution_change(self, idx, var):
         """Handle sprite resolution dropdown change."""
@@ -1607,7 +1650,7 @@ class RayCast3DStudio:
         try:
             resolution = int(self.sprite_res_var.get())
 
-            img = Image.open(file_path)
+            img = open_image_safe(file_path)
 
             # Detect transparent color and get processed image
             transparent, img_rgb = self._detect_transparent_color(img, resolution, resolution)
@@ -1694,10 +1737,371 @@ class RayCast3DStudio:
         self._auto_export()
         self._save_project()
 
-    def _create_sprite_preview(self, img_rgb, width, height, transparent_bgr565):
+    def _edit_sprite_transparency(self):
+        """Open dialog to edit sprite transparency by color picking from preview."""
+        if not self.selected_sprite_rows or self.last_sprite_click is None:
+            messagebox.showinfo("Info", "Please select a sprite to edit transparency.")
+            return
+
+        idx = self.last_sprite_click
+        if idx >= len(self.sprites):
+            return
+
+        sprite = self.sprites[idx]
+
+        # Store original transparent color for cancel
+        original_transparent = sprite.transparent
+
+        # Load original image
+        if not os.path.exists(sprite.image_path):
+            messagebox.showerror("Error", f"Image file not found: {sprite.image_path}")
+            return
+
+        try:
+            img = open_image_safe(sprite.image_path)
+            # Process image to match sprite resolution
+            img_resized = resize_and_letterbox(img, sprite.resolution, sprite.resolution)
+            img_rgb = img_resized.convert("RGB")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load image: {e}")
+            return
+
+        # Create dialog window
+        dialog = tk.Toplevel(self.root)
+        dialog.title(f"Edit Transparency - {sprite.name}")
+        dialog.geometry("700x500")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # Main frame
+        main_frame = ttk.Frame(dialog)
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+        # Instructions
+        instr_label = ttk.Label(main_frame, 
+                                text="Click on the left preview to pick a color as the transparent color.",
+                                font=('Arial', 10))
+        instr_label.pack(pady=(0, 10))
+
+        # Preview size
+        preview_size = 200
+        # Calculate scale to fit sprite in preview (at least 2x for visibility)
+        max_scale = preview_size // sprite.resolution
+        scale = max(2, min(max_scale, 8))  # Scale between 2x and 8x, but fit in preview
+        display_size = sprite.resolution * scale
+        offset_x = (preview_size - display_size) // 2
+        offset_y = (preview_size - display_size) // 2
+
+        # Scale sprite for display (will be updated when pixels change)
+        sprite_scaled = img_rgb.resize((display_size, display_size), Image.NEAREST)
+        sprite_pixels = sprite_scaled.load()
+
+        # Preview container (side by side)
+        preview_container = ttk.Frame(main_frame)
+        preview_container.pack(pady=10)
+
+        # LEFT: Original sprite (no transparency) - clickable
+        left_frame = ttk.LabelFrame(preview_container, text="Original (Click to Pick)")
+        left_frame.pack(side='left', padx=10)
+
+        # Create original sprite preview (no transparency)
+        def update_original_preview():
+            """Update the left preview with current image."""
+            # Regenerate scaled sprite from current img_rgb
+            current_scaled = img_rgb.resize((display_size, display_size), Image.NEAREST)
+            original_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
+            original_img.paste(current_scaled, (offset_x, offset_y))
+            original_photo_new = ImageTk.PhotoImage(original_img)
+            original_canvas.delete('all')
+            original_canvas.create_image(0, 0, anchor='nw', image=original_photo_new)
+            original_canvas.image = original_photo_new  # Keep reference
+
+        original_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
+        original_img.paste(sprite_scaled, (offset_x, offset_y))
+        original_photo = ImageTk.PhotoImage(original_img)
+
+        original_canvas = tk.Canvas(left_frame, width=preview_size, height=preview_size, 
+                                   highlightthickness=2, highlightbackground='blue', cursor='crosshair')
+        original_canvas.pack(padx=10, pady=10)
+        original_canvas.create_image(0, 0, anchor='nw', image=original_photo)
+        original_canvas.image = original_photo  # Keep reference
+
+        # RIGHT: Transparent version (updates in real-time)
+        right_frame = ttk.LabelFrame(preview_container, text="With Transparency")
+        right_frame.pack(side='left', padx=10)
+
+        transparent_canvas = tk.Canvas(right_frame, width=preview_size, height=preview_size, 
+                                       highlightthickness=2, highlightbackground='black', cursor='crosshair')
+        transparent_canvas.pack(padx=10, pady=10)
+
+        # Mode tracking: 'pick', 'erase', 'de_erase'
+        edit_mode = 'pick'
+        is_drawing_on_transparent = False
+        brush_size = 1  # Brush radius in pixels
+
+        def update_both_previews():
+            """Update both the original and transparent previews."""
+            # Update original preview (left side)
+            update_original_preview()
+            
+            # Update transparent preview (right side)
+            update_transparent_preview()
+
+        def update_transparent_preview():
+            """Update the right preview with current transparent color - uses same function as actual preview."""
+            # Use the exact same function that creates the actual sprite preview (PIL Image version)
+            preview_pil_img = self._create_sprite_preview_image(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+            
+            # Scale to fill the entire canvas (resize to fit preview_size)
+            preview_pil_img = preview_pil_img.resize((preview_size, preview_size), Image.NEAREST)
+            
+            preview_photo = ImageTk.PhotoImage(preview_pil_img)
+            transparent_canvas.delete('all')
+            transparent_canvas.create_image(0, 0, anchor='nw', image=preview_photo)
+            transparent_canvas.image = preview_photo  # Keep reference
+
+        # Initial transparent preview
+        update_transparent_preview()
+
+        # Click handler for original canvas
+        def on_original_click(event):
+            # Convert canvas coordinates to sprite coordinates
+            canvas_x = event.x - offset_x
+            canvas_y = event.y - offset_y
+            
+            if 0 <= canvas_x < display_size and 0 <= canvas_y < display_size:
+                # Get pixel from original sprite image
+                sprite_x = canvas_x // scale
+                sprite_y = canvas_y // scale
+                
+                if 0 <= sprite_x < sprite.resolution and 0 <= sprite_y < sprite.resolution:
+                    pixels = img_rgb.load()
+                    r, g, b = pixels[sprite_x, sprite_y]
+                    
+                    # Convert to BGR565
+                    blue5 = b >> 3
+                    green6 = g >> 2
+                    red5 = r >> 3
+                    new_transparent = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
+                    
+                    # Update sprite
+                    sprite.transparent = new_transparent
+                    
+                    # Update transparent preview
+                    update_transparent_preview()
+                    
+                    # Update status
+                    status_label.config(text=f"Transparent color set to 0x{new_transparent:04X} (RGB: {r}, {g}, {b})",
+                                       foreground='green')
+
+        original_canvas.bind('<Button-1>', on_original_click)
+
+        # Click handler for transparent canvas (right side) - for erase/de-erase
+        def on_transparent_click(event):
+            """Handle clicks on the transparent preview for erase/de-erase."""
+            if edit_mode == 'pick':
+                return  # Only works in erase or de-erase mode
+            
+            # Convert canvas coordinates to sprite coordinates
+            # The transparent preview is scaled to preview_size, so we need to scale back
+            center_x = int((event.x / preview_size) * sprite.resolution)
+            center_y = int((event.y / preview_size) * sprite.resolution)
+            
+            # Clamp center to valid range
+            center_x = max(0, min(sprite.resolution - 1, center_x))
+            center_y = max(0, min(sprite.resolution - 1, center_y))
+            
+            pixels = img_rgb.load()
+            radius = brush_size
+            
+            # Paint all pixels within brush radius (circular brush)
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    # Check if pixel is within circular brush
+                    if dx * dx + dy * dy <= radius * radius:
+                        sprite_x = center_x + dx
+                        sprite_y = center_y + dy
+                        
+                        # Clamp to valid range
+                        if 0 <= sprite_x < sprite.resolution and 0 <= sprite_y < sprite.resolution:
+                            if edit_mode == 'erase':
+                                # Set pixel to transparent color
+                                trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
+                                trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
+                                trans_r = (sprite.transparent & 0x1F) << 3
+                                pixels[sprite_x, sprite_y] = (trans_r, trans_g, trans_b)
+                                
+                            elif edit_mode == 'de_erase':
+                                # Only modify pixels that are currently transparent (exact BGR565 match)
+                                # Change LSB of BGR565 for minimal visual effect
+                                current_r, current_g, current_b = pixels[sprite_x, sprite_y]
+                                
+                                # Convert current pixel to BGR565
+                                current_bgr565 = ((current_b >> 3) << 11) | ((current_g >> 2) << 5) | (current_r >> 3)
+                                
+                                # Only proceed if pixel is exactly transparent
+                                if current_bgr565 == sprite.transparent:
+                                    # Flip LSB (bit 0) of BGR565 - this changes it by 1 (minimal change)
+                                    new_bgr565 = current_bgr565 ^ 1
+                                    
+                                    # Convert new BGR565 back to RGB
+                                    # Extract components
+                                    new_blue5 = (new_bgr565 >> 11) & 0x1F
+                                    new_green6 = (new_bgr565 >> 5) & 0x3F
+                                    new_red5 = new_bgr565 & 0x1F
+                                    
+                                    # Convert back to 8-bit RGB (reconstruct from 5/6 bit values)
+                                    # For 5-bit: multiply by 8 and add 4 for better approximation
+                                    # For 6-bit: multiply by 4 and add 2
+                                    new_r = (new_red5 << 3) | (new_red5 >> 2)
+                                    new_g = (new_green6 << 2) | (new_green6 >> 4)
+                                    new_b = (new_blue5 << 3) | (new_blue5 >> 2)
+                                    
+                                    # Clamp to valid range
+                                    new_r = max(0, min(255, new_r))
+                                    new_g = max(0, min(255, new_g))
+                                    new_b = max(0, min(255, new_b))
+                                    
+                                    # Set pixel to this "almost transparent" color
+                                    pixels[sprite_x, sprite_y] = (new_r, new_g, new_b)
+                                # If pixel is not transparent, do nothing (don't modify visible pixels)
+            
+            # Update both previews
+            update_both_previews()
+
+        def on_transparent_drag(event):
+            """Handle drag on transparent preview."""
+            nonlocal is_drawing_on_transparent
+            if is_drawing_on_transparent:
+                on_transparent_click(event)
+
+        def on_transparent_press(event):
+            """Handle mouse press on transparent preview."""
+            nonlocal is_drawing_on_transparent
+            if edit_mode in ('erase', 'de_erase'):
+                is_drawing_on_transparent = True
+                on_transparent_click(event)
+
+        def on_transparent_release(event):
+            """Handle mouse release on transparent preview."""
+            nonlocal is_drawing_on_transparent
+            is_drawing_on_transparent = False
+
+        transparent_canvas.bind('<Button-1>', on_transparent_press)
+        transparent_canvas.bind('<B1-Motion>', on_transparent_drag)
+        transparent_canvas.bind('<ButtonRelease-1>', on_transparent_release)
+
+        # Status label
+        status_label = ttk.Label(main_frame, 
+                                text=f"Current transparent: 0x{sprite.transparent:04X}\nClick on the left preview to pick a new transparent color.",
+                                font=('Consolas', 9), justify='center')
+        status_label.pack(pady=10)
+
+        # Mode buttons
+        mode_frame = ttk.Frame(main_frame)
+        mode_frame.pack(pady=5)
+
+        def set_erase_mode():
+            nonlocal edit_mode
+            edit_mode = 'erase'
+            status_label.config(text=f"Mode: Erase - Click on right preview to set pixels to transparent",
+                               foreground='red')
+            erase_btn.config(state='pressed' if hasattr(erase_btn, 'state') else 'active')
+            de_erase_btn.config(state='normal')
+            brush_frame.pack(pady=5)  # Show brush slider
+
+        def set_de_erase_mode():
+            nonlocal edit_mode
+            edit_mode = 'de_erase'
+            status_label.config(text=f"Mode: De-Erase - Click on right preview to make pixels visible (off by 1)",
+                               foreground='orange')
+            de_erase_btn.config(state='pressed' if hasattr(de_erase_btn, 'state') else 'active')
+            erase_btn.config(state='normal')
+            brush_frame.pack(pady=5)  # Show brush slider
+
+        def set_pick_mode():
+            nonlocal edit_mode
+            edit_mode = 'pick'
+            status_label.config(text=f"Current transparent: 0x{sprite.transparent:04X}\nClick on the left preview to pick a new transparent color.",
+                               foreground='black')
+            erase_btn.config(state='normal')
+            de_erase_btn.config(state='normal')
+            brush_frame.pack_forget()  # Hide brush slider
+
+        ttk.Label(mode_frame, text="Edit Modes:", font=('Arial', 9, 'bold')).pack(side='left', padx=5)
+        erase_btn = ttk.Button(mode_frame, text="Erase", command=set_erase_mode)
+        erase_btn.pack(side='left', padx=5)
+        de_erase_btn = ttk.Button(mode_frame, text="De-Erase", command=set_de_erase_mode)
+        de_erase_btn.pack(side='left', padx=5)
+        ttk.Button(mode_frame, text="Pick Color", command=set_pick_mode).pack(side='left', padx=5)
+
+        # Brush size slider (only visible in erase/de-erase modes)
+        brush_frame = ttk.Frame(main_frame)
+        
+        brush_size_var = tk.IntVar(value=1)
+        brush_size_label = ttk.Label(brush_frame, text="Brush Size: 1", font=('Arial', 9))
+        brush_size_label.pack(side='left', padx=5)
+        def update_brush_size(val):
+            nonlocal brush_size
+            brush_size = int(float(val))
+            brush_size_label.config(text=f"Brush Size: {brush_size}")
+        
+        brush_size_slider = ttk.Scale(brush_frame, from_=1, to=10, orient='horizontal', 
+                                      variable=brush_size_var, length=150,
+                                      command=update_brush_size)
+        brush_size_slider.pack(side='left', padx=5)
+        
+        # Initially hide brush slider (only show in erase/de-erase modes)
+        brush_frame.pack_forget()
+        
+        # Initially hide brush slider (only show in erase/de-erase modes)
+        brush_frame.pack_forget()
+
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10)
+
+        def apply_changes():
+            """Apply the transparency change and regenerate sprite data."""
+            # Regenerate C array with new transparent color
+            pixels = img_rgb.load()
+            c_vals = []
+            for y in range(sprite.resolution):
+                for x in range(sprite.resolution):
+                    r, g, b = pixels[x, y]
+                    blue5 = b >> 3
+                    green6 = g >> 2
+                    red5 = r >> 3
+                    color = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
+                    c_vals.append(f"0x{color:04X}")
+            
+            sprite.c_array = c_vals
+            
+            # Regenerate preview
+            sprite.preview = self._create_sprite_preview(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+            
+            # Update UI
+            self._refresh_sprite_list()
+            self._select_sprite_row(idx)  # Reselect to update preview
+            self._update_memory_display()
+            self._auto_export()
+            self._save_project()
+            
+            dialog.destroy()
+
+        def cancel_changes():
+            """Cancel and restore original transparent color."""
+            sprite.transparent = original_transparent
+            dialog.destroy()
+
+        ttk.Button(button_frame, text="Apply", command=apply_changes).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="Cancel", command=cancel_changes).pack(side='left', padx=5)
+
+    def _create_sprite_preview_image(self, img_rgb, width, height, transparent_bgr565):
         """
-        Create a transparency-aware sprite preview that simulates in-game appearance.
+        Create a transparency-aware sprite preview PIL Image that simulates in-game appearance.
         Shows checkerboard pattern behind transparent pixels, scaled as it would appear in-game.
+        Returns PIL Image (not PhotoImage).
         """
         # Simulate sprite at larger scale for better visibility
         scale = max(2, 128 // height)
@@ -1722,15 +2126,26 @@ class RayCast3DStudio:
         for y in range(display_h):
             for x in range(display_w):
                 r, g, b = sprite_pixels[x, y]
-                # Check if this pixel matches transparent color (with some tolerance due to bit conversion)
-                if abs(r - trans_r) <= 8 and abs(g - trans_g) <= 4 and abs(b - trans_b) <= 8:
+                # Check if this pixel matches transparent color EXACTLY (no tolerance - matches C code)
+                # Convert pixel to BGR565 and compare
+                pixel_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
+                if pixel_bgr565 == transparent_bgr565:
                     # Transparent - leave checkerboard visible
                     pass
                 else:
                     # Opaque - draw sprite pixel
                     checker_pixels[x, y] = (r, g, b)
 
-        return ImageTk.PhotoImage(checker)
+        return checker
+
+    def _create_sprite_preview(self, img_rgb, width, height, transparent_bgr565):
+        """
+        Create a transparency-aware sprite preview that simulates in-game appearance.
+        Shows checkerboard pattern behind transparent pixels, scaled as it would appear in-game.
+        Returns PhotoImage for tkinter.
+        """
+        preview_img = self._create_sprite_preview_image(img_rgb, width, height, transparent_bgr565)
+        return ImageTk.PhotoImage(preview_img)
 
     def _update_memory_display(self):
         """Update the memory usage display."""
@@ -1763,6 +2178,73 @@ class RayCast3DStudio:
             print(f"Error saving project: {e}")
             messagebox.showerror("Save Error", f"Failed to save project: {e}")
 
+    def _parse_images_h(self):
+        """Parse images.h to extract sprite data (c_array, transparent, resolution)."""
+        images_h_path = os.path.join(ASSETS_DIR, "images.h")
+        if not os.path.exists(images_h_path):
+            return {}
+        
+        sprite_data = {}
+        try:
+            import re
+            with open(images_h_path, 'r') as f:
+                lines = f.readlines()
+            
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                
+                # Look for sprite comment: // NAME (RESxRES, transparent=0xXXXX)
+                comment_match = re.match(r'//\s*(\w+)\s*\((\d+)x(\d+),\s*transparent=0x([0-9A-Fa-f]+)\)', line)
+                if comment_match:
+                    name = comment_match.group(1)
+                    res = int(comment_match.group(2))
+                    transparent_hex = comment_match.group(4)
+                    
+                    # Find the data array
+                    i += 1
+                    data_array = []
+                    while i < len(lines):
+                        line = lines[i].strip()
+                        if line.startswith('static const uint16_t') and '_data[' in line:
+                            # Found data array start
+                            i += 1
+                            # Collect all hex values until closing brace
+                            while i < len(lines):
+                                line = lines[i].strip()
+                                if line == '};':
+                                    break
+                                # Extract hex values from this line
+                                hex_values = re.findall(r'0x[0-9A-Fa-f]+', line, re.IGNORECASE)
+                                data_array.extend([val.upper() for val in hex_values])
+                                i += 1
+                            break
+                        i += 1
+                    
+                    # Find the SpriteImage struct to verify transparent color
+                    while i < len(lines):
+                        line = lines[i].strip()
+                        sprite_match = re.match(r'const SpriteImage\s+' + re.escape(name) + r'\s*=\s*\{[^,]+,\s*(\d+),\s*(\d+),\s*0x([0-9A-Fa-f]+)\}', line)
+                        if sprite_match:
+                            # Use transparent from struct (more reliable)
+                            transparent = int(sprite_match.group(3), 16)
+                            break
+                        i += 1
+                    
+                    if data_array:
+                        sprite_data[name] = {
+                            'c_array': data_array,
+                            'transparent': int(transparent_hex, 16),
+                            'resolution': res
+                        }
+                i += 1
+        except Exception as e:
+            print(f"Error parsing images.h: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return sprite_data
+
     def _load_project(self):
         """Load project state from JSON file."""
         if not os.path.exists(PROJECT_FILE):
@@ -1771,6 +2253,9 @@ class RayCast3DStudio:
         missing_files = []
 
         try:
+            # First, parse images.h to get exported sprite data
+            exported_sprites = self._parse_images_h()
+            
             with open(PROJECT_FILE, 'r') as f:
                 project = json.load(f)
 
@@ -1804,9 +2289,42 @@ class RayCast3DStudio:
             if 'sprites' in project:
                 for sd in project['sprites']:
                     sprite = Sprite.from_dict(sd)
-                    if os.path.exists(sprite.image_path):
-                        # Regenerate C array, transparent color, and preview
-                        img = Image.open(sprite.image_path)
+                    
+                    # Check if sprite exists in exported images.h (has edits)
+                    if sprite.name in exported_sprites:
+                        # Load from exported data (preserves edits)
+                        exported = exported_sprites[sprite.name]
+                        sprite.c_array = exported['c_array']
+                        sprite.transparent = exported['transparent']
+                        sprite.resolution = exported['resolution']
+                        
+                        # Reconstruct RGB image from c_array for preview
+                        # We need to create an image from the BGR565 data
+                        img_rgb = Image.new("RGB", (sprite.resolution, sprite.resolution))
+                        pixels = img_rgb.load()
+                        
+                        for i, hex_val in enumerate(sprite.c_array):
+                            bgr565 = int(hex_val, 16)
+                            # Convert BGR565 to RGB
+                            blue5 = (bgr565 >> 11) & 0x1F
+                            green6 = (bgr565 >> 5) & 0x3F
+                            red5 = bgr565 & 0x1F
+                            
+                            r = (red5 << 3) | (red5 >> 2)
+                            g = (green6 << 2) | (green6 >> 4)
+                            b = (blue5 << 3) | (blue5 >> 2)
+                            
+                            x = i % sprite.resolution
+                            y = i // sprite.resolution
+                            pixels[x, y] = (r, g, b)
+                        
+                        # Create preview from reconstructed image
+                        sprite.preview = self._create_sprite_preview(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+                        
+                        self.sprites.append(sprite)
+                    elif os.path.exists(sprite.image_path):
+                        # Sprite not in images.h - load from original image (new sprite)
+                        img = open_image_safe(sprite.image_path)
                         res = sprite.resolution
 
                         # Re-detect transparent color and get processed image
