@@ -114,8 +114,8 @@ void CastRays(int side) {
                 sideHit = 1;
             }
 
-            // Check if ray hit a wall (map is stored as [Y][X])
-            if (worldMap[mapY][mapX] > 0) hit = 1;
+            // Check if ray hit a wall
+            if (worldMap[mapX][mapY] > 0) hit = 1;
         }
 
         // Calculate distance from wall to camera plane

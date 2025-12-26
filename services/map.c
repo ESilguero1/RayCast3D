@@ -26,5 +26,5 @@ void FillMapFromList(const uint8_t (*const maps[])[MAP_HEIGHT], int index) {
 
 uint8_t getMapVal(double x, double y){
     int x_coord = (int)x, y_coord = (int)y;
-    return worldMap[x_coord][y_coord];  // map[X][Y] matches GUI coordinates
+    return worldMap[y_coord][x_coord];
 }

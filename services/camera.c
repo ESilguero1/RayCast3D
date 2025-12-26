@@ -13,10 +13,10 @@
 static Camera camera = {
     .posX = 12.0,
     .posY = 12.0,
-    .dirX = 0.0,
-    .dirY = -1.0,    // Facing UP on the GUI map (toward Y=0)
-    .planeX = 0.66,  // Camera plane perpendicular to direction
-    .planeY = 0.0
+    .dirX = -1.0,
+    .dirY = 0.0,
+    .planeX = 0.0,
+    .planeY = 0.66
 };
 
 void Camera_SetPosition(double x, double y) {
