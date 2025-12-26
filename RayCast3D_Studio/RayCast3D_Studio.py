@@ -8,19 +8,27 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog, colorchooser
 from PIL import Image, ImageTk
 import os
+import sys
 import json
 
 # Constants
 MAP_SIZE = 24
 CELL_SIZE = 24  # pixels per cell in the grid display
+LABEL_MARGIN = 20  # pixels reserved for coordinate labels
 DEFAULT_TEX_RESOLUTION = 64
 
 # Game display constants (for accurate preview)
 GAME_WIDTH = 128
 GAME_HEIGHT = 160
 
-# Paths
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Paths - detect if running as PyInstaller bundle
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable
+    SCRIPT_DIR = os.path.dirname(sys.executable)
+else:
+    # Running as script
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 ASSETS_DIR = os.path.join(SCRIPT_DIR, "../assets")
 PROJECT_FILE = os.path.join(SCRIPT_DIR, "studio_project.json")
 
@@ -408,9 +416,9 @@ class RayCast3DStudio:
         canvas_frame.pack(padx=10, pady=10)
 
         self.map_canvas = tk.Canvas(canvas_frame,
-                                     width=MAP_SIZE * CELL_SIZE,
-                                     height=MAP_SIZE * CELL_SIZE,
-                                     bg='black', highlightthickness=1)
+                                     width=MAP_SIZE * CELL_SIZE + LABEL_MARGIN,
+                                     height=MAP_SIZE * CELL_SIZE + LABEL_MARGIN,
+                                     highlightthickness=1)
         self.map_canvas.pack()
 
         # Bind mouse events
@@ -479,12 +487,18 @@ class RayCast3DStudio:
         res_combo = ttk.Combobox(ctrl_frame, textvariable=self.tex_res_var, values=["16", "32", "64", "128"], width=6)
         res_combo.pack(side='left')
 
-        # Header row
+        # Column widths for alignment (in pixels)
+        self.tex_col_widths = [150, 100, 100]  # Name, Resolution, Memory
+
+        # Header row (padx on right accounts for scrollbar width)
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill='x', pady=(5, 0))
-        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), width=20, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="Resolution", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="Memory", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
+        header_frame.pack(fill='x', pady=(5, 0), padx=(0, 15))
+        header_frame.columnconfigure(0, minsize=self.tex_col_widths[0])
+        header_frame.columnconfigure(1, minsize=self.tex_col_widths[1])
+        header_frame.columnconfigure(2, minsize=self.tex_col_widths[2])
+        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=0, sticky='w', padx=5)
+        ttk.Label(header_frame, text="Resolution", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=1, sticky='w', padx=5)
+        ttk.Label(header_frame, text="Memory", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=2, sticky='w', padx=5)
 
         # Scrollable texture list
         list_container = ttk.Frame(main_frame)
@@ -493,6 +507,11 @@ class RayCast3DStudio:
         self.texture_canvas = tk.Canvas(list_container, highlightthickness=0)
         texture_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.texture_canvas.yview)
         self.texture_list_frame = ttk.Frame(self.texture_canvas)
+
+        # Configure grid columns on list frame to match header
+        self.texture_list_frame.columnconfigure(0, minsize=self.tex_col_widths[0])
+        self.texture_list_frame.columnconfigure(1, minsize=self.tex_col_widths[1])
+        self.texture_list_frame.columnconfigure(2, minsize=self.tex_col_widths[2])
 
         self.texture_canvas.configure(yscrollcommand=texture_scrollbar.set)
         texture_scrollbar.pack(side='right', fill='y')
@@ -540,12 +559,18 @@ class RayCast3DStudio:
         self.sprite_res_var = tk.StringVar(value="32")
         ttk.Combobox(ctrl_frame, textvariable=self.sprite_res_var, values=["16", "32", "64", "128"], width=5).pack(side='left')
 
-        # Header row
+        # Column widths for alignment (in pixels)
+        self.sprite_col_widths = [150, 100, 100]  # Name, Resolution, Memory
+
+        # Header row (padx on right accounts for scrollbar width)
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill='x', pady=(5, 0))
-        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), width=20, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="Resolution", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="Memory", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
+        header_frame.pack(fill='x', pady=(5, 0), padx=(0, 15))
+        header_frame.columnconfigure(0, minsize=self.sprite_col_widths[0])
+        header_frame.columnconfigure(1, minsize=self.sprite_col_widths[1])
+        header_frame.columnconfigure(2, minsize=self.sprite_col_widths[2])
+        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=0, sticky='w', padx=5)
+        ttk.Label(header_frame, text="Resolution", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=1, sticky='w', padx=5)
+        ttk.Label(header_frame, text="Memory", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=2, sticky='w', padx=5)
 
         # Scrollable sprite list
         list_container = ttk.Frame(main_frame)
@@ -554,6 +579,11 @@ class RayCast3DStudio:
         self.sprite_canvas = tk.Canvas(list_container, highlightthickness=0)
         sprite_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.sprite_canvas.yview)
         self.sprite_list_frame = ttk.Frame(self.sprite_canvas)
+
+        # Configure grid columns on list frame to match header
+        self.sprite_list_frame.columnconfigure(0, minsize=self.sprite_col_widths[0])
+        self.sprite_list_frame.columnconfigure(1, minsize=self.sprite_col_widths[1])
+        self.sprite_list_frame.columnconfigure(2, minsize=self.sprite_col_widths[2])
 
         self.sprite_canvas.configure(yscrollcommand=sprite_scrollbar.set)
         sprite_scrollbar.pack(side='right', fill='y')
@@ -605,13 +635,20 @@ class RayCast3DStudio:
         rename_btn = ttk.Button(ctrl_frame, text="Rename", command=self._rename_color)
         rename_btn.pack(side='left', padx=5)
 
-        # Header row
+        # Column widths for alignment (in pixels)
+        self.color_col_widths = [150, 55, 80, 110]  # Name, Color, BGR565, RGB
+
+        # Header row (padx on right accounts for scrollbar width)
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill='x', pady=(5, 0))
-        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), width=20, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="Color", font=('Arial', 10, 'bold'), width=10, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="BGR565", font=('Arial', 10, 'bold'), width=12, anchor='w').pack(side='left', padx=5)
-        ttk.Label(header_frame, text="RGB", font=('Arial', 10, 'bold'), width=15, anchor='w').pack(side='left', padx=5)
+        header_frame.pack(fill='x', pady=(5, 0), padx=(0, 15))
+        header_frame.columnconfigure(0, minsize=self.color_col_widths[0])
+        header_frame.columnconfigure(1, minsize=self.color_col_widths[1])
+        header_frame.columnconfigure(2, minsize=self.color_col_widths[2])
+        header_frame.columnconfigure(3, minsize=self.color_col_widths[3])
+        ttk.Label(header_frame, text="Name", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=0, sticky='w', padx=5)
+        ttk.Label(header_frame, text="Color", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=1, sticky='w', padx=5)
+        ttk.Label(header_frame, text="BGR565", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=2, sticky='w', padx=5)
+        ttk.Label(header_frame, text="RGB", font=('Arial', 10, 'bold'), anchor='w').grid(row=0, column=3, sticky='w', padx=5)
 
         # Scrollable color list
         list_container = ttk.Frame(main_frame)
@@ -620,6 +657,12 @@ class RayCast3DStudio:
         self.color_canvas = tk.Canvas(list_container, highlightthickness=0)
         color_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.color_canvas.yview)
         self.color_list_frame = ttk.Frame(self.color_canvas)
+
+        # Configure grid columns on list frame to match header
+        self.color_list_frame.columnconfigure(0, minsize=self.color_col_widths[0])
+        self.color_list_frame.columnconfigure(1, minsize=self.color_col_widths[1])
+        self.color_list_frame.columnconfigure(2, minsize=self.color_col_widths[2])
+        self.color_list_frame.columnconfigure(3, minsize=self.color_col_widths[3])
 
         self.color_canvas.configure(yscrollcommand=color_scrollbar.set)
         color_scrollbar.pack(side='right', fill='y')
@@ -655,57 +698,50 @@ class RayCast3DStudio:
         self.last_color_click = None
 
         for i, color in enumerate(self.colors):
-            row_frame = ttk.Frame(self.color_list_frame)
-            row_frame.pack(fill='x', pady=1)
-
-            # Make row clickable for selection (pass event for modifier detection)
-            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
-            row_frame.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
-
             # Name label
-            name_label = ttk.Label(row_frame, text=color.name, width=20, anchor='w')
-            name_label.pack(side='left', padx=5)
+            name_label = ttk.Label(self.color_list_frame, text=color.name, anchor='w')
+            name_label.grid(row=i, column=0, sticky='w', padx=5, pady=1)
             name_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
             name_label.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
 
             # Color swatch (using a small canvas)
-            swatch = tk.Canvas(row_frame, width=40, height=20, highlightthickness=1, highlightbackground='gray')
+            swatch = tk.Canvas(self.color_list_frame, width=40, height=20, highlightthickness=1, highlightbackground='gray')
             swatch.create_rectangle(0, 0, 40, 20, fill=color.to_hex_string(), outline='')
-            swatch.pack(side='left', padx=5)
+            swatch.grid(row=i, column=1, sticky='w', padx=5, pady=1)
             swatch.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
             swatch.bind('<Double-Button-1>', lambda e, idx=i: self._edit_color_at(idx))
 
             # BGR565 value
-            bgr565_label = ttk.Label(row_frame, text=f"0x{color.to_bgr565():04X}", width=12, anchor='w', font=('Consolas', 9))
-            bgr565_label.pack(side='left', padx=5)
+            bgr565_label = ttk.Label(self.color_list_frame, text=f"0x{color.to_bgr565():04X}", anchor='w', font=('Consolas', 9))
+            bgr565_label.grid(row=i, column=2, sticky='w', padx=5, pady=1)
             bgr565_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
 
             # RGB values
-            rgb_label = ttk.Label(row_frame, text=f"({color.r}, {color.g}, {color.b})", width=15, anchor='w')
-            rgb_label.pack(side='left', padx=5)
+            rgb_label = ttk.Label(self.color_list_frame, text=f"({color.r}, {color.g}, {color.b})", anchor='w')
+            rgb_label.grid(row=i, column=3, sticky='w', padx=5, pady=1)
             rgb_label.bind('<Button-1>', lambda e, idx=i: self._select_color_row(idx, e))
 
-            self.color_rows.append((row_frame, name_label, swatch, bgr565_label, rgb_label))
+            self.color_rows.append((name_label, swatch, bgr565_label, rgb_label))
 
     def _deselect_all_colors(self):
         """Deselect all color rows."""
         for idx in list(self.selected_color_rows):
             if idx < len(self.color_rows):
-                frame = self.color_rows[idx][0]
-                for child in frame.winfo_children():
-                    if isinstance(child, ttk.Label):
-                        child.configure(background='')
+                name_label, _, bgr565_label, rgb_label = self.color_rows[idx]
+                name_label.configure(background='')
+                bgr565_label.configure(background='')
+                rgb_label.configure(background='')
         self.selected_color_rows = set()
         self.last_color_click = None
 
     def _update_color_highlights(self):
         """Update visual highlighting for all color rows based on selection."""
         for idx, row_data in enumerate(self.color_rows):
-            frame = row_data[0]
+            name_label, _, bgr565_label, rgb_label = row_data
             bg = '#cce5ff' if idx in self.selected_color_rows else ''
-            for child in frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background=bg)
+            name_label.configure(background=bg)
+            bgr565_label.configure(background=bg)
+            rgb_label.configure(background=bg)
 
     def _select_color_row(self, idx, event=None):
         """Select a color row with multi-select support.
@@ -858,10 +894,13 @@ class RayCast3DStudio:
         self.map_canvas.delete('all')
         self.tile_images = {}  # Clear image references
 
+        # Offset for coordinate labels
+        offset = LABEL_MARGIN
+
         for row in range(MAP_SIZE):
             for col in range(MAP_SIZE):
-                x1 = col * CELL_SIZE
-                y1 = row * CELL_SIZE
+                x1 = col * CELL_SIZE + offset
+                y1 = row * CELL_SIZE + offset
                 x2 = x1 + CELL_SIZE
                 y2 = y1 + CELL_SIZE
 
@@ -884,21 +923,30 @@ class RayCast3DStudio:
                     self.map_canvas.create_rectangle(x1, y1, x2, y2, fill='#444444', outline='#333333')
 
         # Grid lines
-        for i in range(MAP_SIZE + 1):
-            self.map_canvas.create_line(i * CELL_SIZE, 0, i * CELL_SIZE, MAP_SIZE * CELL_SIZE, fill='#333333')
-            self.map_canvas.create_line(0, i * CELL_SIZE, MAP_SIZE * CELL_SIZE, i * CELL_SIZE, fill='#333333')
+        for i in range(1, MAP_SIZE):
+            self.map_canvas.create_line(i * CELL_SIZE + offset, offset,
+                                        i * CELL_SIZE + offset, MAP_SIZE * CELL_SIZE + offset, fill='#333333')
+            self.map_canvas.create_line(offset, i * CELL_SIZE + offset,
+                                        MAP_SIZE * CELL_SIZE + offset, i * CELL_SIZE + offset, fill='#333333')
 
-        # Highlight perimeter with different color
-        self.map_canvas.create_rectangle(0, 0, MAP_SIZE*CELL_SIZE, MAP_SIZE*CELL_SIZE,
-                                          outline='#FF6600', width=2)
+        # Coordinate labels on grid lines (0-indexed)
+        for i in range(1, MAP_SIZE):
+            # X-axis labels (top)
+            x_pos = i * CELL_SIZE + offset
+            self.map_canvas.create_text(x_pos, offset - 4, text=str(i),
+                                        fill='black', font=('Arial', 7), anchor='s')
+            # Y-axis labels (left)
+            y_pos = i * CELL_SIZE + offset
+            self.map_canvas.create_text(offset - 4, y_pos, text=str(i),
+                                        fill='black', font=('Arial', 7), anchor='e')
 
     def _on_map_click(self, event):
         """Handle map click."""
         self.is_drawing = True
-        
+
         # Check if clicking a cell with the same texture - if so, enter erase mode
-        col = event.x // CELL_SIZE
-        row = event.y // CELL_SIZE
+        col = (event.x - LABEL_MARGIN) // CELL_SIZE
+        row = (event.y - LABEL_MARGIN) // CELL_SIZE
         if 0 <= row < MAP_SIZE and 0 <= col < MAP_SIZE:
             current_value = self.map_data[row][col]
             is_perimeter = self._is_perimeter(row, col)
@@ -1011,8 +1059,8 @@ class RayCast3DStudio:
 
     def _paint_cell(self, event):
         """Paint a cell at mouse position."""
-        col = event.x // CELL_SIZE
-        row = event.y // CELL_SIZE
+        col = (event.x - LABEL_MARGIN) // CELL_SIZE
+        row = (event.y - LABEL_MARGIN) // CELL_SIZE
 
         if 0 <= row < MAP_SIZE and 0 <= col < MAP_SIZE:
             is_perimeter = self._is_perimeter(row, col)
@@ -1147,39 +1195,32 @@ class RayCast3DStudio:
         self.last_texture_click = None
 
         for i, tex in enumerate(self.textures):
-            row_frame = ttk.Frame(self.texture_list_frame)
-            row_frame.pack(fill='x', pady=1)
-
-            # Make row clickable for selection (pass event for modifier detection)
-            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
-
             # Name label
-            name_label = ttk.Label(row_frame, text=tex.name, width=20, anchor='w')
-            name_label.pack(side='left', padx=5)
+            name_label = ttk.Label(self.texture_list_frame, text=tex.name, anchor='w')
+            name_label.grid(row=i, column=0, sticky='w', padx=5, pady=1)
             name_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
 
             # Resolution dropdown (always visible)
             res_var = tk.StringVar(value=str(tex.resolution))
-            res_combo = ttk.Combobox(row_frame, textvariable=res_var, values=["16", "32", "64", "128"],
-                                     width=8, state='readonly')
-            res_combo.pack(side='left', padx=5)
+            res_combo = ttk.Combobox(self.texture_list_frame, textvariable=res_var, values=["16", "32", "64", "128"],
+                                     width=7, state='readonly')
+            res_combo.grid(row=i, column=1, sticky='w', padx=5, pady=1)
             res_combo.bind('<<ComboboxSelected>>', lambda e, idx=i, var=res_var: self._on_texture_resolution_change(idx, var))
 
             # Memory label
-            mem_label = ttk.Label(row_frame, text=f"{tex.memory_bytes()} bytes", width=12, anchor='w')
-            mem_label.pack(side='left', padx=5)
+            mem_label = ttk.Label(self.texture_list_frame, text=f"{tex.memory_bytes()} bytes", anchor='w')
+            mem_label.grid(row=i, column=2, sticky='w', padx=5, pady=1)
             mem_label.bind('<Button-1>', lambda e, idx=i: self._select_texture_row(idx, e))
 
-            self.texture_rows.append((row_frame, res_var, name_label, mem_label))
+            self.texture_rows.append((name_label, res_var, res_combo, mem_label))
 
     def _deselect_all_textures(self):
         """Deselect all texture rows."""
         for idx in list(self.selected_texture_rows):
             if idx < len(self.texture_rows):
-                frame = self.texture_rows[idx][0]
-                for child in frame.winfo_children():
-                    if isinstance(child, ttk.Label):
-                        child.configure(background='')
+                name_label, _, _, mem_label = self.texture_rows[idx]
+                name_label.configure(background='')
+                mem_label.configure(background='')
         self.selected_texture_rows = set()
         self.last_texture_click = None
         self.tex_preview_label.config(image='')
@@ -1188,11 +1229,10 @@ class RayCast3DStudio:
     def _update_texture_highlights(self):
         """Update visual highlighting for all texture rows based on selection."""
         for idx, row_data in enumerate(self.texture_rows):
-            frame = row_data[0]
+            name_label, _, _, mem_label = row_data
             bg = '#cce5ff' if idx in self.selected_texture_rows else ''
-            for child in frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background=bg)
+            name_label.configure(background=bg)
+            mem_label.configure(background=bg)
 
     def _select_texture_row(self, idx, event=None):
         """Select a texture row with multi-select support.
@@ -1464,39 +1504,32 @@ class RayCast3DStudio:
         self.last_sprite_click = None
 
         for i, sprite in enumerate(self.sprites):
-            row_frame = ttk.Frame(self.sprite_list_frame)
-            row_frame.pack(fill='x', pady=1)
-
-            # Make row clickable for selection (pass event for modifier detection)
-            row_frame.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
-
             # Name label
-            name_label = ttk.Label(row_frame, text=sprite.name, width=20, anchor='w')
-            name_label.pack(side='left', padx=5)
+            name_label = ttk.Label(self.sprite_list_frame, text=sprite.name, anchor='w')
+            name_label.grid(row=i, column=0, sticky='w', padx=5, pady=1)
             name_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
 
             # Resolution dropdown (always visible)
             res_var = tk.StringVar(value=str(sprite.resolution))
-            res_combo = ttk.Combobox(row_frame, textvariable=res_var, values=["16", "32", "64", "128"],
-                                     width=8, state='readonly')
-            res_combo.pack(side='left', padx=5)
+            res_combo = ttk.Combobox(self.sprite_list_frame, textvariable=res_var, values=["16", "32", "64", "128"],
+                                     width=7, state='readonly')
+            res_combo.grid(row=i, column=1, sticky='w', padx=5, pady=1)
             res_combo.bind('<<ComboboxSelected>>', lambda e, idx=i, var=res_var: self._on_sprite_resolution_change(idx, var))
 
             # Memory label
-            mem_label = ttk.Label(row_frame, text=f"{sprite.memory_bytes()} bytes", width=12, anchor='w')
-            mem_label.pack(side='left', padx=5)
+            mem_label = ttk.Label(self.sprite_list_frame, text=f"{sprite.memory_bytes()} bytes", anchor='w')
+            mem_label.grid(row=i, column=2, sticky='w', padx=5, pady=1)
             mem_label.bind('<Button-1>', lambda e, idx=i: self._select_sprite_row(idx, e))
 
-            self.sprite_rows.append((row_frame, res_var, name_label, mem_label))
+            self.sprite_rows.append((name_label, res_var, res_combo, mem_label))
 
     def _deselect_all_sprites(self):
         """Deselect all sprite rows."""
         for idx in list(self.selected_sprite_rows):
             if idx < len(self.sprite_rows):
-                frame = self.sprite_rows[idx][0]
-                for child in frame.winfo_children():
-                    if isinstance(child, ttk.Label):
-                        child.configure(background='')
+                name_label, _, _, mem_label = self.sprite_rows[idx]
+                name_label.configure(background='')
+                mem_label.configure(background='')
         self.selected_sprite_rows = set()
         self.last_sprite_click = None
         self.sprite_preview_label.config(image='')
@@ -1505,11 +1538,10 @@ class RayCast3DStudio:
     def _update_sprite_highlights(self):
         """Update visual highlighting for all sprite rows based on selection."""
         for idx, row_data in enumerate(self.sprite_rows):
-            frame = row_data[0]
+            name_label, _, _, mem_label = row_data
             bg = '#cce5ff' if idx in self.selected_sprite_rows else ''
-            for child in frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    child.configure(background=bg)
+            name_label.configure(background=bg)
+            mem_label.configure(background=bg)
 
     def _select_sprite_row(self, idx, event=None):
         """Select a sprite row with multi-select support.
@@ -1738,19 +1770,41 @@ class RayCast3DStudio:
 
         sprite = self.sprites[idx]
 
-        # Store original transparent color for cancel
+        # Store original transparent color and c_array for cancel
         original_transparent = sprite.transparent
+        original_c_array = sprite.c_array[:] if sprite.c_array else None
 
-        # Load original image
-        if not os.path.exists(sprite.image_path):
-            messagebox.showerror("Error", f"Image file not found: {sprite.image_path}")
-            return
-
+        # Load image from c_array if it exists (preserves previous edits), otherwise from file
         try:
-            img = Image.open(sprite.image_path)
-            # Process image to match sprite resolution
-            img_resized = resize_and_letterbox(img, sprite.resolution, sprite.resolution)
-            img_rgb = img_resized.convert("RGB")
+            if sprite.c_array and len(sprite.c_array) == sprite.resolution * sprite.resolution:
+                # Reconstruct image from saved c_array data (preserves erase/de-erase edits)
+                img_rgb = Image.new("RGB", (sprite.resolution, sprite.resolution))
+                pixels = img_rgb.load()
+
+                for i, hex_val in enumerate(sprite.c_array):
+                    bgr565 = int(hex_val, 16)
+                    # Convert BGR565 to RGB
+                    blue5 = (bgr565 >> 11) & 0x1F
+                    green6 = (bgr565 >> 5) & 0x3F
+                    red5 = bgr565 & 0x1F
+
+                    r = (red5 << 3) | (red5 >> 2)
+                    g = (green6 << 2) | (green6 >> 4)
+                    b = (blue5 << 3) | (blue5 >> 2)
+
+                    x = i % sprite.resolution
+                    y = i // sprite.resolution
+                    pixels[x, y] = (r, g, b)
+            else:
+                # No c_array yet - load from original image file
+                if not os.path.exists(sprite.image_path):
+                    messagebox.showerror("Error", f"Image file not found: {sprite.image_path}")
+                    return
+
+                img = Image.open(sprite.image_path)
+                # Process image to match sprite resolution
+                img_resized = resize_and_letterbox(img, sprite.resolution, sprite.resolution)
+                img_rgb = img_resized.convert("RGB")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load image: {e}")
             return
@@ -1758,7 +1812,7 @@ class RayCast3DStudio:
         # Create dialog window
         dialog = tk.Toplevel(self.root)
         dialog.title(f"Edit Transparency - {sprite.name}")
-        dialog.geometry("700x500")
+        dialog.geometry("950x700")
         dialog.transient(self.root)
         dialog.grab_set()
 
@@ -1767,16 +1821,16 @@ class RayCast3DStudio:
         main_frame.pack(fill='both', expand=True, padx=20, pady=20)
 
         # Instructions
-        instr_label = ttk.Label(main_frame, 
+        instr_label = ttk.Label(main_frame,
                                 text="Click on the left preview to pick a color as the transparent color.",
                                 font=('Arial', 10))
         instr_label.pack(pady=(0, 10))
 
-        # Preview size
-        preview_size = 200
-        # Calculate scale to fit sprite in preview (at least 2x for visibility)
+        # Preview size (larger for easier pixel editing)
+        preview_size = 384
+        # Calculate scale to fit sprite in preview (at least 4x for visibility)
         max_scale = preview_size // sprite.resolution
-        scale = max(2, min(max_scale, 8))  # Scale between 2x and 8x, but fit in preview
+        scale = max(4, min(max_scale, 16))  # Scale between 4x and 16x for easier editing
         display_size = sprite.resolution * scale
         offset_x = (preview_size - display_size) // 2
         offset_y = (preview_size - display_size) // 2
@@ -2382,9 +2436,9 @@ class RayCast3DStudio:
             with open(os.path.join(ASSETS_DIR, "textures.h"), 'w') as f:
                 f.write(content)
 
-            # Export map.h
-            content = self._generate_map_h()
-            with open(os.path.join(ASSETS_DIR, "map.h"), 'w') as f:
+            # Export maps.h
+            content = self._generate_maps_h()
+            with open(os.path.join(ASSETS_DIR, "maps.h"), 'w') as f:
                 f.write(content)
 
             # Export images.h
@@ -2444,11 +2498,11 @@ class RayCast3DStudio:
 
         return "\n".join(lines)
 
-    def _generate_map_h(self):
-        """Generate map.h content with all maps and pointer array."""
+    def _generate_maps_h(self):
+        """Generate maps.h content with all maps and pointer array."""
         lines = [
-            "#ifndef MAP_H_",
-            "#define MAP_H_",
+            "#ifndef maps_h_",
+            "#define maps_h_",
             "",
             "#include <stdint.h>",
             "",
@@ -2473,7 +2527,7 @@ class RayCast3DStudio:
             lines.append(f"    {map_info['name']},")
         lines.append("};")
         lines.append("")
-        lines.append("#endif /* MAP_H_ */")
+        lines.append("#endif /* maps_h_ */")
 
         return "\n".join(lines)
 
@@ -2496,7 +2550,7 @@ class RayCast3DStudio:
             "// Clean, user-friendly macros (PRIMARY - use these!)",
             "// No need to specify dimensions or transparent color - all auto-detected!",
             "#define AddSprite(x, y, sprite, scale) \\",
-            "    Sprite_Add(x, y, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)",
+            "    Sprite_Add(y, x, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)",
             "",
             "#define AddFGSprite(sprite, x, y, scale) \\",
             "    Graphics_ForegroundSprite((sprite).data, x, y, (sprite).width, (sprite).height, scale, (sprite).transparent)",
