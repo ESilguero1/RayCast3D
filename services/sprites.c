@@ -121,7 +121,7 @@ void RenderSprites(int side) {
     }
 }
 
-int Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
+int Sprite_Add(double y, double x, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
     if (numSprites >= MAX_SPRITES) return -1;
 
     sprites[numSprites].x = x;
