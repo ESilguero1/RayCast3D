@@ -13,6 +13,7 @@ typedef struct {
     int height;
     int scale;
     int8_t type;
+    int8_t active;  // 0 = slot empty, 1 = in use (index remains stable after removal)
 } Sprite;
 
 // Maximum number of sprites in the world

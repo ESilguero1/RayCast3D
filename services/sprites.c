@@ -105,16 +105,21 @@ void RenderSprite(Sprite sprite, int side, int spriteIndex) {
 void RenderSprites(int side) {
     const Camera* cam = Camera_Get();
     SpriteDistancePair spriteOrder[MAX_SPRITES];
+    int activeCount = 0;
 
-    for (int i = 0; i < numSprites; i++) {
-        spriteOrder[i].index = i;
-        spriteOrder[i].distance = (cam->posX - sprites[i].x) * (cam->posX - sprites[i].x) +
-                                   (cam->posY - sprites[i].y) * (cam->posY - sprites[i].y);
+    // Build list of active sprites with their distances
+    for (int i = 0; i < MAX_SPRITES; i++) {
+        if (sprites[i].active) {
+            spriteOrder[activeCount].index = i;
+            spriteOrder[activeCount].distance = (cam->posX - sprites[i].x) * (cam->posX - sprites[i].x) +
+                                                 (cam->posY - sprites[i].y) * (cam->posY - sprites[i].y);
+            activeCount++;
+        }
     }
 
-    qsort(spriteOrder, numSprites, sizeof(SpriteDistancePair), compareSprites);
+    qsort(spriteOrder, activeCount, sizeof(SpriteDistancePair), compareSprites);
 
-    for (int i = 0; i < numSprites; i++) {
+    for (int i = 0; i < activeCount; i++) {
         if (sprites[spriteOrder[i].index].width != 0) {
             RenderSprite(sprites[spriteOrder[i].index], side, spriteOrder[i].index);
         }
@@ -122,30 +127,36 @@ void RenderSprites(int side) {
 }
 
 int Sprite_Add(double y, double x, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
-    if (numSprites >= MAX_SPRITES) return -1;
-
-    sprites[numSprites].x = x;
-    sprites[numSprites].y = y;
-    sprites[numSprites].image = image;
-    sprites[numSprites].width = width;
-    sprites[numSprites].height = height;
-    sprites[numSprites].scale = scale;
-    sprites[numSprites].transparent = transparent;
-    sprites[numSprites].type = 0;
-
-    return numSprites++;
+    // Find first inactive slot
+    for (int i = 0; i < MAX_SPRITES; i++) {
+        if (!sprites[i].active) {
+            sprites[i].x = x;
+            sprites[i].y = y;
+            sprites[i].image = image;
+            sprites[i].width = width;
+            sprites[i].height = height;
+            sprites[i].scale = scale;
+            sprites[i].transparent = transparent;
+            sprites[i].type = 0;
+            sprites[i].active = 1;
+            numSprites++;
+            return i;  // Index remains stable even after other sprites are removed
+        }
+    }
+    return -1;  // No free slots
 }
 
 void Sprite_Clear(void) {
+    for (int i = 0; i < MAX_SPRITES; i++) {
+        sprites[i].active = 0;
+    }
     numSprites = 0;
 }
 
 void Sprite_Remove(int index) {
-    if (index < 0 || index >= numSprites) return;
+    if (index < 0 || index >= MAX_SPRITES) return;
+    if (!sprites[index].active) return;  // Already inactive
 
-    // Shift remaining sprites down
-    for (int i = index; i < numSprites - 1; i++) {
-        sprites[i] = sprites[i + 1];
-    }
+    sprites[index].active = 0;
     numSprites--;
 }
