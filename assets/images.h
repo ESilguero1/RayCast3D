@@ -14,7 +14,7 @@ typedef struct {
 // Clean, user-friendly macros (PRIMARY - use these!)
 // No need to specify dimensions or transparent color - all auto-detected!
 #define AddSprite(x, y, sprite, scale) \
-    Sprite_Add(y, x, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)
+    Sprite_Add(x, y, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)
 
 #define AddFGSprite(sprite, x, y, scale) \
     Graphics_ForegroundSprite((sprite).data, x, y, (sprite).width, (sprite).height, scale, (sprite).transparent)

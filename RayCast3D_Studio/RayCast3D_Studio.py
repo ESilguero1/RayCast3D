@@ -2490,7 +2490,8 @@ class RayCast3DStudio:
             lines.append("// Map value 1 -> textures[0], value 2 -> textures[1], etc.")
             lines.append("const TextureInfo textures[] = {")
             for tex in self.textures:
-                lines.append(f"    {{{tex.name}_data, {tex.resolution}}},  // {tex.name}")
+                mask = tex.resolution - 1  # Precomputed mask for power-of-2 textures
+                lines.append(f"    {{{tex.name}_data, {tex.resolution}, {mask}}},  // {tex.name}")
             lines.append("};")
             lines.append("")
 
@@ -2550,7 +2551,7 @@ class RayCast3DStudio:
             "// Clean, user-friendly macros (PRIMARY - use these!)",
             "// No need to specify dimensions or transparent color - all auto-detected!",
             "#define AddSprite(x, y, sprite, scale) \\",
-            "    Sprite_Add(y, x, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)",
+            "    Sprite_Add(x, y, (sprite).data, (sprite).width, (sprite).height, scale, (sprite).transparent)",
             "",
             "#define AddFGSprite(sprite, x, y, scale) \\",
             "    Graphics_ForegroundSprite((sprite).data, x, y, (sprite).width, (sprite).height, scale, (sprite).transparent)",

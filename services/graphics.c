@@ -131,16 +131,16 @@ void CastRays(int side) {
 
             // Bounds check to prevent out-of-bounds access
             if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) {
-                hit = 1;  // Treat as hitting a wall at the edge
+                hit = -1;  // Mark as boundary hit (no valid wall)
                 break;
             }
 
-            // Check if ray hit a wall
-            if (worldMap[mapX][mapY] > 0) hit = 1;
+            // Check if ray hit a wall (row-major: Y=row, X=col)
+            if (worldMap[mapY][mapX] > 0) hit = 1;
         }
 
-        // Skip this column if ray escaped (no wall found)
-        if (maxSteps <= 0) continue;
+        // Skip this column if ray escaped or hit boundary
+        if (maxSteps <= 0 || hit != 1) continue;
 
         // Calculate distance from wall to camera plane
         if (sideHit == 0)
@@ -164,7 +164,7 @@ void CastRays(int side) {
         int drawEnd = HALF_SCREEN_HEIGHT + halfLineHeight;
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
-        int texNum = (worldMap[mapX][mapY] - 1) % NUM_TEXTURES;
+        int texNum = (worldMap[mapY][mapX] - 1) % NUM_TEXTURES;
         int texRes = textures[texNum].resolution;
         int texResMask = textures[texNum].mask;  // Use precomputed mask
 

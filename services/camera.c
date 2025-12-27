@@ -12,15 +12,15 @@
 
 // Camera state (owned by this module)
 // Direction convention: X increases RIGHT, Y increases DOWN on GUI map
-// (0, -1) = facing UP (toward row 0), (-1, 0) = facing LEFT (toward col 0)
+// (0, -1) = facing UP (toward row 0), (0, 1) = facing DOWN (toward last row)
 // All values in Q16.16 fixed-point
 static Camera camera = {
     .posX = 12 << 16,      // 12.0
     .posY = 12 << 16,      // 12.0
-    .dirX = -(1 << 16),      // -1.0
-    .dirY = 0,             // 0.0
-    .planeX = 0,           // 0.0
-    .planeY = 43253        // 0.66
+    .dirX = 0,             // 0.0
+    .dirY = -(1 << 16),    // -1.0 (facing UP toward row 0)
+    .planeX = 43253,       // 0.66 (perpendicular to direction)
+    .planeY = 0            // 0.0
 };
 
 void Camera_SetPosition(double x, double y) {
@@ -55,9 +55,9 @@ void Camera_SetDirection(double dirX, double dirY) {
     }
 
     // Calculate perpendicular camera plane with FOV ratio 0.66
-    // Plane is perpendicular to direction using (y, -x) rotation (90° clockwise)
-    camera.planeX = fixed_mul(camera.dirY, FIXED_FOV_RATIO);
-    camera.planeY = -fixed_mul(camera.dirX, FIXED_FOV_RATIO);
+    // Plane is perpendicular to direction using (-y, x) rotation (90° counter-clockwise)
+    camera.planeX = -fixed_mul(camera.dirY, FIXED_FOV_RATIO);
+    camera.planeY = fixed_mul(camera.dirX, FIXED_FOV_RATIO);
 }
 
 void Camera_GetDirection(double* dirX, double* dirY) {
@@ -83,8 +83,8 @@ void Camera_Move(double forward, double strafe) {
 }
 
 void Camera_Rotate(double degrees) {
-    // Convert degrees to fixed-point radians
-    fixed_t radians = FLOAT_TO_FIXED(degrees * 3.14159265358979 / 180.0);
+    // Convert degrees to fixed-point radians (negate for correct screen-space rotation)
+    fixed_t radians = FLOAT_TO_FIXED(-degrees * 3.14159265358979 / 180.0);
 
     // Use fixed-point sin/cos lookup
     fixed_t cosA = fixed_cos(radians);
@@ -107,10 +107,10 @@ void Camera_Rotate(double degrees) {
     }
 
     // Recalculate plane from normalized direction (ensures perpendicularity and correct FOV)
-    // Plane is perpendicular to direction using (y, -x) rotation (90° clockwise)
-    // This matches the initial camera state: dir=(-1,0) → plane=(0, 0.66)
-    camera.planeX = fixed_mul(camera.dirY, FIXED_FOV_RATIO);
-    camera.planeY = -fixed_mul(camera.dirX, FIXED_FOV_RATIO);
+    // Plane is perpendicular to direction using (-y, x) rotation (90° counter-clockwise)
+    // This matches the initial camera state: dir=(0,-1) → plane=(0.66, 0)
+    camera.planeX = -fixed_mul(camera.dirY, FIXED_FOV_RATIO);
+    camera.planeY = fixed_mul(camera.dirX, FIXED_FOV_RATIO);
 }
 
 const Camera* Camera_Get(void) {

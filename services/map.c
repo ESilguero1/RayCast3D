@@ -5,21 +5,22 @@
 #include "map.h"
 
 // World map (owned by this module)
-uint8_t worldMap[MAP_WIDTH][MAP_HEIGHT];
+// Row-major: first index = row (Y), second index = column (X)
+uint8_t worldMap[MAP_HEIGHT][MAP_WIDTH];
 
-void FillMap(const uint8_t map[MAP_WIDTH][MAP_HEIGHT]) {
-    for (int i = 0; i < MAP_WIDTH; i++) {
-        for (int j = 0; j < MAP_HEIGHT; j++) {
-            worldMap[i][j] = map[i][j];
+void FillMap(const uint8_t map[MAP_HEIGHT][MAP_WIDTH]) {
+    for (int row = 0; row < MAP_HEIGHT; row++) {
+        for (int col = 0; col < MAP_WIDTH; col++) {
+            worldMap[row][col] = map[row][col];
         }
     }
 }
 
-void FillMapFromList(const uint8_t (*const maps[])[MAP_HEIGHT], int index) {
-    const uint8_t (*map)[MAP_HEIGHT] = maps[index];
-    for (int i = 0; i < MAP_WIDTH; i++) {
-        for (int j = 0; j < MAP_HEIGHT; j++) {
-            worldMap[i][j] = map[i][j];
+void FillMapFromList(const uint8_t (*const maps[])[MAP_WIDTH], int index) {
+    const uint8_t (*map)[MAP_WIDTH] = maps[index];
+    for (int row = 0; row < MAP_HEIGHT; row++) {
+        for (int col = 0; col < MAP_WIDTH; col++) {
+            worldMap[row][col] = map[row][col];
         }
     }
 }
