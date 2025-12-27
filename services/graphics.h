@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "../drivers/ST7735.h"
+#include "../utils/fixed.h"
 
 // Include sub-modules
 #include "camera.h"
@@ -23,10 +24,16 @@
 typedef struct {
     const uint16_t* data;
     int resolution;  // Texture dimension (e.g., 16, 32, 64, 128)
+    int mask;        // Precomputed: resolution - 1 (for power-of-2 textures)
 } TextureInfo;
 
-// Depth buffer for sprite sorting
-extern double ZBuffer[SCREEN_WIDTH];
+// Precomputed constants for hot paths
+#define SCREEN_HEIGHT_SHIFTED ((int64_t)SCREEN_HEIGHT << FIXED_SHIFT)
+#define HALF_SCREEN_HEIGHT (SCREEN_HEIGHT / 2)
+#define HALF_SCREEN_WIDTH (SCREEN_WIDTH / 2)
+
+// Depth buffer for sprite sorting (fixed-point Q16.16)
+extern fixed_t ZBuffer[SCREEN_WIDTH];
 
 // Core functions
 void Graphics_Init(void);

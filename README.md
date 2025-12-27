@@ -102,6 +102,57 @@ void Sprite_Clear(void);
 - Rendered with depth sorting (farther sprites drawn first)
 - Occluded by walls based on Z-buffer
 
+## Performance Optimizations
+
+### Fixed-Point Math (Q16.16)
+
+All raycasting math uses Q16.16 fixed-point arithmetic for optimal performance on the MSPM0 (which lacks an FPU). This provides:
+
+- **16-bit integer part**: Range of -32768 to +32767
+- **16-bit fractional part**: Precision of ~0.00002
+
+Key optimizations:
+- Lookup tables for `sin`/`cos` (256 entries with quadrant mirroring)
+- Reciprocal lookup tables to minimize division operations
+- Precomputed constants (`SCREEN_HEIGHT_SHIFTED`, texture masks)
+- Cache-friendly sprite rendering (row-major traversal)
+
+### Rotation Drift Prevention
+
+Repeated fixed-point multiplications can cause precision loss, leading to the direction vector drifting from unit length over time. This manifests as walls appearing to move closer or farther without player movement.
+
+**Solution**: After each rotation, the direction vector is re-normalized:
+```c
+fixed_t lenSq = fixed_mul(dirX, dirX) + fixed_mul(dirY, dirY);
+fixed_t len = fixed_sqrt(lenSq);
+dirX = fixed_div(dirX, len);
+dirY = fixed_div(dirY, len);
+```
+
+### Drift Verification (Tested)
+
+The drift fix was verified using a debug display that tracks the direction vector magnitude across rotations:
+
+- `|dir|` — squared magnitude of the direction vector (expected: **65536** = 1.0²)
+- `r` — total rotation count
+
+**Test results**: After hundreds of rotations, `|dir|` remained stable at 65536, confirming the re-normalization successfully prevents drift.
+
+## Fixed-Point API
+
+Located in `utils/fixed.h`:
+
+| Macro/Function | Description |
+|----------------|-------------|
+| `INT_TO_FIXED(x)` | Convert integer to fixed-point |
+| `FIXED_TO_INT(x)` | Convert fixed-point to integer (truncates) |
+| `FLOAT_TO_FIXED(x)` | Convert float/double to fixed-point |
+| `fixed_mul(a, b)` | Multiply two fixed-point values |
+| `fixed_div(a, b)` | Divide two fixed-point values |
+| `fixed_sin(angle)` | Sine (angle in fixed-point radians) |
+| `fixed_cos(angle)` | Cosine (angle in fixed-point radians) |
+| `fixed_sqrt(x)` | Square root using Newton-Raphson |
+
 ## License
 
 For educational use in ECE 319K.

@@ -3,15 +3,20 @@
 #include "../drivers/ST7735.h"
 #include "../bus/SPI.h"
 #include "../assets/font.h"
+#include "../utils/fixed.h"
 
 uint16_t renderBuffer[BUFFER_WIDTH * BUFFER_HEIGHT];
 
 // Configurable colors (defaults)
 static uint16_t floorColor = 0x0000;
 static uint16_t skyColor = 0x0000;
-static double gradientIntensity = 1.0;  // 1.0 = full gradient, 0.0 = solid color
+static fixed_t gradientIntensity = FIXED_ONE;  // 1.0 = full gradient, 0.0 = solid color
 
 uint16_t floorGradient[SCREEN_HEIGHT / 2];
+
+// Precomputed constants for performance
+#define BUFFER_SIZE (BUFFER_WIDTH * BUFFER_HEIGHT)
+#define BUFFER_HALF_SIZE (BUFFER_SIZE / 2)
 
 static void PrecalculateFloorGradient(void) {
     // Format: BBBBBGGGGGGRRRRR (blue in high bits, red in low bits)
@@ -19,14 +24,21 @@ static void PrecalculateFloorGradient(void) {
     uint16_t g = (floorColor >> 5) & 0x3F;    // bits 5-10
     uint16_t b = (floorColor >> 11) & 0x1F;   // bits 11-15
 
+    // Pre-calculate step size in fixed-point
+    // baseFactor goes from 0 to 1 as y goes from 0 to SCREEN_HEIGHT/2
+    fixed_t baseStep = FIXED_ONE / (SCREEN_HEIGHT / 2);
+
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
         // intensity=1.0: factor goes 1.0->0.0 (full gradient to black)
         // intensity=0.0: factor stays at 1.0 (solid color)
-        double baseFactor = (double)y / (SCREEN_HEIGHT / 2);
-        double factor = 1.0 - (gradientIntensity * baseFactor);
-        uint16_t scaledR = (uint16_t)(r * factor);
-        uint16_t scaledG = (uint16_t)(g * factor);
-        uint16_t scaledB = (uint16_t)(b * factor);
+        fixed_t baseFactor = y * baseStep;
+        fixed_t factor = FIXED_ONE - fixed_mul(gradientIntensity, baseFactor);
+
+        // Scale color components (factor is 0 to FIXED_ONE)
+        uint16_t scaledR = (r * factor) >> FIXED_SHIFT;
+        uint16_t scaledG = (g * factor) >> FIXED_SHIFT;
+        uint16_t scaledB = (b * factor) >> FIXED_SHIFT;
+
         // Put channels back at their original positions
         floorGradient[y] = (scaledB << 11) | (scaledG << 5) | scaledR;
     }
@@ -51,22 +63,25 @@ void Buffer_SetSkyColor(uint16_t color) {
 void Buffer_SetFloorGradient(double intensity) {
     if (intensity < 0.0) intensity = 0.0;
     if (intensity > 1.0) intensity = 1.0;
-    gradientIntensity = intensity;
+    gradientIntensity = FLOAT_TO_FIXED(intensity);
     PrecalculateFloorGradient();
 }
 
 void clearRenderBuffer(void) {
-    // Render pre-calculated floor gradient in the bottom half of the buffer
+    // Optimized floor gradient rendering using pointer arithmetic
+    // Avoids multiplication in inner loop and uses sequential memory access
+    uint16_t* bufPtr = renderBuffer;
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
-        int startIndex = y * BUFFER_WIDTH;
+        uint16_t gradColor = floorGradient[y];  // Cache gradient value
         for (int x = 0; x < BUFFER_WIDTH; x++) {
-            renderBuffer[startIndex + x] = floorGradient[y];
+            *bufPtr++ = gradColor;  // Post-increment pointer (single instruction)
         }
     }
 
-    // Clear the top half (sky) to sky color
-    for (int i = (BUFFER_WIDTH * BUFFER_HEIGHT) / 2; i < (BUFFER_WIDTH * BUFFER_HEIGHT); i++) {
-        renderBuffer[i] = skyColor;
+    // Clear the top half (sky) using precomputed constant
+    // bufPtr now points to start of sky region
+    for (int i = 0; i < BUFFER_HALF_SIZE; i++) {
+        *bufPtr++ = skyColor;
     }
 }
 
@@ -96,11 +111,10 @@ void setPixelBuffer(int x, int y, uint16_t color) {
 
 void drawForegroundSpriteToBuffer(int side, Sprite sprite) {
     if (sprite.image == 0) return;
-    // Let's say scale of 1 makes it a certain fraction of screen height
-    double sizeFactor = sprite.scale / 8.0;
-
-    int scaledSpriteHeight = (int)(SCREEN_HEIGHT * sizeFactor);
-    int scaledSpriteWidth = (int)(scaledSpriteHeight * (double)sprite.width / sprite.height);
+    // Scale of 8 = full screen height, use integer math
+    // sizeFactor = scale / 8, so scaledHeight = SCREEN_HEIGHT * scale / 8
+    int scaledSpriteHeight = (SCREEN_HEIGHT * sprite.scale) >> 3;
+    int scaledSpriteWidth = (scaledSpriteHeight * sprite.width) / sprite.height;
 
     int spriteBottomCenterY = (int)sprite.y;
     int spriteBottomCenterX = (int)sprite.x;

@@ -78,11 +78,12 @@ static const uint16_t marble2_data[32 * 32] = {
     0x2A6E, 0x1126, 0x1126, 0x1126, 0x1126, 0x1988, 0x220B, 0x220B, 0x220B, 0x220B, 0x220B, 0x220B, 0x220B, 0x220B, 0x224D, 0x1988, 0x2A6E, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x1988, 0x0905,
 };
 
-// Texture lookup array with per-texture resolution
+// Texture lookup array with per-texture resolution and precomputed mask
 // Map value 1 -> textures[0], value 2 -> textures[1], etc.
+// mask = resolution - 1 (precomputed for fast modulo on power-of-2 textures)
 const TextureInfo textures[] = {
-    {cave3_data, 32},  // cave3
-    {marble2_data, 32},  // marble2
+    {cave3_data, 32, 31},   // cave3: resolution=32, mask=31
+    {marble2_data, 32, 31}, // marble2: resolution=32, mask=31
 };
 
 #endif /* TEXTURES_H_ */

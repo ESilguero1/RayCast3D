@@ -1,16 +1,17 @@
 /* sprites.c
  * RayCast3D Sprite Rendering
  * Core sprite rendering functions
+ * Optimized with fixed-point math for embedded performance
  */
 
 #include "sprites.h"
 #include "graphics.h"
 #include "../hal/buffer.h"
+#include "../utils/fixed.h"
 #include <stdlib.h>
-#include <math.h>
 
-// External references
-extern double ZBuffer[SCREEN_WIDTH];
+// External references (now fixed-point)
+extern fixed_t ZBuffer[SCREEN_WIDTH];
 
 // Sprite storage
 int numSprites = 0;
@@ -19,7 +20,7 @@ Sprite sprites[MAX_SPRITES];
 // Helper structure for sorting sprites
 typedef struct {
     int index;
-    double distance;
+    fixed_t distance;  // Fixed-point distance squared
 } SpriteDistancePair;
 
 // Comparison function for sorting sprites by distance (far to near)
@@ -31,72 +32,113 @@ static int compareSprites(const void *a, const void *b) {
     return 0;
 }
 
+// Maximum columns a sprite can span (usually much less than screen width)
+#define MAX_VISIBLE_COLUMNS 80
+
+// Structure to track visible columns for cache-friendly sprite rendering
+typedef struct {
+    int8_t bufferX;  // Buffer X position (-1 if not visible)
+    int8_t texX;     // Texture X coordinate
+} VisibleColumn;
+
 void RenderSprite(Sprite sprite, int side, int spriteIndex) {
     const Camera* cam = Camera_Get();
 
-    // Sprite position relative to the camera
-    double spriteX = sprite.x - cam->posX;
-    double spriteY = sprite.y - cam->posY;
+    // Convert sprite position to fixed-point
+    fixed_t spritePosX = FLOAT_TO_FIXED(sprite.x);
+    fixed_t spritePosY = FLOAT_TO_FIXED(sprite.y);
+
+    // Sprite position relative to the camera (all fixed-point)
+    fixed_t spriteX = spritePosX - cam->posX;
+    fixed_t spriteY = spritePosY - cam->posY;
 
     // Inverse camera transformation
-    double invDet = 1.0 / (cam->planeX * cam->dirY - cam->dirX * cam->planeY);
-    double transformX = invDet * (cam->dirY * spriteX - cam->dirX * spriteY);
-    double transformY = invDet * (-cam->planeY * spriteX + cam->planeX * spriteY);
+    fixed_t det = fixed_mul(cam->planeX, cam->dirY) - fixed_mul(cam->dirX, cam->planeY);
+    if (det == 0) return;
+    fixed_t invDet = fixed_recip_large(det);
+
+    fixed_t transformX = fixed_mul(invDet, fixed_mul(cam->dirY, spriteX) - fixed_mul(cam->dirX, spriteY));
+    fixed_t transformY = fixed_mul(invDet, -fixed_mul(cam->planeY, spriteX) + fixed_mul(cam->planeX, spriteY));
 
     // Ignore if behind camera
-    if (transformY <= 0.1) return;
+    if (transformY <= 6554) return;
 
     // Project sprite to screen
-    int spriteScreenX = (int)((SCREEN_WIDTH / 2) * (1 + transformX / transformY));
+    fixed_t ratio = fixed_div(transformX, transformY);
+    int spriteScreenX = (HALF_SCREEN_WIDTH) * (FIXED_ONE + ratio) >> FIXED_SHIFT;
 
-    // Calculate sprite height and width
-    int originalSpriteHeight = abs((int)(SCREEN_HEIGHT / transformY));
-    int originalSpriteWidth = abs((int)(SCREEN_HEIGHT / transformY * sprite.width / sprite.height));
+    // Calculate sprite dimensions (use precomputed constant)
+    int originalSpriteHeight = (int)(SCREEN_HEIGHT_SHIFTED / transformY);
+    if (originalSpriteHeight < 0) originalSpriteHeight = -originalSpriteHeight;
 
-    // Scale sprite based on size
-    int spriteHeight = originalSpriteHeight * sprite.scale / 8.0;
-    int spriteWidth = originalSpriteWidth * sprite.scale / 8.0;
+    int originalSpriteWidth = (int64_t)originalSpriteHeight * sprite.width / sprite.height;
+    if (originalSpriteWidth < 0) originalSpriteWidth = -originalSpriteWidth;
 
-    double pushdown = (originalSpriteHeight - spriteHeight) / 2.0;
+    // Scale sprite
+    int spriteHeight = (originalSpriteHeight * sprite.scale) >> 3;
+    int spriteWidth = (originalSpriteWidth * sprite.scale) >> 3;
 
-    // Calculate vertical drawing boundaries
-    int drawStartY = -spriteHeight / 2 + SCREEN_HEIGHT / 2 - pushdown;
-    int drawEndY = spriteHeight / 2 + SCREEN_HEIGHT / 2 - pushdown;
+    if (spriteWidth <= 0 || spriteHeight <= 0) return;
 
-    // Calculate horizontal drawing boundaries
-    int drawStartX = -spriteWidth / 2 + spriteScreenX;
-    int drawEndX = (spriteWidth + 1) / 2 + spriteScreenX;
+    int pushdown = (originalSpriteHeight - spriteHeight) >> 1;
 
-    int bufferBoundary = SCREEN_WIDTH / 2;
+    // Calculate drawing boundaries
+    int drawStartY = HALF_SCREEN_HEIGHT - (spriteHeight >> 1) - pushdown;
+    int drawEndY = HALF_SCREEN_HEIGHT + (spriteHeight >> 1) - pushdown;
+    int drawStartX = spriteScreenX - (spriteWidth >> 1);
+    int drawEndX = spriteScreenX + ((spriteWidth + 1) >> 1);
 
-    // Draw sprite to buffer
-    for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+    // Clamp Y boundaries
+    if (drawStartY < 0) drawStartY = 0;
+    if (drawEndY > SCREEN_HEIGHT) drawEndY = SCREEN_HEIGHT;
+
+    // === PASS 1: Build visibility list for columns ===
+    // This allows us to do row-major texture access in pass 2
+    VisibleColumn visibleCols[MAX_VISIBLE_COLUMNS];
+    int numVisible = 0;
+
+    for (int stripe = drawStartX; stripe < drawEndX && numVisible < MAX_VISIBLE_COLUMNS; stripe++) {
         int bufferX = -1;
 
-        if (side == 0 && stripe >= 0 && stripe < bufferBoundary) {
+        if (side == 0 && stripe >= 0 && stripe < HALF_SCREEN_WIDTH) {
             bufferX = stripe;
-        } else if (side == 1 && stripe >= bufferBoundary && stripe < SCREEN_WIDTH) {
-            bufferX = stripe - bufferBoundary;
+        } else if (side == 1 && stripe >= HALF_SCREEN_WIDTH && stripe < SCREEN_WIDTH) {
+            bufferX = stripe - HALF_SCREEN_WIDTH;
         }
 
-        if (bufferX != -1 && transformY < ZBuffer[stripe]) {
-            // Calculate texture x coordinate
+        // Check ZBuffer visibility
+        if (bufferX != -1 && stripe >= 0 && stripe < SCREEN_WIDTH && transformY < ZBuffer[stripe]) {
             int texX = (stripe - drawStartX) * sprite.width / spriteWidth;
             if (texX >= 0 && texX < sprite.width) {
-                for (int y = drawStartY; y < drawEndY; y++) {
-                    if (y >= 0 && y < SCREEN_HEIGHT) {
-                        // Calculate texture y coordinate
-                        int texY = (int)((drawEndY - y) * sprite.height / spriteHeight);
-                        if (texY >= 0 && texY < sprite.height) {
-                            int index = texY * sprite.width + texX;
-                            uint16_t pixelColor = sprite.image[index];
+                visibleCols[numVisible].bufferX = bufferX;
+                visibleCols[numVisible].texX = texX;
+                numVisible++;
+            }
+        }
+    }
 
-                            if (pixelColor != sprite.transparent) {
-                                setPixelBuffer(bufferX, y, pixelColor);
-                            }
-                        }
-                    }
-                }
+    if (numVisible == 0) return;  // Nothing visible
+
+    // === PASS 2: Row-major rendering for cache efficiency ===
+    // Outer loop: Y (rows) - texture rows are contiguous in memory
+    // Inner loop: visible X columns
+    const uint16_t* imgData = sprite.image;
+    uint16_t transparent = sprite.transparent;
+    int imgWidth = sprite.width;
+
+    for (int y = drawStartY; y < drawEndY; y++) {
+        // Calculate texY once per row
+        int texY = (drawEndY - y) * sprite.height / spriteHeight;
+        if (texY < 0 || texY >= sprite.height) continue;
+
+        // Row base pointer - now we iterate X which is contiguous in memory
+        const uint16_t* rowPtr = imgData + texY * imgWidth;
+
+        // Iterate through visible columns (cache-friendly X access)
+        for (int i = 0; i < numVisible; i++) {
+            uint16_t pixelColor = rowPtr[visibleCols[i].texX];
+            if (pixelColor != transparent) {
+                setPixelBuffer(visibleCols[i].bufferX, y, pixelColor);
             }
         }
     }
@@ -107,12 +149,15 @@ void RenderSprites(int side) {
     SpriteDistancePair spriteOrder[MAX_SPRITES];
     int activeCount = 0;
 
-    // Build list of active sprites with their distances
+    // Build list of active sprites with their distances (fixed-point)
     for (int i = 0; i < MAX_SPRITES; i++) {
         if (sprites[i].active) {
             spriteOrder[activeCount].index = i;
-            spriteOrder[activeCount].distance = (cam->posX - sprites[i].x) * (cam->posX - sprites[i].x) +
-                                                 (cam->posY - sprites[i].y) * (cam->posY - sprites[i].y);
+            // Calculate distance squared in fixed-point
+            fixed_t dx = cam->posX - FLOAT_TO_FIXED(sprites[i].x);
+            fixed_t dy = cam->posY - FLOAT_TO_FIXED(sprites[i].y);
+            // Distance squared (no need for sqrt, just for sorting)
+            spriteOrder[activeCount].distance = fixed_mul(dx, dx) + fixed_mul(dy, dy);
             activeCount++;
         }
     }
