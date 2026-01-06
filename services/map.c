@@ -29,3 +29,8 @@ uint8_t getMapVal(double x, double y){
     int x_coord = (int)x, y_coord = (int)y;
     return worldMap[y_coord][x_coord];
 }
+
+uint8_t getMapVal_Fixed(fixed_t x, fixed_t y){
+    int x_coord = FIXED_TO_INT(x), y_coord = FIXED_TO_INT(y);
+    return worldMap[y_coord][x_coord];
+}

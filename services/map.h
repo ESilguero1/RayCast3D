@@ -6,6 +6,7 @@
 #define MAP_H_SERVICE_
 
 #include <stdint.h>
+#include "../utils/fixed.h"
 
 // Map dimensions
 #define MAP_WIDTH 24
@@ -21,5 +22,6 @@ void FillMapFromList(const uint8_t (*const maps[])[MAP_WIDTH], int index);
 
 // Map helper function - tells caller what is stored at map location
 uint8_t getMapVal(double x, double y);
+uint8_t getMapVal_Fixed(fixed_t x, fixed_t y);
 
 #endif /* MAP_H_SERVICE_ */
