@@ -179,6 +179,11 @@ fixed_t fixed_recip(fixed_t x) {
 fixed_t fixed_recip_large(fixed_t x) {
     if (x == 0) return FIXED_LARGE;
 
+    // Guard against near-zero values that would overflow int32 when computing reciprocal
+    // If |x| < 256 (~0.004 in fixed-point), then 1/x > 256 which overflows Q16.16
+    // This prevents the "random brown vertical line" bug in raycasting
+    if (x > -256 && x < 256) return (x >= 0) ? FIXED_LARGE : -FIXED_LARGE;
+
     // For raycasting, we typically need 1/x where x is 0.1 to 32+
     // Use division for accuracy in the critical path
     return fixed_div(FIXED_ONE, x);
