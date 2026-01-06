@@ -5,6 +5,9 @@
  */
 
 #include <stdint.h>
+#include <ti/devices/msp/msp.h> // Remove this in production
+#include "../inc/LaunchPad.h" // Remove this in production
+#include "../inc/Clock.h"
 #include "graphics.h"
 #include "sprites.h"
 #include "../hal/buffer.h"
@@ -199,18 +202,20 @@ void CastRays(int side) {
         // texPos = (drawStart - HALF_SCREEN_HEIGHT + halfLineHeight) * step
         fixed_t texPos = ((drawStart - HALF_SCREEN_HEIGHT + halfLineHeight) * texStep);
 
-        // Texture rendering loop - use precomputed mask and cache texture pointer
+        // Cache texture data pointer for this wall's texture
         const uint16_t* texData = textures[texNum].data;
 
+        // Branchless shading: precompute mask/shift to avoid per-pixel conditional
+        uint16_t shadeMask = (sideHit == 1) ? 0x7BEF : 0xFFFF;
+        int shadeShift = (sideHit == 1) ? 1 : 0;
+
+        // Texture rendering loop
         for (int y = drawStart; y < drawEnd; y++) {
-            // Integer texture coordinate with bounds checking
             int texY = texResMask - ((texPos >> FIXED_SHIFT) & texResMask);
             texPos += texStep;
 
             uint16_t color = texData[texY * texRes + texX];
-
-            // Make color darker for y-sides (side shading)
-            if (sideHit == 1) { color = (color >> 1) & 0x7BEF; }
+            color = (color >> shadeShift) & shadeMask;
 
             setPixelBuffer(x, y, color);
         }
@@ -224,6 +229,9 @@ static void clearZBuffer(void) {
     }
 }
 
+// Temporary: force 10µs gap between profiling pulses for visibility
+#define PROFILE_GAP() Clock_Delay(320)  // 320 cycles @ 32MHz = 10µs
+
 void RenderScene(void) {
     FPSCounter_Update();
 
@@ -231,22 +239,53 @@ void RenderScene(void) {
     clearZBuffer();
 
     // Render left half (side 0)
+    GPIOB->DOUTSET31_0 = RED;
     clearRenderBuffer();
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
+    GPIOB->DOUTSET31_0 = RED;
     CastRays(0);
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
+    GPIOB->DOUTSET31_0 = RED;
     RenderSprites(0);
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
     drawFGSpriteQueue(0);
     drawTextQueue(0);
     drawFPSOverlay(0);
+
+    GPIOB->DOUTSET31_0 = RED;
     RenderBuffer(0);
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
 
     // Render right half (side 1)
+    GPIOB->DOUTSET31_0 = RED;
     clearRenderBuffer();
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
+    GPIOB->DOUTSET31_0 = RED;
     CastRays(1);
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
+    GPIOB->DOUTSET31_0 = RED;
     RenderSprites(1);
+    GPIOB->DOUTCLR31_0 = RED;
+    PROFILE_GAP();
+
     drawFGSpriteQueue(1);
     drawTextQueue(1);
     drawFPSOverlay(1);
+
+    GPIOB->DOUTSET31_0 = RED;
     RenderBuffer(1);
+    GPIOB->DOUTCLR31_0 = RED;
 
     // Clear queues after both sides rendered
     textQueueCount = 0;
@@ -254,7 +293,8 @@ void RenderScene(void) {
 }
 
 void Graphics_Init(void) {
-    Fixed_Init();  // Initialize fixed-point math tables
+    Clock_Init80MHz(0); // We want a fast clock
+    Fixed_Init();
     Buffer_Init();
 }
 
