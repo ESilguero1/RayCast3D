@@ -1,8 +1,8 @@
 #include "fpscounter.h"
 #include "../drivers/Timer.h"
+#include "../../inc/Clock.h"
 #include <ti/devices/msp/msp.h>
 
-#define BUS_CLOCK_HZ 80000000
 #define SMOOTHING_FRAMES 16
 
 static uint32_t lastTime;
@@ -32,7 +32,7 @@ uint32_t FPSCounter_Update(void) {
     if (frameCount >= SMOOTHING_FRAMES) {
         // FPS = frames / seconds = frames / (cycles / clock)
         // FPS = frames * clock / cycles
-        currentFPS = (uint32_t)(((uint64_t)frameCount * BUS_CLOCK_HZ) / accumulatedCycles);
+        currentFPS = (uint32_t)(((uint64_t)frameCount * Clock_Freq()) / accumulatedCycles);
         frameCount = 0;
         accumulatedCycles = 0;
     }
