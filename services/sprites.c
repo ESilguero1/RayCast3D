@@ -171,7 +171,7 @@ void RenderSprites(int side) {
     }
 }
 
-int Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
+uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
     // Find first inactive slot
     for (int i = 0; i < MAX_SPRITES; i++) {
         if (!sprites[i].active) {

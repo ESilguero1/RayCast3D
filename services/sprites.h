@@ -28,7 +28,7 @@ void RenderSprites(int side);
 void RenderSprite(Sprite sprite, int side, int spriteIndex);
 
 // Sprite management
-int Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
+uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
 void Sprite_Clear(void);
 void Sprite_Remove(int index);
 
