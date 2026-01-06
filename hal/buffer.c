@@ -68,20 +68,29 @@ void Buffer_SetFloorGradient(double intensity) {
 }
 
 void clearRenderBuffer(void) {
-    // Optimized floor gradient rendering using pointer arithmetic
-    // Avoids multiplication in inner loop and uses sequential memory access
-    uint16_t* bufPtr = renderBuffer;
+    // Optimized: use 32-bit writes to store 2 pixels at once
+    uint32_t* bufPtr32 = (uint32_t*)renderBuffer;
+
+    // Floor gradient (bottom half) - each row same color
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
-        uint16_t gradColor = floorGradient[y];  // Cache gradient value
-        for (int x = 0; x < BUFFER_WIDTH; x++) {
-            *bufPtr++ = gradColor;  // Post-increment pointer (single instruction)
+        uint32_t gradColor32 = floorGradient[y] | ((uint32_t)floorGradient[y] << 16);
+        // BUFFER_WIDTH/2 iterations (2 pixels per write), unrolled 4x
+        for (int x = 0; x < BUFFER_WIDTH / 8; x++) {
+            *bufPtr32++ = gradColor32;
+            *bufPtr32++ = gradColor32;
+            *bufPtr32++ = gradColor32;
+            *bufPtr32++ = gradColor32;
         }
     }
 
-    // Clear the top half (sky) using precomputed constant
-    // bufPtr now points to start of sky region
-    for (int i = 0; i < BUFFER_HALF_SIZE; i++) {
-        *bufPtr++ = skyColor;
+    // Sky (top half) - solid color, pack into 32-bit
+    uint32_t skyColor32 = skyColor | ((uint32_t)skyColor << 16);
+    // BUFFER_HALF_SIZE/2 iterations, unrolled 4x
+    for (int i = 0; i < BUFFER_HALF_SIZE / 8; i++) {
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
     }
 }
 
