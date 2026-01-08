@@ -8,5 +8,5 @@
 #include "services/sprites.h"
 #include "services/camera.h"
 #include "services/map.h"
-
+#include "utils/fixed.h"
 #endif
