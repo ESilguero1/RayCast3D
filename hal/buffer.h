@@ -21,4 +21,14 @@ void blitBufferToRenderBuffer(uint16_t* srcBuffer, int srcWidth, int srcHeight, 
 void printToBuffer(const char *text, int screenX, int screenY, uint16_t color, int side);
 void RenderBuffer(int side);
 
+/* DMA-based buffer rendering (non-blocking)
+ * Returns 0 on success, -1 if DMA busy */
+int RenderBufferDMA(int side, void (*callback)(void));
+
+/* Returns 1 if DMA transfer in progress, 0 if idle */
+int RenderBuffer_IsBusy(void);
+
+/* Block until DMA transfer completes */
+void RenderBuffer_WaitComplete(void);
+
 #endif /* BUFFER_H_ */

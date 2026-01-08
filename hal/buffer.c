@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include "../services/graphics.h"
 #include "../drivers/ST7735.h"
+#include "../drivers/ST7735_DMA.h"
 #include "../bus/SPI.h"
 #include "../assets/font.h"
 #include "../utils/fixed.h"
@@ -222,4 +223,18 @@ void printToBuffer(const char *text, int screenX, int screenY, uint16_t color, i
 void RenderBuffer(int side){
   if(side == 0) ST7735_DrawBitmap(0, BUFFER_HEIGHT-1, renderBuffer, BUFFER_WIDTH, BUFFER_HEIGHT);
   else ST7735_DrawBitmap(SCREEN_WIDTH/2, BUFFER_HEIGHT-1, renderBuffer, BUFFER_WIDTH, BUFFER_HEIGHT);
+}
+
+int RenderBufferDMA(int side, void (*callback)(void)) {
+    int x = (side == 0) ? 0 : SCREEN_WIDTH / 2;
+    return ST7735_DrawBitmapDMA(x, BUFFER_HEIGHT - 1, renderBuffer,
+                                BUFFER_WIDTH, BUFFER_HEIGHT, callback);
+}
+
+int RenderBuffer_IsBusy(void) {
+    return ST7735_DMA_IsBusy();
+}
+
+void RenderBuffer_WaitComplete(void) {
+    ST7735_DMA_WaitComplete();
 }

@@ -11,6 +11,7 @@
 #include "graphics.h"
 #include "sprites.h"
 #include "../hal/buffer.h"
+#include "../drivers/ST7735_DMA.h"
 #include "../assets/textures.h"
 #include "../utils/fixed.h"
 #include "../utils/fpscounter.h"
@@ -233,6 +234,9 @@ static void clearZBuffer(void) {
 #define PROFILE_GAP() Clock_Delay(320)  // 320 cycles @ 32MHz = 10µs
 
 void RenderScene(void) {
+    // Wait for previous frame's right-half DMA to complete
+    RenderBuffer_WaitComplete();
+
     FPSCounter_Update();
 
     // Clear Z-buffer once per frame (shared between both halves)
@@ -259,11 +263,12 @@ void RenderScene(void) {
     drawFPSOverlay(0);
 
     GPIOB->DOUTSET31_0 = RED;
-    RenderBuffer(0);
+    RenderBufferDMA(0, 0);  // Start DMA for left half (returns immediately after byte-swap)
     GPIOB->DOUTCLR31_0 = RED;
     PROFILE_GAP();
 
-    // Render right half (side 1)
+    // Render right half (side 1) - overlapped with DMA transfer of left half!
+    // renderBuffer is free because byte-swap copied to separate txBuffer
     GPIOB->DOUTSET31_0 = RED;
     clearRenderBuffer();
     GPIOB->DOUTCLR31_0 = RED;
@@ -283,8 +288,12 @@ void RenderScene(void) {
     drawTextQueue(1);
     drawFPSOverlay(1);
 
+    // Wait for left half DMA to complete before starting right half
+    // (only one txBuffer, can't overlap two DMAs)
+    RenderBuffer_WaitComplete();
+
     GPIOB->DOUTSET31_0 = RED;
-    RenderBuffer(1);
+    RenderBufferDMA(1, 0);  // Start DMA for right half
     GPIOB->DOUTCLR31_0 = RED;
 
     // Clear queues after both sides rendered
@@ -296,6 +305,7 @@ void Graphics_Init(void) {
     Clock_Init80MHz(0); // We want a fast clock
     Fixed_Init();
     Buffer_Init();
+    ST7735_DMA_Init();  // Initialize DMA for async display transfers
 }
 
 void Graphics_SetFloorColor(uint16_t color) {
