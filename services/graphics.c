@@ -25,6 +25,7 @@ static int fpsX = 0;
 static int fpsY = 0;
 static uint16_t fpsColor = 0xFFFF;
 
+
 // Text queue
 #define MAX_TEXT_QUEUE 8
 #define MAX_TEXT_LENGTH 32
@@ -59,9 +60,9 @@ static void drawFGSpriteQueue(int side);
 void CastRays(int side) {
     const Camera* cam = Camera_Get();
 
-    // Determine loop bounds
-    int startX = (side == 0) ? 0 : SCREEN_WIDTH / 2;
-    int endX = (side == 0) ? SCREEN_WIDTH / 2 : SCREEN_WIDTH;
+    // Quarter-screen: side 0-3, each covers BUFFER_WIDTH (40) columns
+    int startX = side * BUFFER_WIDTH;
+    int endX = startX + BUFFER_WIDTH;
 
     // Pre-calculate values used in the loop
     // cameraX = 2 * x / SCREEN_WIDTH - 1, ranges from -1 to +1
@@ -211,6 +212,8 @@ void CastRays(int side) {
         int shadeShift = (sideHit == 1) ? 1 : 0;
 
         // Texture rendering loop
+        // Convert screen x to buffer-local coordinate
+        int bufferX = x - startX;
         for (int y = drawStart; y < drawEnd; y++) {
             int texY = texResMask - ((texPos >> FIXED_SHIFT) & texResMask);
             texPos += texStep;
@@ -218,7 +221,7 @@ void CastRays(int side) {
             uint16_t color = texData[texY * texRes + texX];
             color = (color >> shadeShift) & shadeMask;
 
-            setPixelBuffer(x, y, color);
+            setPixelBuffer(bufferX, y, color);
         }
     }
 }
@@ -234,69 +237,40 @@ static void clearZBuffer(void) {
 #define PROFILE_GAP() Clock_Delay(320)  // 320 cycles @ 32MHz = 10µs
 
 void RenderScene(void) {
-    // Wait for previous frame's right-half DMA to complete
-    RenderBuffer_WaitComplete();
+    // No wait here - double-buffering means Q0 renders to a different buffer
+    // than Q3's DMA is reading. The wait inside the loop handles sync.
 
     FPSCounter_Update();
 
-    // Clear Z-buffer once per frame (shared between both halves)
+    // Clear Z-buffer once per frame (shared between all quarters)
     clearZBuffer();
 
-    // Render left half (side 0)
-    GPIOB->DOUTSET31_0 = RED;
-    clearRenderBuffer();
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
+    // Render all 4 quarters
+    for (int side = 0; side < 4; side++) {
+        clearRenderBuffer();
+        GPIOB->DOUTSET31_0 = RED;
+        CastRays(side);
+        GPIOB->DOUTCLR31_0 = RED;
+        PROFILE_GAP();
 
-    GPIOB->DOUTSET31_0 = RED;
-    CastRays(0);
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
+        GPIOB->DOUTSET31_0 = RED;
+        RenderSprites(side);
+        GPIOB->DOUTCLR31_0 = RED;
+        PROFILE_GAP();
 
-    GPIOB->DOUTSET31_0 = RED;
-    RenderSprites(0);
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
+        GPIOB->DOUTSET31_0 = RED;
+        drawFGSpriteQueue(side);
+        drawTextQueue(side);
+        drawFPSOverlay(side);
+        GPIOB->DOUTCLR31_0 = RED;
+        PROFILE_GAP();
 
-    drawFGSpriteQueue(0);
-    drawTextQueue(0);
-    drawFPSOverlay(0);
+        // Transfer to display via DMA (async)
+        RenderBuffer_WaitComplete();
+        RenderBufferDMA(side, 0);
+    }
 
-    GPIOB->DOUTSET31_0 = RED;
-    RenderBufferDMA(0, 0);  // Start DMA for left half (returns immediately after byte-swap)
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
-
-    // Render right half (side 1) - overlapped with DMA transfer of left half!
-    // renderBuffer is free because byte-swap copied to separate txBuffer
-    GPIOB->DOUTSET31_0 = RED;
-    clearRenderBuffer();
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
-
-    GPIOB->DOUTSET31_0 = RED;
-    CastRays(1);
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
-
-    GPIOB->DOUTSET31_0 = RED;
-    RenderSprites(1);
-    GPIOB->DOUTCLR31_0 = RED;
-    PROFILE_GAP();
-
-    drawFGSpriteQueue(1);
-    drawTextQueue(1);
-    drawFPSOverlay(1);
-
-    // Wait for left half DMA to complete before starting right half
-    // (only one txBuffer, can't overlap two DMAs)
-    RenderBuffer_WaitComplete();
-
-    GPIOB->DOUTSET31_0 = RED;
-    RenderBufferDMA(1, 0);  // Start DMA for right half
-    GPIOB->DOUTCLR31_0 = RED;
-
-    // Clear queues after both sides rendered
+    // Clear queues after all 4 sides rendered
     textQueueCount = 0;
     fgSpriteQueueCount = 0;
 }

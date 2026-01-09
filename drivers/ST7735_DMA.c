@@ -26,12 +26,6 @@ static int16_t displayWidth = 160;
 static int16_t displayHeight = 128;
 
 /*---------------------------------------------------------------------------
- * Transmit buffer for byte-swapped pixels
- * Sized for half-screen (80x128 = 10240 pixels = 20480 bytes)
- *---------------------------------------------------------------------------*/
-static uint16_t txBuffer[80 * 128];
-
-/*---------------------------------------------------------------------------
  * RS pin control PA13 (replicated from SPI.c)
  *---------------------------------------------------------------------------*/
 #define RS_DATA()    (GPIOA->DOUTSET31_0 = (1<<13))
@@ -111,6 +105,7 @@ void ST7735_DMA_Init(void) {
 /*---------------------------------------------------------------------------
  * ST7735_DrawBitmapDMA
  * Non-blocking bitmap transfer using DMA
+ * Assumes image is already byte-swapped and Y-inverted (as renderBuffer is)
  *---------------------------------------------------------------------------*/
 int ST7735_DrawBitmapDMA(int16_t x, int16_t y, const uint16_t *image,
                          int16_t w, int16_t h, ST7735_DMA_Callback callback) {
@@ -129,34 +124,14 @@ int ST7735_DrawBitmapDMA(int16_t x, int16_t y, const uint16_t *image,
     /* Wait for SPI to finish window setup commands */
     while (SPI1->STAT & 0x10);
 
-    /* Byte-swap pixels into transmit buffer
-     * Problem: ST7735 expects MSB first, ARM stores little-endian
-     *
-     * Match DrawBitmap row order: the original DrawBitmap iterates
-     * from bottom-left to top-right of the image, sending MSB first.
-     *
-     * For a bitmap stored with row 0 at bottom:
-     * srcIdx starts at w*(h-1) and decrements by w each row
-     */
-    uint32_t pixelCount = (uint32_t)w * (uint32_t)h;
-    int srcIdx = w * (h - 1);  /* Bottom-left of source image */
-    int dstIdx = 0;
-
-    for (int row = 0; row < h; row++) {
-        for (int col = 0; col < w; col++) {
-            uint16_t pixel = image[srcIdx + col];
-            /* Swap bytes: 0xABCD -> 0xCDAB (puts MSB first in memory) */
-            txBuffer[dstIdx++] = (pixel >> 8) | (pixel << 8);
-        }
-        srcIdx -= w;  /* Move up one row in source */
-    }
-
     /* Set RS HIGH for data mode before DMA starts */
     RS_DATA();
 
-    /* Store callback and start DMA transfer */
+    /* DMA directly from image buffer - no copy needed!
+     * renderBuffer stores pixels pre-swapped and Y-inverted */
+    uint32_t byteCount = (uint32_t)w * (uint32_t)h * 2;
     dmaUserCallback = callback;
-    return SPI_DMA_StartTransfer((const uint8_t*)txBuffer, pixelCount * 2,
+    return SPI_DMA_StartTransfer((const uint8_t*)image, byteCount,
                                  DMA_InternalCallback);
 }
 

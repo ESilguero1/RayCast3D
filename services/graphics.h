@@ -7,7 +7,6 @@
 #define GRAPHICS_H_
 
 #include <stdint.h>
-#include "../drivers/ST7735.h"
 #include "../utils/fixed.h"
 
 // Include sub-modules
@@ -17,8 +16,6 @@
 // Screen dimensions
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 128
-#define BUFFER_WIDTH (SCREEN_WIDTH / 2)
-#define BUFFER_HEIGHT SCREEN_HEIGHT
 
 // Texture info structure (allows per-texture resolution)
 typedef struct {

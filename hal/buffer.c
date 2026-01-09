@@ -1,18 +1,29 @@
 #include "buffer.h"
 #include "../services/graphics.h"
-#include "../drivers/ST7735.h"
 #include "../drivers/ST7735_DMA.h"
-#include "../bus/SPI.h"
+#include "../inc/ST7735.h"
+#include "../inc/SPI.h"
 #include "../assets/font.h"
 #include "../utils/fixed.h"
 
-uint16_t renderBuffer[BUFFER_WIDTH * BUFFER_HEIGHT];
+// Double-buffer: one for rendering, one for DMA
+static uint16_t bufferA[BUFFER_WIDTH * BUFFER_HEIGHT];
+static uint16_t bufferB[BUFFER_WIDTH * BUFFER_HEIGHT];
 
-// Configurable colors (defaults)
+// Pointers for buffer swapping (render to one, DMA from other)
+uint16_t* renderBuffer = bufferA;
+static uint16_t* dmaBuffer = bufferB;
+
+// Byte-swap macro for ST7735 (MSB first)
+#define SWAP16(c) (((c) >> 8) | ((c) << 8))
+
+// Configurable colors (defaults) - stored in native format
 static uint16_t floorColor = 0x0000;
 static uint16_t skyColor = 0x0000;
+static uint16_t skyColorSwapped = 0x0000;  // Pre-swapped for DMA
 static fixed_t gradientIntensity = FIXED_ONE;  // 1.0 = full gradient, 0.0 = solid color
 
+// Floor gradient stored pre-swapped for DMA
 uint16_t floorGradient[SCREEN_HEIGHT / 2];
 
 // Precomputed constants for performance
@@ -40,8 +51,9 @@ static void PrecalculateFloorGradient(void) {
         uint16_t scaledG = (g * factor) >> FIXED_SHIFT;
         uint16_t scaledB = (b * factor) >> FIXED_SHIFT;
 
-        // Put channels back at their original positions
-        floorGradient[y] = (scaledB << 11) | (scaledG << 5) | scaledR;
+        // Put channels back and store PRE-SWAPPED for DMA
+        uint16_t color = (scaledB << 11) | (scaledG << 5) | scaledR;
+        floorGradient[y] = SWAP16(color);
     }
 }
 
@@ -59,6 +71,7 @@ void Buffer_SetFloorColor(uint16_t color) {
 
 void Buffer_SetSkyColor(uint16_t color) {
     skyColor = color;
+    skyColorSwapped = SWAP16(color);
 }
 
 void Buffer_SetFloorGradient(double intensity) {
@@ -70,12 +83,22 @@ void Buffer_SetFloorGradient(double intensity) {
 
 void clearRenderBuffer(void) {
     // Optimized: use 32-bit writes to store 2 pixels at once
+    // Y-inverted storage: buffer row 0 = screen top, row 127 = screen bottom
     uint32_t* bufPtr32 = (uint32_t*)renderBuffer;
 
-    // Floor gradient (bottom half) - each row same color
+    // Sky (top half of screen = buffer rows 0-63)
+    uint32_t skyColor32 = skyColorSwapped | ((uint32_t)skyColorSwapped << 16);
+    for (int i = 0; i < BUFFER_HALF_SIZE / 8; i++) {
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
+        *bufPtr32++ = skyColor32;
+    }
+
+    // Floor gradient (bottom half of screen = buffer rows 64-127)
+    // floorGradient[0] = horizon (bright), floorGradient[63] = bottom edge (dark)
     for (int y = 0; y < SCREEN_HEIGHT / 2; y++) {
         uint32_t gradColor32 = floorGradient[y] | ((uint32_t)floorGradient[y] << 16);
-        // BUFFER_WIDTH/2 iterations (2 pixels per write), unrolled 4x
         for (int x = 0; x < BUFFER_WIDTH / 8; x++) {
             *bufPtr32++ = gradColor32;
             *bufPtr32++ = gradColor32;
@@ -83,27 +106,17 @@ void clearRenderBuffer(void) {
             *bufPtr32++ = gradColor32;
         }
     }
-
-    // Sky (top half) - solid color, pack into 32-bit
-    uint32_t skyColor32 = skyColor | ((uint32_t)skyColor << 16);
-    // BUFFER_HALF_SIZE/2 iterations, unrolled 4x
-    for (int i = 0; i < BUFFER_HALF_SIZE / 8; i++) {
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
-    }
 }
 
 void setPixelBuffer(int x, int y, uint16_t color) {
-  if (x >= BUFFER_WIDTH){
-    x -= BUFFER_WIDTH;
-  }
-  if (x >= 0 && x < BUFFER_WIDTH && y >= 0 && y < BUFFER_HEIGHT) {
-   int index = y * BUFFER_WIDTH + x;
-   renderBuffer[index] = color;
-  }
- }
+    // Bounds check only - callers now pass buffer-local coordinates (0 to BUFFER_WIDTH-1)
+    if (x >= 0 && x < BUFFER_WIDTH && y >= 0 && y < BUFFER_HEIGHT) {
+        // Store Y-inverted so DMA can send in natural order (row 0 first = bottom of screen)
+        // Also pre-swap bytes for ST7735 (MSB first)
+        int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
+        renderBuffer[index] = SWAP16(color);
+    }
+}
 
  void blitBufferToRenderBuffer(uint16_t* srcBuffer, int srcWidth, int srcHeight, int destX, int destY) {
     for (int y = 0; y < srcHeight; y++) {
@@ -138,18 +151,15 @@ void drawForegroundSpriteToBuffer(int side, Sprite sprite) {
     int drawStartY = spriteTopY;
     int drawEndY = spriteTopY + scaledSpriteHeight;
 
-    int bufferBoundary = SCREEN_WIDTH / 2;
+    // Quarter-screen: each side covers BUFFER_WIDTH (40) columns
+    int sideStartX = side * BUFFER_WIDTH;
+    int sideEndX = sideStartX + BUFFER_WIDTH;
 
     for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
-        int bufferX = -1;
+        // Check if this screen column falls within current side's range
+        if (stripe >= sideStartX && stripe < sideEndX) {
+            int bufferX = stripe - sideStartX;
 
-        if (side == 0 && stripe >= 0 && stripe < bufferBoundary) {
-            bufferX = stripe;
-        } else if (side == 1 && stripe >= bufferBoundary && stripe < SCREEN_WIDTH) {
-            bufferX = stripe - bufferBoundary;
-        }
-
-        if (bufferX != -1) {
             // Calculate texture x coordinate
             int texX = (stripe - drawStartX) * sprite.width / scaledSpriteWidth;
             if (texX >= 0 && texX < sprite.width) {
@@ -176,20 +186,17 @@ void drawCharToBuffer(char ch, int screenX, int screenY, uint16_t color, int sid
     if (ch < 0 || ch > (sizeof(Font) / FONT_BYTES_PER_CHAR) - 1) return;
 
     int charIndex = ch * FONT_BYTES_PER_CHAR;
-    int bufferBoundary = SCREEN_WIDTH / 2;
+
+    // Quarter-screen: each side covers BUFFER_WIDTH (40) columns
+    int sideStartX = side * BUFFER_WIDTH;
+    int sideEndX = sideStartX + BUFFER_WIDTH;
 
     for (int col = 0; col < FONT_WIDTH; col++) {
         int pixelScreenX = screenX + col;
-        int bufferX = -1;
 
-        // Check if this column falls on the current side
-        if (side == 0 && pixelScreenX >= 0 && pixelScreenX < bufferBoundary) {
-            bufferX = pixelScreenX;
-        } else if (side == 1 && pixelScreenX >= bufferBoundary && pixelScreenX < SCREEN_WIDTH) {
-            bufferX = pixelScreenX - bufferBoundary;
-        }
-
-        if (bufferX != -1) {
+        // Check if this column falls within current side's range
+        if (pixelScreenX >= sideStartX && pixelScreenX < sideEndX) {
+            int bufferX = pixelScreenX - sideStartX;
             uint8_t colData = Font[charIndex + col];
             for (int row = 0; row < FONT_HEIGHT; row++) {
                 if ((colData >> row) & 0x01) {
@@ -202,32 +209,33 @@ void drawCharToBuffer(char ch, int screenX, int screenY, uint16_t color, int sid
 
 void printToBuffer(const char *text, int screenX, int screenY, uint16_t color, int side) {
     int currentScreenX = screenX;
-    int bufferBoundary = SCREEN_WIDTH / 2;
+
+    // Quarter-screen: each side covers BUFFER_WIDTH (40) columns
+    int sideStartX = side * BUFFER_WIDTH;
+    int sideEndX = sideStartX + BUFFER_WIDTH;
 
     for (int i = 0; text[i] != '\0'; i++) {
         // Calculate the screen range for the current character
         int charStartX = currentScreenX;
         int charEndX = currentScreenX + FONT_WIDTH - 1;
 
-        // Check if any part of the character falls within the current side's screen range
-        int onSide0 = (side == 0 && charStartX < bufferBoundary);
-        int onSide1 = (side == 1 && charEndX >= bufferBoundary && charStartX < SCREEN_WIDTH);
-
-        if (onSide0 || onSide1) {
+        // Check if any part of the character overlaps current side's range
+        if (charEndX >= sideStartX && charStartX < sideEndX) {
             drawCharToBuffer(text[i], currentScreenX, screenY, color, side);
         }
         currentScreenX += FONT_WIDTH + FONT_SPACE;
     }
 }
 
-void RenderBuffer(int side){
-  if(side == 0) ST7735_DrawBitmap(0, BUFFER_HEIGHT-1, renderBuffer, BUFFER_WIDTH, BUFFER_HEIGHT);
-  else ST7735_DrawBitmap(SCREEN_WIDTH/2, BUFFER_HEIGHT-1, renderBuffer, BUFFER_WIDTH, BUFFER_HEIGHT);
-}
-
 int RenderBufferDMA(int side, void (*callback)(void)) {
-    int x = (side == 0) ? 0 : SCREEN_WIDTH / 2;
-    return ST7735_DrawBitmapDMA(x, BUFFER_HEIGHT - 1, renderBuffer,
+    // Swap buffers: what we just rendered becomes the DMA source
+    uint16_t* temp = renderBuffer;
+    renderBuffer = dmaBuffer;
+    dmaBuffer = temp;
+
+    // Quarter-screen: side 0-3, each 40 pixels wide
+    int x = side * BUFFER_WIDTH;
+    return ST7735_DrawBitmapDMA(x, BUFFER_HEIGHT - 1, dmaBuffer,
                                 BUFFER_WIDTH, BUFFER_HEIGHT, callback);
 }
 

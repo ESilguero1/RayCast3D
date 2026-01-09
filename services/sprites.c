@@ -97,22 +97,23 @@ void RenderSprite(Sprite sprite, int side, int spriteIndex) {
     VisibleColumn visibleCols[MAX_VISIBLE_COLUMNS];
     int numVisible = 0;
 
+    // Quarter-screen: each side covers BUFFER_WIDTH (40) columns
+    int sideStartX = side * BUFFER_WIDTH;
+    int sideEndX = sideStartX + BUFFER_WIDTH;
+
     for (int stripe = drawStartX; stripe < drawEndX && numVisible < MAX_VISIBLE_COLUMNS; stripe++) {
-        int bufferX = -1;
+        // Check if this screen column falls within current side's range
+        if (stripe >= sideStartX && stripe < sideEndX) {
+            int bufferX = stripe - sideStartX;
 
-        if (side == 0 && stripe >= 0 && stripe < HALF_SCREEN_WIDTH) {
-            bufferX = stripe;
-        } else if (side == 1 && stripe >= HALF_SCREEN_WIDTH && stripe < SCREEN_WIDTH) {
-            bufferX = stripe - HALF_SCREEN_WIDTH;
-        }
-
-        // Check ZBuffer visibility
-        if (bufferX != -1 && stripe >= 0 && stripe < SCREEN_WIDTH && transformY < ZBuffer[stripe]) {
-            int texX = (stripe - drawStartX) * sprite.width / spriteWidth;
-            if (texX >= 0 && texX < sprite.width) {
-                visibleCols[numVisible].bufferX = bufferX;
-                visibleCols[numVisible].texX = texX;
-                numVisible++;
+            // Check ZBuffer visibility
+            if (stripe >= 0 && stripe < SCREEN_WIDTH && transformY < ZBuffer[stripe]) {
+                int texX = (stripe - drawStartX) * sprite.width / spriteWidth;
+                if (texX >= 0 && texX < sprite.width) {
+                    visibleCols[numVisible].bufferX = bufferX;
+                    visibleCols[numVisible].texX = texX;
+                    numVisible++;
+                }
             }
         }
     }

@@ -5,10 +5,10 @@
 #include "../services/graphics.h"
 #include "../services/sprites.h"
 
-#define BUFFER_WIDTH (SCREEN_WIDTH / 2)
+#define BUFFER_WIDTH (SCREEN_WIDTH / 4)  // Quarter-screen for DMA double-buffering
 #define BUFFER_HEIGHT SCREEN_HEIGHT
 
-extern uint16_t renderBuffer[BUFFER_WIDTH * BUFFER_HEIGHT];
+extern uint16_t* renderBuffer;  // Points to current render buffer (swapped with DMA buffer)
 
 void Buffer_Init(void);
 void Buffer_SetFloorColor(uint16_t color);
@@ -19,7 +19,6 @@ void setPixelBuffer(int x, int y, uint16_t color);
 void drawForegroundSpriteToBuffer(int side, Sprite sprite);
 void blitBufferToRenderBuffer(uint16_t* srcBuffer, int srcWidth, int srcHeight, int destX, int destY);
 void printToBuffer(const char *text, int screenX, int screenY, uint16_t color, int side);
-void RenderBuffer(int side);
 
 /* DMA-based buffer rendering (non-blocking)
  * Returns 0 on success, -1 if DMA busy */
