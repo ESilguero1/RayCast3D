@@ -5,8 +5,6 @@
  */
 
 #include <stdint.h>
-#include <ti/devices/msp/msp.h> // Remove this in production
-#include "../inc/LaunchPad.h" // Remove this in production
 #include "../inc/Clock.h"
 #include "graphics.h"
 #include "sprites.h"
@@ -233,8 +231,6 @@ static void clearZBuffer(void) {
     }
 }
 
-// Temporary: force 10µs gap between profiling pulses for visibility
-#define PROFILE_GAP() Clock_Delay(320)  // 320 cycles @ 32MHz = 10µs
 
 void RenderScene(void) {
     // No wait here - double-buffering means Q0 renders to a different buffer
@@ -248,22 +244,14 @@ void RenderScene(void) {
     // Render all 4 quarters
     for (int side = 0; side < 4; side++) {
         clearRenderBuffer();
-        GPIOB->DOUTSET31_0 = RED;
+
         CastRays(side);
-        GPIOB->DOUTCLR31_0 = RED;
-        PROFILE_GAP();
 
-        GPIOB->DOUTSET31_0 = RED;
         RenderSprites(side);
-        GPIOB->DOUTCLR31_0 = RED;
-        PROFILE_GAP();
 
-        GPIOB->DOUTSET31_0 = RED;
         drawFGSpriteQueue(side);
         drawTextQueue(side);
         drawFPSOverlay(side);
-        GPIOB->DOUTCLR31_0 = RED;
-        PROFILE_GAP();
 
         // Transfer to display via DMA (async)
         RenderBuffer_WaitComplete();

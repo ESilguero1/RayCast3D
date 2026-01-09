@@ -16,9 +16,13 @@ RayCast3D is designed for ECE 319K students working with the MSPM0 microcontroll
 This library requires the following external Valvanoware files:
 
 - `inc/Clock.h` / `Clock.c` - Clock configuration and delay functions
+- `inc/ST7735.h` / `ST7735.c` - ST7735 LCD driver (initialization and basic drawing)
+- `inc/SPI.h` / `SPI.c` - SPI bus driver
 - `file.h` / `file.c` - File system support
 
 These files are provided in the ECE 319K Valvanoware distribution and should be placed in an `inc/` directory at the same level as the `RayCast3D/` folder.
+
+**Note:** The library includes its own DMA-accelerated display driver (`ST7735_DMA.c`, `SPI_DMA.c`) for high-performance rendering. The external ST7735/SPI files are only needed for initialization.
 
 ## RayCast3D Studio
 
