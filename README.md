@@ -142,6 +142,31 @@ The drift fix was verified using a debug display that tracks the direction vecto
 
 **Test results**: After hundreds of rotations, `|dir|` remained stable at 65536, confirming the re-normalization successfully prevents drift.
 
+### DMA-Accelerated Display Transfer
+
+The library uses DMA (Direct Memory Access) to transfer pixel data to the ST7735 display, allowing the CPU to render the next frame segment while the previous one is being transmitted over SPI.
+
+**Quarter-screen double-buffering:**
+- Screen is divided into 4 vertical strips (40×128 pixels each)
+- Two 10KB buffers swap roles: one for rendering, one for DMA
+- Total RAM: 20KB (same as a single half-screen buffer)
+
+**Rendering pipeline:**
+```
+Q0: Render to A → Start DMA from A
+Q1: Render to B (while DMA sends A) → Wait for DMA → Start DMA from B
+Q2: Render to A (while DMA sends B) → Wait for DMA → Start DMA from A
+Q3: Render to B (while DMA sends A) → Wait for DMA → Start DMA from B
+```
+
+**Key optimizations:**
+- **Pointer swap**: No memory copy between buffers — just swap pointers
+- **Pre-swapped pixels**: Byte-swap (for ST7735 MSB-first) happens at render time, not DMA time
+- **Y-inverted storage**: Buffer layout matches ST7735 scanline order, eliminating row reordering
+- **~100% SPI utilization**: CPU and DMA run in parallel with minimal idle time
+
+**Hardware resource:** DMA Channel 0 is reserved for display transfers and is not available for other uses.
+
 ## Fixed-Point API
 
 Located in `utils/fixed.h`:
