@@ -20,7 +20,7 @@ This library requires the following external Valvanoware files:
 - `inc/SPI.h` / `SPI.c` - SPI bus driver
 - `file.h` / `file.c` - File system support
 
-These files are provided in the ECE 319K Valvanoware distribution and should be placed in an `inc/` directory at the same level as the `RayCast3D/` folder.
+These files are provided in the ECE 319K Valvanoware distribution and should be in the `inc/` directory.
 
 **Note:** The library includes its own DMA-accelerated display driver (`ST7735_DMA.c`, `SPI_DMA.c`) for high-performance rendering. The external ST7735/SPI files are only needed for initialization.
 
