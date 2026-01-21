@@ -1,7 +1,15 @@
 /* SPI_DMA.h
- * DMA-accelerated SPI transfers for ST7735 LCD
- * Register definitions match TI DriverLib exactly:
- *   https://github.com/TexasInstruments/mspm0-sdk
+ * RayCast3D DMA-Accelerated SPI Bus Driver
+ * Asynchronous SPI transfers using DMA controller
+ *
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with SPI1
+ *
+ * Implements TI DriverLib-compatible DMA transfers for
+ * high-speed non-blocking display updates.
+ * Reference: https://github.com/TexasInstruments/mspm0-sdk
  */
 
 #ifndef __SPI_DMA_H__

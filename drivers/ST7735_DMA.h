@@ -1,6 +1,14 @@
 /* ST7735_DMA.h
- * DMA-accelerated bitmap display for ST7735 LCD
- * Self-contained: does not modify existing ST7735.c or SPI.c
+ * RayCast3D DMA-Accelerated ST7735 Display Driver
+ * Non-blocking bitmap transfers using DMA
+ *
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with ST7735 LCD
+ *
+ * Self-contained driver that works alongside existing ST7735.c.
+ * Enables asynchronous bitmap transfers for double-buffering.
  */
 
 #ifndef __ST7735_DMA_H__

@@ -6,6 +6,31 @@ A pseudo-3D graphics library for the ST7735R display using raycasting techniques
 
 RayCast3D is designed for ECE 319K students working with the MSPM0 microcontroller. It provides a simple interface for rendering pseudo-3D environments on the ST7735R LCD display using raycasting algorithms.
 
+## Quick Start
+
+```c
+#include "RayCast3D/raycast3d.h"
+
+int main(void) {
+    LaunchPad_Init();
+
+    // Initialize engine (clock, display, DMA)
+    RayCast3D_Init();
+
+    // Configure scene
+    Graphics_SetFloorColor(ST7735_DARKGREY);
+    Graphics_SetSkyColor(SKY);
+    Map_Load(map1);
+    Camera_SetPosition(12.0, 12.0);
+
+    // Main loop
+    while (1) {
+        RayCast3D_Render();
+        // ... handle input, update camera, etc.
+    }
+}
+```
+
 ## Hardware Requirements
 
 - MSPM0 MCU
@@ -18,7 +43,7 @@ This library requires the following external Valvanoware files:
 - `inc/Clock.h` / `Clock.c` - Clock configuration and delay functions
 - `inc/ST7735.h` / `ST7735.c` - ST7735 LCD driver (initialization and basic drawing)
 - `inc/SPI.h` / `SPI.c` - SPI bus driver
-- `file.h` / `file.c` - File system support
+- `inc/file.h` / `file.c` - File system support (dependency of ST7735.c)
 
 These files are provided in the ECE 319K Valvanoware distribution and should be placed in an `inc/` directory at the same level as the `RayCast3D/` folder.
 
@@ -61,6 +86,72 @@ The Studio automatically exports to the `assets/` folder:
 | `↑/↓` | Navigate list items |
 | `Escape` | Deselect |
 
+## API Reference
+
+### Engine Core
+
+```c
+void RayCast3D_Init(void);
+void RayCast3D_Render(void);
+```
+- `RayCast3D_Init()` — Call once at startup. Initializes clock (80MHz), fixed-point math, display, and DMA.
+- `RayCast3D_Render()` — Call once per frame. Casts rays, renders sprites, draws overlays, transfers to display.
+
+### Graphics Configuration
+
+```c
+void Graphics_SetFloorColor(uint16_t color);
+void Graphics_SetSkyColor(uint16_t color);
+void Graphics_SetFloorGradient(double intensity);
+```
+- Set floor/sky colors using BGR565 constants (from `colors.h` or ST7735 defines)
+- `intensity` controls floor gradient darkness (0.0 = none, 1.0 = full gradient)
+
+### Camera Control
+
+```c
+void Camera_SetPosition(double x, double y);
+void Camera_SetDirection(double dirX, double dirY);
+void Camera_Move(double forward, double strafe);
+void Camera_Rotate(double degrees);
+const Camera* Camera_Get(void);
+```
+- `SetPosition` / `SetDirection` — Initialize camera state
+- `Move` — Move forward/backward and strafe left/right
+- `Rotate` — Turn camera by degrees (positive = clockwise)
+- `Get` — Access camera state (posX, posY, dirX, dirY, planeX, planeY)
+
+### Map Management
+
+```c
+void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH]);
+void Map_LoadFromList(const uint8_t* maps[], int index);
+uint8_t Map_GetValue(double x, double y);
+```
+- Load maps created in RayCast3D Studio
+- `Map_GetValue` returns wall texture index (0 = empty space)
+
+### World Sprites
+
+```c
+uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
+void Sprite_Remove(int index);
+void Sprite_Move(int index, double x, double y);
+void Sprite_Scale(int index, int scale);
+const Sprite* Sprite_Get(int index);
+int Sprites_GetCount(void);
+void Sprite_Clear(void);
+```
+- `Sprite_Add` — Add sprite at world position, returns index (or -1 if full)
+- `Sprite_Remove` — Remove sprite by index
+- `Sprite_Move` — Update sprite world position
+- `Sprite_Scale` — Update sprite scale (8 = full screen height)
+- `Sprite_Get` — Get read-only pointer to sprite data (NULL if invalid/inactive)
+- `Sprites_GetCount` — Get number of active sprites
+- `Sprite_Clear` — Remove all sprites
+
+**Note:** Use the `AddSprite(x, y, name, scale)` macro from `images.h` for sprites created in the Studio.
+
 ## UI Overlay Functions
 
 ### FPS Display
@@ -71,40 +162,29 @@ Graphics_DisableFPS(void);
 - Call `Graphics_DisplayFPS()` once during setup to enable FPS counter
 - Automatically initializes Timer G12 for timing
 - FPS is updated internally each frame (averaged over 16 frames)
-- Drawn automatically inside `RenderScene()` after sprites
+- Drawn automatically inside `RayCast3D_Render()` after sprites
 - Call `Graphics_DisableFPS()` to hide
 
 ### Per-Frame Text
 ```c
 Graphics_Text(const char* text, int x, int y, uint16_t color);
 ```
-- Call before `RenderScene()` each frame you want text displayed
+- Call before `RayCast3D_Render()` each frame you want text displayed
 - Queued internally (max 8 text entries, 32 chars each)
 - Drawn after sprites, before FPS overlay
-- Queue automatically cleared after `RenderScene()` completes
+- Queue automatically cleared after `RayCast3D_Render()` completes
 - Handles text spanning the screen center (split-buffer boundary)
 
 ### Per-Frame Foreground Sprites
 ```c
 Graphics_ForegroundSprite(const uint16_t* image, int x, int y, int width, int height, int scale, uint16_t transparent);
 ```
-- Call before `RenderScene()` each frame you want sprite displayed
+- Call before `RayCast3D_Render()` each frame you want sprite displayed
 - Queued internally (max 8 sprites)
 - `x, y` is screen position (y is bottom of sprite)
 - `scale` of 2 = 32 pixels tall for 16px source (scale/8 * SCREEN_HEIGHT)
 - `transparent` color is not drawn
-- Queue automatically cleared after `RenderScene()` completes
-
-### World Sprites
-```c
-int Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
-void Sprite_Remove(int index);
-void Sprite_Clear(void);
-```
-- Persistent sprites in 3D world space (not cleared each frame)
-- `x, y` is world/map position
-- Rendered with depth sorting (farther sprites drawn first)
-- Occluded by walls based on Z-buffer
+- Queue automatically cleared after `RayCast3D_Render()` completes
 
 ## Performance Optimizations
 

@@ -1,7 +1,14 @@
 /* sprites.c
- * RayCast3D Sprite Rendering
- * Core sprite rendering functions
- * Optimized with fixed-point math for embedded performance
+ * RayCast3D Sprite Rendering Module
+ * Billboard sprite rendering with depth sorting
+ *
+ * Author: Elijah Silguero (with contributions from Surya Balaji)
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with ST7735 LCD
+ *
+ * Uses the inverse camera transform for projection and
+ * the Z-buffer for depth-correct sprite occlusion.
  */
 
 #include "sprites.h"
@@ -10,12 +17,18 @@
 #include "../utils/fixed.h"
 #include <stdlib.h>
 
-// External references (now fixed-point)
+/*---------------------------------------------------------------------------
+ * External References
+ *---------------------------------------------------------------------------*/
+
 extern fixed_t ZBuffer[SCREEN_WIDTH];
 
-// Sprite storage
-int numSprites = 0;
-Sprite sprites[MAX_SPRITES];
+/*---------------------------------------------------------------------------
+ * Public Variables
+ *---------------------------------------------------------------------------*/
+
+int Sprites_Count = 0;
+Sprite Sprites_Array[SPRITES_MAX_COUNT];
 
 // Helper structure for sorting sprites
 typedef struct {
@@ -41,7 +54,7 @@ typedef struct {
     int8_t texX;     // Texture X coordinate
 } VisibleColumn;
 
-void RenderSprite(Sprite sprite, int side, int spriteIndex) {
+void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     const Camera* cam = Camera_Get();
 
     // Convert sprite position to fixed-point
@@ -139,24 +152,24 @@ void RenderSprite(Sprite sprite, int side, int spriteIndex) {
         for (int i = 0; i < numVisible; i++) {
             uint16_t pixelColor = rowPtr[visibleCols[i].texX];
             if (pixelColor != transparent) {
-                setPixelBuffer(visibleCols[i].bufferX, y, pixelColor);
+                Buffer_SetPixel(visibleCols[i].bufferX, y, pixelColor);
             }
         }
     }
 }
 
-void RenderSprites(int side) {
+void Sprites_RenderAll(int side) {
     const Camera* cam = Camera_Get();
-    SpriteDistancePair spriteOrder[MAX_SPRITES];
+    SpriteDistancePair spriteOrder[SPRITES_MAX_COUNT];
     int activeCount = 0;
 
     // Build list of active sprites with their distances (fixed-point)
-    for (int i = 0; i < MAX_SPRITES; i++) {
-        if (sprites[i].active) {
+    for (int i = 0; i < SPRITES_MAX_COUNT; i++) {
+        if (Sprites_Array[i].active) {
             spriteOrder[activeCount].index = i;
             // Calculate distance squared in fixed-point
-            fixed_t dx = cam->posX - FLOAT_TO_FIXED(sprites[i].x);
-            fixed_t dy = cam->posY - FLOAT_TO_FIXED(sprites[i].y);
+            fixed_t dx = cam->posX - FLOAT_TO_FIXED(Sprites_Array[i].x);
+            fixed_t dy = cam->posY - FLOAT_TO_FIXED(Sprites_Array[i].y);
             // Distance squared (no need for sqrt, just for sorting)
             spriteOrder[activeCount].distance = fixed_mul(dx, dx) + fixed_mul(dy, dy);
             activeCount++;
@@ -166,26 +179,26 @@ void RenderSprites(int side) {
     qsort(spriteOrder, activeCount, sizeof(SpriteDistancePair), compareSprites);
 
     for (int i = 0; i < activeCount; i++) {
-        if (sprites[spriteOrder[i].index].width != 0) {
-            RenderSprite(sprites[spriteOrder[i].index], side, spriteOrder[i].index);
+        if (Sprites_Array[spriteOrder[i].index].width != 0) {
+            Sprites_RenderOne(Sprites_Array[spriteOrder[i].index], side, spriteOrder[i].index);
         }
     }
 }
 
 uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent) {
     // Find first inactive slot
-    for (int i = 0; i < MAX_SPRITES; i++) {
-        if (!sprites[i].active) {
-            sprites[i].x = x;
-            sprites[i].y = y;
-            sprites[i].image = image;
-            sprites[i].width = width;
-            sprites[i].height = height;
-            sprites[i].scale = scale;
-            sprites[i].transparent = transparent;
-            sprites[i].type = 0;
-            sprites[i].active = 1;
-            numSprites++;
+    for (int i = 0; i < SPRITES_MAX_COUNT; i++) {
+        if (!Sprites_Array[i].active) {
+            Sprites_Array[i].x = x;
+            Sprites_Array[i].y = y;
+            Sprites_Array[i].image = image;
+            Sprites_Array[i].width = width;
+            Sprites_Array[i].height = height;
+            Sprites_Array[i].scale = scale;
+            Sprites_Array[i].transparent = transparent;
+            Sprites_Array[i].type = 0;
+            Sprites_Array[i].active = 1;
+            Sprites_Count++;
             return i;  // Index remains stable even after other sprites are removed
         }
     }
@@ -193,16 +206,57 @@ uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int hei
 }
 
 void Sprite_Clear(void) {
-    for (int i = 0; i < MAX_SPRITES; i++) {
-        sprites[i].active = 0;
+    for (int i = 0; i < SPRITES_MAX_COUNT; i++) {
+        Sprites_Array[i].active = 0;
     }
-    numSprites = 0;
+    Sprites_Count = 0;
 }
 
 void Sprite_Remove(int index) {
-    if (index < 0 || index >= MAX_SPRITES) return;
-    if (!sprites[index].active) return;  // Already inactive
+    if (index < 0 || index >= SPRITES_MAX_COUNT) {
+        return;
+    }
+    if (!Sprites_Array[index].active) {
+        return;  /* Already inactive */
+    }
 
-    sprites[index].active = 0;
-    numSprites--;
+    Sprites_Array[index].active = 0;
+    Sprites_Count--;
+}
+
+void Sprite_Move(int index, double x, double y) {
+    if (index < 0 || index >= SPRITES_MAX_COUNT) {
+        return;
+    }
+    if (!Sprites_Array[index].active) {
+        return;  /* Sprite not active */
+    }
+
+    Sprites_Array[index].x = x;
+    Sprites_Array[index].y = y;
+}
+
+void Sprite_Scale(int index, int scale) {
+    if (index < 0 || index >= SPRITES_MAX_COUNT) {
+        return;
+    }
+    if (!Sprites_Array[index].active) {
+        return;  /* Sprite not active */
+    }
+
+    Sprites_Array[index].scale = scale;
+}
+
+const Sprite* Sprite_Get(int index) {
+    if (index < 0 || index >= SPRITES_MAX_COUNT) {
+        return 0;
+    }
+    if (!Sprites_Array[index].active) {
+        return 0;
+    }
+    return &Sprites_Array[index];
+}
+
+int Sprites_GetCount(void) {
+    return Sprites_Count;
 }

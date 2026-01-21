@@ -1,11 +1,17 @@
 /* graphics.c
  * RayCast3D Graphics Library
  * Core raycasting and rendering functions
- * Optimized with fixed-point math for embedded performance
+ *
+ * Author: Elijah Silguero (with contributions from Surya Balaji)
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with ST7735 LCD
+ *
+ * This module implements the DDA raycasting algorithm using
+ * Q16.16 fixed-point math for embedded performance.
  */
 
 #include <stdint.h>
-#include "../inc/Clock.h"
 #include "graphics.h"
 #include "sprites.h"
 #include "../hal/buffer.h"
@@ -139,7 +145,7 @@ void CastRays(int side) {
             }
 
             // Check if ray hit a wall (row-major: Y=row, X=col)
-            if (worldMap[mapY][mapX] > 0) hit = 1;
+            if (Map_WorldMap[mapY][mapX] > 0) hit = 1;
         }
 
         // Skip this column if ray escaped or hit boundary
@@ -167,7 +173,7 @@ void CastRays(int side) {
         int drawEnd = HALF_SCREEN_HEIGHT + halfLineHeight;
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
-        int texNum = (worldMap[mapY][mapX] - 1) % NUM_TEXTURES;
+        int texNum = (Map_WorldMap[mapY][mapX] - 1) % NUM_TEXTURES;
         int texRes = textures[texNum].resolution;
         int texResMask = textures[texNum].mask;  // Use precomputed mask
 
@@ -219,53 +225,13 @@ void CastRays(int side) {
             uint16_t color = texData[texY * texRes + texX];
             color = (color >> shadeShift) & shadeMask;
 
-            setPixelBuffer(bufferX, y, color);
+            Buffer_SetPixel(bufferX, y, color);
         }
     }
 }
 
-// Clear Z-buffer to maximum depth (sprites behind everything)
-static void clearZBuffer(void) {
-    for (int i = 0; i < SCREEN_WIDTH; i++) {
-        ZBuffer[i] = FIXED_LARGE;  // Max distance = infinitely far
-    }
-}
-
-
-void RenderScene(void) {
-    // No wait here - double-buffering means Q0 renders to a different buffer
-    // than Q3's DMA is reading. The wait inside the loop handles sync.
-
-    FPSCounter_Update();
-
-    // Clear Z-buffer once per frame (shared between all quarters)
-    clearZBuffer();
-
-    // Render all 4 quarters
-    for (int side = 0; side < 4; side++) {
-        clearRenderBuffer();
-
-        CastRays(side);
-
-        RenderSprites(side);
-
-        drawFGSpriteQueue(side);
-        drawTextQueue(side);
-        drawFPSOverlay(side);
-
-        // Transfer to display via DMA (async)
-        RenderBuffer_WaitComplete();
-        RenderBufferDMA(side, 0);
-    }
-
-    // Clear queues after all 4 sides rendered
-    textQueueCount = 0;
-    fgSpriteQueueCount = 0;
-}
 
 void Graphics_Init(void) {
-    Clock_Init80MHz(0); // We want a fast clock
-    Fixed_Init();
     Buffer_Init();
     ST7735_DMA_Init();  // Initialize DMA for async display transfers
 }
@@ -309,7 +275,7 @@ static void drawFPSOverlay(int side) {
         fpsStr[6] = '\0';
     }
 
-    printToBuffer(fpsStr, fpsX, fpsY, fpsColor, side);
+    Buffer_PrintText(fpsStr, fpsX, fpsY, fpsColor, side);
 }
 
 void Graphics_DisplayFPS(int x, int y, uint16_t color) {
@@ -326,7 +292,7 @@ void Graphics_DisableFPS(void) {
 
 static void drawTextQueue(int side) {
     for (int i = 0; i < textQueueCount; i++) {
-        printToBuffer(textQueue[i].text, textQueue[i].x, textQueue[i].y, textQueue[i].color, side);
+        Buffer_PrintText(textQueue[i].text, textQueue[i].x, textQueue[i].y, textQueue[i].color, side);
     }
 }
 
@@ -340,7 +306,7 @@ static void drawFGSpriteQueue(int side) {
         sprite.height = fgSpriteQueue[i].height;
         sprite.scale = fgSpriteQueue[i].scale;
         sprite.transparent = fgSpriteQueue[i].transparent;
-        drawForegroundSpriteToBuffer(side, sprite);
+        Buffer_DrawForegroundSprite(side, sprite);
     }
 }
 
@@ -371,4 +337,15 @@ void Graphics_ForegroundSprite(const uint16_t* image, int x, int y, int width, i
     fgSpriteQueue[fgSpriteQueueCount].scale = scale;
     fgSpriteQueue[fgSpriteQueueCount].transparent = transparent;
     fgSpriteQueueCount++;
+}
+
+void Graphics_RenderOverlays(int side) {
+    drawFGSpriteQueue(side);
+    drawTextQueue(side);
+    drawFPSOverlay(side);
+}
+
+void Graphics_ClearOverlayQueues(void) {
+    textQueueCount = 0;
+    fgSpriteQueueCount = 0;
 }

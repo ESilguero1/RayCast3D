@@ -1,6 +1,14 @@
 /* fixed.c
- * Fixed-Point Math Library for RayCast3D
+ * RayCast3D Fixed-Point Math Library
  * Lookup tables and utility functions
+ *
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507
+ *
+ * Contains precomputed sine and reciprocal lookup tables
+ * for fast fixed-point trigonometry and division.
  */
 
 #include "fixed.h"

@@ -1,6 +1,14 @@
 /* graphics.h
  * RayCast3D Graphics Library
- * Main header - includes all sub-modules
+ * Core raycasting and rendering functions
+ *
+ * Author: Elijah Silguero (with contributions from Surya Balaji)
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with ST7735 LCD
+ *
+ * Provides the main rendering interface including raycasting,
+ * sprite rendering, FPS display, and text overlay functions.
  */
 
 #ifndef GRAPHICS_H_
@@ -37,8 +45,11 @@ void Graphics_Init(void);
 void Graphics_SetFloorColor(uint16_t color);
 void Graphics_SetSkyColor(uint16_t color);
 void Graphics_SetFloorGradient(double intensity);
-void RenderScene(void);
 void CastRays(int side);
+
+// Internal functions (called by RayCast3D_Render)
+void Graphics_RenderOverlays(int side);
+void Graphics_ClearOverlayQueues(void);
 
 // FPS display - enables/disables FPS overlay on screen
 void Graphics_DisplayFPS(int x, int y, uint16_t color);

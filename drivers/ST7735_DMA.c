@@ -1,8 +1,14 @@
 /* ST7735_DMA.c
- * DMA-accelerated bitmap display for ST7735 LCD
+ * RayCast3D DMA-Accelerated ST7735 Display Driver
+ * Non-blocking bitmap transfers using DMA
  *
- * Self-contained: replicates needed code from SPI.c and ST7735.c
- * Does NOT modify existing files.
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with ST7735 LCD
+ *
+ * Replicates needed SPI code to enable DMA without modifying
+ * existing ST7735.c or SPI.c files.
  */
 
 #include <ti/devices/msp/msp.h>

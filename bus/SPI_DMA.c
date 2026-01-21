@@ -1,15 +1,18 @@
 /* SPI_DMA.c
- * DMA-accelerated SPI transfers for ST7735 LCD
+ * RayCast3D DMA-Accelerated SPI Bus Driver
+ * Asynchronous SPI transfers using DMA controller
  *
- * Implementation follows TI DriverLib EXACTLY:
- *   https://github.com/TexasInstruments/mspm0-sdk
- *   source/ti/driverlib/dl_dma.h
- *   source/ti/driverlib/dl_spi.h
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507 with SPI1
  *
- * Uses constants from ti/devices/msp/peripherals/hw_dma.h and hw_spi.h
+ * Implementation follows TI DriverLib exactly:
+ *   - source/ti/driverlib/dl_dma.h
+ *   - source/ti/driverlib/dl_spi.h
  *
- * Key insight: DMA does NOT require explicit power enable like GPIO/SPI.
- * TI's SysConfig examples show no DMA power enable sequence.
+ * Uses constants from ti/devices/msp/peripherals/hw_dma.h and hw_spi.h.
+ * Note: DMA does NOT require explicit power enable like GPIO/SPI.
  */
 
 #include <ti/devices/msp/msp.h>

@@ -1,9 +1,16 @@
 /* Timer.c
- * Jonathan Valvano
- * August 12, 2023
- * Derived from timx_timer_mode_periodic_sleep_LP_MSPM0G3507_nortos_ticlang
- *              gpio_toggle_output_LP_MSPM0G3507_nortos_ticlang
+ * RayCast3D Hardware Timer Driver
+ * Timer initialization for interrupts and timing
  *
+ * Original Author: Jonathan Valvano
+ * Modified for RayCast3D by: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507
+ *
+ * Derived from TI examples:
+ *   - timx_timer_mode_periodic_sleep_LP_MSPM0G3507_nortos_ticlang
+ *   - gpio_toggle_output_LP_MSPM0G3507_nortos_ticlang
  */
 
 

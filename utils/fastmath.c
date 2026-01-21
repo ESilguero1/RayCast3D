@@ -1,17 +1,29 @@
 /* fastmath.c
- * Fast math approximations for RayCast3D
+ * RayCast3D Fast Math Utility
+ * Taylor series approximations for trigonometry
+ *
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507
  */
 
 #include "fastmath.h"
 
-// Taylor series approximation for sin
-// Accurate for small angles, normalized to [-PI, PI]
-double fast_sin(double x) {
-    // Normalize to [-PI, PI]
-    while (x > PI) x -= 2 * PI;
-    while (x < -PI) x += 2 * PI;
+/*---------------------------------------------------------------------------
+ * Public Functions
+ *---------------------------------------------------------------------------*/
 
-    // Taylor series: sin(x) = x - x^3/6 + x^5/120 - x^7/5040
+double FastMath_Sin(double x) {
+    /* Normalize to [-PI, PI] */
+    while (x > FASTMATH_PI) {
+        x -= 2 * FASTMATH_PI;
+    }
+    while (x < -FASTMATH_PI) {
+        x += 2 * FASTMATH_PI;
+    }
+
+    /* Taylor series: sin(x) = x - x^3/6 + x^5/120 - x^7/5040 */
     double x2 = x * x;
     double x3 = x2 * x;
     double x5 = x3 * x2;
@@ -20,7 +32,7 @@ double fast_sin(double x) {
     return x - (x3 / 6.0) + (x5 / 120.0) - (x7 / 5040.0);
 }
 
-// cos(x) = sin(x + PI/2)
-double fast_cos(double x) {
-    return fast_sin(x + PI / 2.0);
+double FastMath_Cos(double x) {
+    /* cos(x) = sin(x + PI/2) */
+    return FastMath_Sin(x + FASTMATH_PI / 2.0);
 }

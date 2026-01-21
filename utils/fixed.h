@@ -1,7 +1,14 @@
 /* fixed.h
- * Fixed-Point Math Library for RayCast3D
- * Uses Q16.16 format: 16 bits integer, 16 bits fractional
+ * RayCast3D Fixed-Point Math Library
+ * Q16.16 format: 16 bits integer, 16 bits fractional
+ *
+ * Author: Elijah Silguero
+ * Created: December 2025
+ * Modified: January 2026
+ * Hardware: MSPM0G3507
+ *
  * Range: -32768.0 to +32767.99998 with precision ~0.00002
+ * Includes lookup tables for fast sin/cos and reciprocal.
  */
 
 #ifndef FIXED_H_
