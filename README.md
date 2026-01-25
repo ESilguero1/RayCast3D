@@ -19,7 +19,7 @@ int main(void) {
 
     // Configure scene
     Graphics_SetFloorColor(ST7735_DARKGREY);
-    Graphics_SetSkyColor(SKY);
+    Graphics_SetSkyColor(ST7735_BLUE);
     Map_Load(map1);
     Camera_SetPosition(12.0, 12.0);
 
