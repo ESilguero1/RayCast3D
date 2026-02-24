@@ -167,12 +167,16 @@ class RayCast3DStudio:
     def __init__(self, root):
         self.root = root
         self.root.title("RayCast3D Studio")
-        self.root.geometry("1000x750")
+        self.root.geometry("1000x850")
 
         # Data
         self.textures = []  # List of Texture objects
         self.sprites = []   # List of Sprite objects
         self.colors = []    # List of Color objects
+
+        # Preserve unloaded entries so saves don't silently drop them
+        self._unloaded_textures = []  # List of dicts from JSON that couldn't be loaded
+        self._unloaded_sprites = []
 
         # Multiple maps support
         self.maps = [{"name": "map1", "data": [[0 for _ in range(MAP_SIZE)] for _ in range(MAP_SIZE)]}]
@@ -2210,8 +2214,8 @@ class RayCast3DStudio:
             project = {
                 'maps': self.maps,  # List of {"name": str, "data": 2D list}
                 'current_map_idx': self.current_map_idx,
-                'textures': [t.to_dict() for t in self.textures],
-                'sprites': [s.to_dict() for s in self.sprites],
+                'textures': [t.to_dict() for t in self.textures] + self._unloaded_textures,
+                'sprites': [s.to_dict() for s in self.sprites] + self._unloaded_sprites,
                 'colors': [c.to_dict() for c in self.colors]
             }
             with open(PROJECT_FILE, 'w') as f:
@@ -2220,6 +2224,87 @@ class RayCast3DStudio:
         except Exception as e:
             print(f"Error saving project: {e}")
             messagebox.showerror("Save Error", f"Failed to save project: {e}")
+
+    def _parse_textures_h(self):
+        """Parse textures.h to extract texture data (c_array, resolution)."""
+        textures_h_path = os.path.join(ASSETS_DIR, "textures.h")
+        if not os.path.exists(textures_h_path):
+            return {}
+
+        texture_data = {}
+        try:
+            import re
+            with open(textures_h_path, 'r') as f:
+                lines = f.readlines()
+
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+
+                # Look for texture comment: // NAME (RESxRES)
+                comment_match = re.match(r'//\s*(\w+)\s*\((\d+)x(\d+)\)', line)
+                if comment_match:
+                    name = comment_match.group(1)
+                    res = int(comment_match.group(2))
+
+                    # Find the data array
+                    i += 1
+                    data_array = []
+                    while i < len(lines):
+                        line = lines[i].strip()
+                        if line.startswith('static const uint16_t') and '_data[' in line:
+                            i += 1
+                            while i < len(lines):
+                                line = lines[i].strip()
+                                if line == '};':
+                                    break
+                                hex_values = re.findall(r'0x[0-9A-Fa-f]+', line, re.IGNORECASE)
+                                data_array.extend([val.upper() for val in hex_values])
+                                i += 1
+                            break
+                        i += 1
+
+                    if data_array:
+                        texture_data[name] = {
+                            'c_array': data_array,
+                            'resolution': res
+                        }
+                i += 1
+        except Exception as e:
+            print(f"Error parsing textures.h: {e}")
+            import traceback
+            traceback.print_exc()
+
+        return texture_data
+
+    def _create_texture_previews_from_array(self, tex):
+        """Create texture previews from BGR565 c_array data (no source image needed)."""
+        try:
+            res = tex.resolution
+            img_rgb = Image.new("RGB", (res, res))
+            pixels = img_rgb.load()
+
+            for i, hex_val in enumerate(tex.c_array):
+                bgr565 = int(hex_val, 16)
+                blue5 = (bgr565 >> 11) & 0x1F
+                green6 = (bgr565 >> 5) & 0x3F
+                red5 = bgr565 & 0x1F
+
+                r = (red5 << 3) | (red5 >> 2)
+                g = (green6 << 2) | (green6 >> 4)
+                b = (blue5 << 3) | (blue5 >> 2)
+
+                x = i % res
+                y = i // res
+                pixels[x, y] = (r, g, b)
+
+            tex.pil_image = img_rgb
+            tex.preview = self._create_wall_preview(img_rgb, res)
+
+            tile = img_rgb.resize((CELL_SIZE, CELL_SIZE), Image.NEAREST)
+            tex.tile_preview = ImageTk.PhotoImage(tile)
+        except Exception as e:
+            print(f"Error creating previews from array for {tex.name}: {e}")
 
     def _parse_images_h(self):
         """Parse images.h to extract sprite data (c_array, transparent, resolution)."""
@@ -2296,7 +2381,8 @@ class RayCast3DStudio:
         missing_files = []
 
         try:
-            # First, parse images.h to get exported sprite data
+            # Parse exported .h files to recover data when source images are missing
+            exported_textures = self._parse_textures_h()
             exported_sprites = self._parse_images_h()
             
             with open(PROJECT_FILE, 'r') as f:
@@ -2325,8 +2411,17 @@ class RayCast3DStudio:
                         self._create_texture_previews(tex)
                         tex.index = len(self.textures) + 1
                         self.textures.append(tex)
+                    elif tex.name in exported_textures:
+                        # Recover from textures.h when source image is missing
+                        exported = exported_textures[tex.name]
+                        tex.c_array = exported['c_array']
+                        tex.resolution = exported['resolution']
+                        self._create_texture_previews_from_array(tex)
+                        tex.index = len(self.textures) + 1
+                        self.textures.append(tex)
                     else:
                         missing_files.append(f"Texture: {tex.name} ({tex.image_path})")
+                        self._unloaded_textures.append(td)
 
             # Load sprites
             if 'sprites' in project:
@@ -2392,6 +2487,7 @@ class RayCast3DStudio:
                         self.sprites.append(sprite)
                     else:
                         missing_files.append(f"Sprite: {sprite.name} ({sprite.image_path})")
+                        self._unloaded_sprites.append(sd)
 
             # Load colors
             if 'colors' in project:
@@ -2431,20 +2527,22 @@ class RayCast3DStudio:
         os.makedirs(ASSETS_DIR, exist_ok=True)
 
         try:
-            # Export textures.h
-            content = self._generate_textures_h()
-            with open(os.path.join(ASSETS_DIR, "textures.h"), 'w') as f:
-                f.write(content)
+            # Export textures.h (skip if we'd overwrite data with an empty file)
+            if self.textures or not self._unloaded_textures:
+                content = self._generate_textures_h()
+                with open(os.path.join(ASSETS_DIR, "textures.h"), 'w') as f:
+                    f.write(content)
 
             # Export maps.h
             content = self._generate_maps_h()
             with open(os.path.join(ASSETS_DIR, "maps.h"), 'w') as f:
                 f.write(content)
 
-            # Export images.h
-            content = self._generate_images_h()
-            with open(os.path.join(ASSETS_DIR, "images.h"), 'w') as f:
-                f.write(content)
+            # Export images.h (skip if we'd overwrite data with an empty file)
+            if self.sprites or not self._unloaded_sprites:
+                content = self._generate_images_h()
+                with open(os.path.join(ASSETS_DIR, "images.h"), 'w') as f:
+                    f.write(content)
 
             # Export colors.h
             content = self._generate_colors_h()

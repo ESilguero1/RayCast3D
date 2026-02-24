@@ -36,7 +36,6 @@ static void clearZBuffer(void) {
  *---------------------------------------------------------------------------*/
 
 void RayCast3D_Init(void) {
-    Clock_Init80MHz(0);     /* Fast clock for performance */
     Fixed_Init();           /* Initialize fixed-point math tables */
     Graphics_Init();        /* Initialize display pipeline */
 }
