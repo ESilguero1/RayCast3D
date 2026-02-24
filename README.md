@@ -51,7 +51,17 @@ These files are provided in the ECE 319K Valvanoware distribution and should be 
 
 ## RayCast3D Studio
 
-A GUI application for creating and managing game assets. Run `RayCast3D_Studio.py` with Python 3.
+A GUI application for creating and managing game assets. Requires Python 3 to be installed.
+
+### Running the Studio
+
+1. In CCS Project Explorer, right-click `RayCast3D_Studio.py` and select **Open Containing Folder**
+2. Double-click the launcher for your OS:
+   - **Windows:** `run_studio.bat`
+   - **macOS:** `run_studio.command`
+   - **Linux:** `run_studio.sh`
+
+Dependencies (Pillow) are installed automatically on first launch.
 
 ### Features
 

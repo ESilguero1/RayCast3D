@@ -4,11 +4,24 @@ A GUI application for building maps, managing textures, and sprites for the RayC
 Automatically saves project state and exports to assets folder.
 """
 
+import subprocess
+import sys
+import os
+
+# Auto-install missing dependencies
+def _ensure_dependencies():
+    try:
+        from PIL import Image  # noqa: F401
+    except ImportError:
+        print("Pillow not found. Installing automatically...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
+        print("Pillow installed successfully!")
+
+_ensure_dependencies()
+
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog, colorchooser
 from PIL import Image, ImageTk
-import os
-import sys
 import json
 
 # Constants
