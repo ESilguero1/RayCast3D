@@ -2408,7 +2408,10 @@ class RayCast3DStudio:
                 for td in project['textures']:
                     tex = Texture.from_dict(td)
                     if os.path.exists(tex.image_path):
-                        self._create_texture_previews(tex)
+                        try:
+                            self._create_texture_previews(tex)
+                        except Exception as e:
+                            print(f"Warning: could not create preview for texture {tex.name}: {e}")
                         tex.index = len(self.textures) + 1
                         self.textures.append(tex)
                     elif tex.name in exported_textures:
@@ -2416,7 +2419,10 @@ class RayCast3DStudio:
                         exported = exported_textures[tex.name]
                         tex.c_array = exported['c_array']
                         tex.resolution = exported['resolution']
-                        self._create_texture_previews_from_array(tex)
+                        try:
+                            self._create_texture_previews_from_array(tex)
+                        except Exception as e:
+                            print(f"Warning: could not create preview for texture {tex.name}: {e}")
                         tex.index = len(self.textures) + 1
                         self.textures.append(tex)
                     else:
@@ -2435,30 +2441,34 @@ class RayCast3DStudio:
                         sprite.c_array = exported['c_array']
                         sprite.transparent = exported['transparent']
                         sprite.resolution = exported['resolution']
-                        
+
                         # Reconstruct RGB image from c_array for preview
                         # We need to create an image from the BGR565 data
                         img_rgb = Image.new("RGB", (sprite.resolution, sprite.resolution))
                         pixels = img_rgb.load()
-                        
+
                         for i, hex_val in enumerate(sprite.c_array):
                             bgr565 = int(hex_val, 16)
                             # Convert BGR565 to RGB
                             blue5 = (bgr565 >> 11) & 0x1F
                             green6 = (bgr565 >> 5) & 0x3F
                             red5 = bgr565 & 0x1F
-                            
+
                             r = (red5 << 3) | (red5 >> 2)
                             g = (green6 << 2) | (green6 >> 4)
                             b = (blue5 << 3) | (blue5 >> 2)
-                            
+
                             x = i % sprite.resolution
                             y = i // sprite.resolution
                             pixels[x, y] = (r, g, b)
-                        
+
                         # Create preview from reconstructed image
-                        sprite.preview = self._create_sprite_preview(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
-                        
+                        try:
+                            sprite.preview = self._create_sprite_preview(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+                        except Exception as e:
+                            print(f"Warning: could not create preview for sprite {sprite.name}: {e}")
+                            sprite.preview = None
+
                         self.sprites.append(sprite)
                     elif os.path.exists(sprite.image_path):
                         # Sprite not in images.h - load from original image (new sprite)
@@ -2482,7 +2492,11 @@ class RayCast3DStudio:
                         sprite.c_array = c_vals
 
                         # Transparency-aware preview with checkerboard background
-                        sprite.preview = self._create_sprite_preview(img_rgb, res, res, sprite.transparent)
+                        try:
+                            sprite.preview = self._create_sprite_preview(img_rgb, res, res, sprite.transparent)
+                        except Exception as e:
+                            print(f"Warning: could not create preview for sprite {sprite.name}: {e}")
+                            sprite.preview = None
 
                         self.sprites.append(sprite)
                     else:
