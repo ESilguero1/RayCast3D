@@ -2365,7 +2365,7 @@ class RayCast3DStudio:
                     # Find the SpriteImage struct to verify transparent color
                     while i < len(lines):
                         line = lines[i].strip()
-                        sprite_match = re.match(r'const SpriteImage\s+' + re.escape(name) + r'\s*=\s*\{[^,]+,\s*(\d+),\s*(\d+),\s*0x([0-9A-Fa-f]+)\}', line)
+                        sprite_match = re.match(r'(?:static\s+)?const SpriteImage\s+' + re.escape(name) + r'\s*=\s*\{[^,]+,\s*(\d+),\s*(\d+),\s*0x([0-9A-Fa-f]+)\}', line)
                         if sprite_match:
                             # Use transparent from struct (more reliable)
                             transparent = int(sprite_match.group(3), 16)
@@ -2700,7 +2700,7 @@ class RayCast3DStudio:
             lines.append("};")
 
             # SpriteImage struct with embedded dimensions and transparent color
-            lines.append(f"const SpriteImage {sprite.name} = {{{data_name}, {res}, {res}, 0x{sprite.transparent:04X}}};")
+            lines.append(f"static const SpriteImage {sprite.name} = {{{data_name}, {res}, {res}, 0x{sprite.transparent:04X}}};")
             lines.append("")
 
         lines.append("#endif /* IMAGES_H_ */")
