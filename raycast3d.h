@@ -24,7 +24,7 @@
  *---------------------------------------------------------------------------*/
 
 /* Initialize the raycasting engine
- * Sets up: clock (80MHz), fixed-point math, display, DMA
+ * Sets up: fixed-point math, display, DMA
  * Call once at startup before using any other functions */
 void RayCast3D_Init(void);
 

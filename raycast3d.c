@@ -12,12 +12,8 @@
  * RayCast3D_Render() each frame.
  */
 
-#include <stdint.h>
-#include "../inc/Clock.h"
-#include "services/graphics.h"
-#include "services/sprites.h"
+#include "raycast3d.h"
 #include "hal/buffer.h"
-#include "utils/fixed.h"
 #include "utils/fpscounter.h"
 
 /*---------------------------------------------------------------------------
@@ -36,7 +32,6 @@ static void clearZBuffer(void) {
  *---------------------------------------------------------------------------*/
 
 void RayCast3D_Init(void) {
-    Fixed_Init();           /* Initialize fixed-point math tables */
     Graphics_Init();        /* Initialize display pipeline */
 }
 

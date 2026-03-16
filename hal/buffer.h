@@ -9,6 +9,7 @@
  *
  * Uses double-buffering to allow rendering while DMA transfers.
  * Screen is divided into 4 quarters for memory efficiency.
+ * Buffers total ~20KB of RAM usage, which leaves user with ~12KB free.
  */
 
 #ifndef BUFFER_H_

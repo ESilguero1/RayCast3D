@@ -89,8 +89,6 @@ fixed_t fixed_recip(fixed_t x);
 // Fast reciprocal for larger values (up to ~32)
 fixed_t fixed_recip_large(fixed_t x);
 
-// Initialize lookup tables (call once at startup)
-void Fixed_Init(void);
 
 // Fast fixed-point square root using Newton-Raphson
 // Input and output are both Q16.16

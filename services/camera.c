@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "graphics.h"
 #include "../utils/fixed.h"
+#include "../utils/fastmath.h"
 
 /*---------------------------------------------------------------------------
  * Private Constants
@@ -51,19 +52,10 @@ void Camera_SetDirection(double dirX, double dirY) {
     fixed_t fy = FLOAT_TO_FIXED(dirY);
 
     // Normalize direction vector using fixed-point
-    // len = sqrt(x^2 + y^2) - use integer sqrt approximation
     fixed_t lenSq = fixed_mul(fx, fx) + fixed_mul(fy, fy);
 
-    // Fast integer square root (Newton-Raphson)
     if (lenSq > 0) {
-        fixed_t len = lenSq;
-        fixed_t x = lenSq;
-        // 4 iterations of Newton-Raphson for sqrt
-        x = (x + fixed_div(lenSq, x)) >> 1;
-        x = (x + fixed_div(lenSq, x)) >> 1;
-        x = (x + fixed_div(lenSq, x)) >> 1;
-        x = (x + fixed_div(lenSq, x)) >> 1;
-        len = x;
+        fixed_t len = fixed_sqrt(lenSq);
 
         if (len > CAMERA_MIN_DIR_LENGTH) {
             CameraState.dirX = fixed_div(fx, len);
@@ -101,7 +93,7 @@ void Camera_Move(double forward, double strafe) {
 
 void Camera_Rotate(double degrees) {
     // Convert degrees to fixed-point radians (negate for correct screen-space rotation)
-    fixed_t radians = FLOAT_TO_FIXED(-degrees * 3.14159265358979 / 180.0);
+    fixed_t radians = FLOAT_TO_FIXED(-degrees * FASTMATH_DEG_TO_RAD);
 
     // Use fixed-point sin/cos lookup
     fixed_t cosA = fixed_cos(radians);

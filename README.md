@@ -104,7 +104,7 @@ The Studio automatically exports to the `assets/` folder:
 void RayCast3D_Init(void);
 void RayCast3D_Render(void);
 ```
-- `RayCast3D_Init()` — Call once at startup. Initializes clock (80MHz), fixed-point math, display, and DMA.
+- `RayCast3D_Init()` — Call once at startup. Initializes display and DMA.
 - `RayCast3D_Render()` — Call once per frame. Casts rays, renders sprites, draws overlays, transfers to display.
 
 ### Graphics Configuration
@@ -122,11 +122,13 @@ void Graphics_SetFloorGradient(double intensity);
 ```c
 void Camera_SetPosition(double x, double y);
 void Camera_SetDirection(double dirX, double dirY);
+void Camera_GetDirection(double* dirX, double* dirY);
 void Camera_Move(double forward, double strafe);
 void Camera_Rotate(double degrees);
 const Camera* Camera_Get(void);
 ```
 - `SetPosition` / `SetDirection` — Initialize camera state
+- `GetDirection` — Get current direction as doubles (useful for collision checks)
 - `Move` — Move forward/backward and strafe left/right
 - `Rotate` — Turn camera by degrees (positive = clockwise)
 - `Get` — Access camera state (posX, posY, dirX, dirY, planeX, planeY)
@@ -137,9 +139,10 @@ const Camera* Camera_Get(void);
 void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH]);
 void Map_LoadFromList(const uint8_t* maps[], int index);
 uint8_t Map_GetValue(double x, double y);
+uint8_t Map_GetValueFixed(fixed_t x, fixed_t y);
 ```
 - Load maps created in RayCast3D Studio
-- `Map_GetValue` returns wall texture index (0 = empty space)
+- `Map_GetValue` / `Map_GetValueFixed` — return wall texture index (0 = empty space)
 
 ### World Sprites
 

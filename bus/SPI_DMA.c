@@ -72,7 +72,7 @@ static void DMA_setTrigger(uint8_t channelNum, uint8_t trigger, uint32_t trigger
 
 /*---------------------------------------------------------------------------
  * SPI_DMA_Init
- * Follows TI SysConfig pattern - no explicit DMA power enable needed
+ * Follows TI SysConfig pattern 
  *---------------------------------------------------------------------------*/
 void SPI_DMA_Init(void) {
     /* Configure DMA channel - same pattern as DL_DMA_initChannel() which calls:
@@ -93,16 +93,13 @@ void SPI_DMA_Init(void) {
      * External trigger type = 0 (bit 7 clear) */
     DMA_setTrigger(DMA_CH, DMA_SPI1_TX_TRIG, DMA_DMATCTL_DMATINT_EXTERNAL);
 
-    /* Set destination address: SPI1 TXDATA register
-     * Same as DL_DMA_setDestAddr() */
+    /* Set destination address: SPI1 TXDATA register */
     DMA->DMACHAN[DMA_CH].DMADA = (uint32_t)&SPI1->TXDATA;
 
-    /* Enable SPI1 to generate DMA TX triggers
-     * Same as DL_SPI_enableDMATransmitEvent(SPI1) */
+    /* Enable SPI1 to generate DMA TX triggers */
     SPI1->DMA_TRIG_TX.IMASK = SPI_DMA_TRIG_TX_IMASK_TX_SET;
 
-    /* Enable DMA channel interrupt
-     * Same as DL_DMA_enableInterrupt() */
+    /* Enable DMA channel interrupt */
     DMA->CPU_INT.IMASK |= DMA_CPU_INT_IMASK_DMACH0_SET;
 
     /* Enable in NVIC (DMA_INT_IRQn = 31 from mspm0g350x.h) */
@@ -115,7 +112,7 @@ void SPI_DMA_Init(void) {
 
 /*---------------------------------------------------------------------------
  * SPI_DMA_StartTransfer
- * Follows TI pattern for runtime DMA configuration
+ * Runtime DMA configuration
  *---------------------------------------------------------------------------*/
 int SPI_DMA_StartTransfer(const uint8_t* data, uint32_t length,
                           SPI_DMA_Callback callback) {
@@ -164,11 +161,11 @@ void SPI_DMA_WaitComplete(void) {
  * DMA Interrupt Service Routine
  *---------------------------------------------------------------------------*/
 void DMA_IRQHandler(void) {
-    /* Clear interrupt - same as DL_DMA_clearInterruptStatus() */
+    /* Acknowledge interrupt */
     DMA->CPU_INT.ICLR = DMA_CPU_INT_IMASK_DMACH0_SET;
 
-    /* Wait for SPI to finish shifting out the last bytes
-     * STAT bit 4 = BUSY */
+    /* Wait for SPI to finish shifting out the last bytes.
+     * STAT bit 4 = BUSY. Bounded spin: worst case ~4us at 8MHz SPI clock. */
     while (SPI1->STAT & 0x10);
 
     dmaBusy = 0;

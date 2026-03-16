@@ -9,7 +9,7 @@
  */
 
 #include "fpscounter.h"
-#include "../drivers/Timer.h"
+#include "../inc/Timer.h"
 #include "../inc/Clock.h"
 #include <ti/devices/msp/msp.h>
 

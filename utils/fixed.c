@@ -90,10 +90,6 @@ const fixed_t recip_table[RECIP_TABLE_SIZE] = {
     110703, 110607, 110511, 110417, 110324, 110231, 110140, 110049
 };
 
-void Fixed_Init(void) {
-    // Tables are const, no runtime initialization needed
-    // This function exists for future extensibility
-}
 
 // Fast sine using lookup table
 // Input: angle in fixed-point radians

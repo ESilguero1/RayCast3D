@@ -90,10 +90,10 @@ static void precalculateFloorGradient(void) {
  *---------------------------------------------------------------------------*/
 
 void Buffer_Init(void) {
-    SPI_Init();
-    ST7735_InitR(INITR_REDTAB);
-    ST7735_SetRotation(1);
-    precalculateFloorGradient();
+    SPI_Init();                  // Initialize SPI bus
+    ST7735_InitR(INITR_REDTAB);  // Initialize LCD Display (REDTAB for HiLetGo)
+    ST7735_SetRotation(1);       // Orient display horizontal for first-person look
+    precalculateFloorGradient(); // Makes rendering faster by avoiding math overhead
 }
 
 /*---------------------------------------------------------------------------
