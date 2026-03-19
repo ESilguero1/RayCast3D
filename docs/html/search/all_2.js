@@ -10,5 +10,9 @@ var searchData=
   ['castfloors_7',['castfloors',['../group__Graphics.html#ga9f1f6772d26ba5d5700f7447257a0293',1,'CastFloors(int side):&#160;graphics.c'],['../group__Graphics.html#ga9f1f6772d26ba5d5700f7447257a0293',1,'CastFloors(int side):&#160;graphics.c']]],
   ['castrays_8',['castrays',['../group__Graphics.html#ga81af24be0237db99a8689b90cc165520',1,'CastRays(int side):&#160;graphics.c'],['../group__Graphics.html#ga81af24be0237db99a8689b90cc165520',1,'CastRays(int side):&#160;graphics.c']]],
   ['ceilingtexture_9',['ceilingTexture',['../group__Map.html#ga4a43a0ff74118b62c4cecb67a37579fe',1,'MapInfo']]],
-  ['core_10',['Engine Core',['../group__EngineCore.html',1,'']]]
+  ['constants_10',['Core Constants',['../group__fixed__core.html',1,'']]],
+  ['constants_20q16_2016_11',['Mathematical Constants (Q16.16)',['../group__fixed__const.html',1,'']]],
+  ['conversion_20macros_12',['Conversion Macros',['../group__fixed__conv.html',1,'']]],
+  ['core_13',['Engine Core',['../group__EngineCore.html',1,'']]],
+  ['core_20constants_14',['Core Constants',['../group__fixed__core.html',1,'']]]
 ];

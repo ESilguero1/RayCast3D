@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['y_0',['y',['../group__Sprites.html#ga9d25f913409312b76b63e2f4e70c9635',1,'Sprite']]]
+  ['width_0',['width',['../group__Sprites.html#ga0a3364944c5e361fc9e7ae406224d682',1,'Sprite']]]
 ];

@@ -1,0 +1,12 @@
+<map id="fixed_recip_large" name="fixed_recip_large">
+<area shape="rect" id="Node000001" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="580,29,712,55"/>
+<area shape="rect" id="Node000002" href="$group__Graphics.html#ga81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter (internal)." alt="" coords="227,5,310,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="566,40,310,23,311,18,566,34"/>
+<area shape="rect" id="Node000004" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="385,55,532,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="566,55,532,60,532,55,566,50"/>
+<area shape="rect" id="Node000003" href="$group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,31,152,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="214,28,153,36,152,31,213,23"/>
+<area shape="rect" id="Node000005" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter (internal)." alt="" coords="200,55,337,80"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="371,70,338,70,338,65,371,65"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="186,60,152,55,153,50,187,54"/>
+</map>

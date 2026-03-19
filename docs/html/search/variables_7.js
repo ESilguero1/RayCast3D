@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['map_5fworldmap_0',['map_worldmap',['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c'],['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c']]]
+  ['image_0',['image',['../group__Sprites.html#ga3f8c62d879fabcbccc77ecc4e8f567c3',1,'Sprite']]]
 ];

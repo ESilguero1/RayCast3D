@@ -188,6 +188,7 @@ API Modules</h1>
 <li><b>Graphics</b> — visual configuration</li>
 <li><b>Map</b> — world data</li>
 <li><b>Sprites</b> — dynamic objects</li>
+<li><b>Fixed Point</b> — math that doesn't need an FPU</li>
 </ul>
 <p>For full API details, see the <a href="https://esilguero1.github.io/RayCast3D/">documentation</a>.</p>
 <h1><a class="anchor" id="autotoc_md11"></a>
@@ -239,29 +240,6 @@ DMA-Accelerated Display Transfer</h2>
 </ul>
 <p><b>Hardware resource:</b> DMA Channel 0 is reserved for display transfers and is not available for other uses.</p>
 <h1><a class="anchor" id="autotoc_md16"></a>
-Fixed-Point API</h1>
-<p>Located in <code><a class="el" href="fixed_8h_source.html">utils/fixed.h</a></code>:</p>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Macro/Function   </th><th class="markdownTableHeadNone">Description    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>INT_TO_FIXED(x)</code>   </td><td class="markdownTableBodyNone">Convert integer to fixed-point    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>FIXED_TO_INT(x)</code>   </td><td class="markdownTableBodyNone">Convert fixed-point to integer (truncates)    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>FLOAT_TO_FIXED(x)</code>   </td><td class="markdownTableBodyNone">Convert float/double to fixed-point    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>fixed_mul(a, b)</code>   </td><td class="markdownTableBodyNone">Multiply two fixed-point values    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>fixed_div(a, b)</code>   </td><td class="markdownTableBodyNone">Divide two fixed-point values    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>fixed_sin(angle)</code>   </td><td class="markdownTableBodyNone">Sine (angle in fixed-point radians)    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>fixed_cos(angle)</code>   </td><td class="markdownTableBodyNone">Cosine (angle in fixed-point radians)    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>fixed_sqrt(x)</code>   </td><td class="markdownTableBodyNone">Square root using Newton-Raphson   </td></tr>
-</table>
-<h1><a class="anchor" id="autotoc_md17"></a>
 License</h1>
 <p>For educational use in ECE 319K. </p>
 </div></div><!-- PageDoc -->

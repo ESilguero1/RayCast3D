@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['sprites_0',['Sprites',['../group__Sprites.html',1,'']]]
+  ['functions_0',['Trigonometric Functions',['../group__fixed__trig.html',1,'']]]
 ];

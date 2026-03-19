@@ -1,12 +1,14 @@
 var searchData=
 [
-  ['sprite_5fadd_0',['Sprite_Add',['../sprites_8h.html#ace6a9618de463bb0ebe3c50fc05f92b2',1,'sprites.c']]],
-  ['sprite_5fclear_1',['Sprite_Clear',['../sprites_8h.html#a12d4e2e7c0a46bcdfa22dd1ee705f1b5',1,'sprites.c']]],
-  ['sprite_5fget_2',['Sprite_Get',['../sprites_8h.html#a7a987633deca56d52fc5e43dae209125',1,'sprites.c']]],
-  ['sprite_5fmove_3',['Sprite_Move',['../sprites_8h.html#a1175e3864df7aeef428eb35f7b270c1d',1,'sprites.c']]],
-  ['sprite_5fremove_4',['Sprite_Remove',['../sprites_8h.html#a609b79576bd150bc73ab733f66f09e0c',1,'sprites.c']]],
-  ['sprite_5fscale_5',['Sprite_Scale',['../sprites_8h.html#a12258e884cf06c337d11f5344ca14548',1,'sprites.c']]],
-  ['sprites_5fgetcount_6',['Sprites_GetCount',['../sprites_8h.html#a3d5acf258d6516935e304d9b28de8f22',1,'sprites.c']]],
-  ['sprites_5frenderall_7',['Sprites_RenderAll',['../sprites_8h.html#af384a3302cb5e94d248c50534fb024db',1,'sprites.c']]],
-  ['sprites_5frenderone_8',['Sprites_RenderOne',['../sprites_8h.html#a6a127e2b21b20bc31da3a600cfaa79c9',1,'sprites.c']]]
+  ['sprite_5fadd_0',['sprite_add',['../group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2',1,'Sprite_Add(double x, double y, const uint16_t *image, int width, int height, int scale, uint16_t transparent):&#160;sprites.c'],['../group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2',1,'Sprite_Add(double x, double y, const uint16_t *image, int width, int height, int scale, uint16_t transparent):&#160;sprites.c']]],
+  ['sprite_5fclear_1',['sprite_clear',['../group__Sprites.html#ga12d4e2e7c0a46bcdfa22dd1ee705f1b5',1,'Sprite_Clear(void):&#160;sprites.c'],['../group__Sprites.html#ga12d4e2e7c0a46bcdfa22dd1ee705f1b5',1,'Sprite_Clear(void):&#160;sprites.c']]],
+  ['sprite_5fget_2',['sprite_get',['../group__Sprites.html#ga7a987633deca56d52fc5e43dae209125',1,'Sprite_Get(int index):&#160;sprites.c'],['../group__Sprites.html#ga7a987633deca56d52fc5e43dae209125',1,'Sprite_Get(int index):&#160;sprites.c']]],
+  ['sprite_5fmove_3',['sprite_move',['../group__Sprites.html#ga1175e3864df7aeef428eb35f7b270c1d',1,'Sprite_Move(int index, double x, double y):&#160;sprites.c'],['../group__Sprites.html#ga1175e3864df7aeef428eb35f7b270c1d',1,'Sprite_Move(int index, double x, double y):&#160;sprites.c']]],
+  ['sprite_5fremove_4',['sprite_remove',['../group__Sprites.html#ga609b79576bd150bc73ab733f66f09e0c',1,'Sprite_Remove(int index):&#160;sprites.c'],['../group__Sprites.html#ga609b79576bd150bc73ab733f66f09e0c',1,'Sprite_Remove(int index):&#160;sprites.c']]],
+  ['sprite_5fscale_5',['sprite_scale',['../group__Sprites.html#ga12258e884cf06c337d11f5344ca14548',1,'Sprite_Scale(int index, int scale):&#160;sprites.c'],['../group__Sprites.html#ga12258e884cf06c337d11f5344ca14548',1,'Sprite_Scale(int index, int scale):&#160;sprites.c']]],
+  ['sprite_5fsetelevation_6',['sprite_setelevation',['../group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47',1,'Sprite_SetElevation(int index, double elevation):&#160;sprites.c'],['../group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47',1,'Sprite_SetElevation(int index, double elevation):&#160;sprites.c']]],
+  ['sprite_5fsettranslucent_7',['sprite_settranslucent',['../group__Sprites.html#gac9dc081788dc5616f54e744481fb2e96',1,'Sprite_SetTranslucent(int index, int enabled):&#160;sprites.c'],['../group__Sprites.html#gac9dc081788dc5616f54e744481fb2e96',1,'Sprite_SetTranslucent(int index, int enabled):&#160;sprites.c']]],
+  ['sprites_5fgetcount_8',['sprites_getcount',['../group__Sprites.html#ga3d5acf258d6516935e304d9b28de8f22',1,'Sprites_GetCount(void):&#160;sprites.c'],['../group__Sprites.html#ga3d5acf258d6516935e304d9b28de8f22',1,'Sprites_GetCount(void):&#160;sprites.c']]],
+  ['sprites_5frenderall_9',['sprites_renderall',['../group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db',1,'Sprites_RenderAll(int side):&#160;sprites.c'],['../group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db',1,'Sprites_RenderAll(int side):&#160;sprites.c']]],
+  ['sprites_5frenderone_10',['sprites_renderone',['../group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9',1,'Sprites_RenderOne(Sprite sprite, int side, int spriteIndex):&#160;sprites.c'],['../group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9',1,'Sprites_RenderOne(Sprite sprite, int side, int spriteIndex):&#160;sprites.c']]]
 ];

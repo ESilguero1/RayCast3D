@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['transparent_0',['transparent',['../group__Sprites.html#gaba89899ff1f84c61b1b07da694018f8d',1,'Sprite']]],
-  ['type_1',['type',['../group__Sprites.html#ga06da32fcf7425b43b6b9ba41fc279425',1,'Sprite']]]
+  ['recip_5ftable_0',['recip_table',['../group__fixed__lut.html#gad43eca3e81a9dd48a1000e64756bc4af',1,'recip_table:&#160;fixed.c'],['../group__fixed__lut.html#gad43eca3e81a9dd48a1000e64756bc4af',1,'recip_table:&#160;fixed.c']]]
 ];
