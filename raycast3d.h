@@ -1,11 +1,12 @@
-/* raycast3d.h
- * RayCast3D - Fixed-Point Raycasting Engine
- * Main header that includes all library components
+/**
+ * @file      raycast3d.h
+ * @brief     RayCast3D - Fixed-Point Raycasting Engine
  *
- * Author: Elijah Silguero
- * Created: December 2025
- * Modified: January 2026
- * Hardware: MSPM0G3507 with ST7735 LCD
+ * Main header that includes all library components.
+ *
+ * @author    Elijah Silguero
+ * @date      December 2025
+ * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * This library provides a complete raycasting engine optimized
  * for embedded systems using Q16.16 fixed-point math.
@@ -23,14 +24,20 @@
  * Engine API
  *---------------------------------------------------------------------------*/
 
-/* Initialize the raycasting engine
- * Sets up: fixed-point math, display, DMA
- * Call once at startup before using any other functions */
+/**
+ * @brief Initialize the raycasting engine
+ *
+ * Sets up display and DMA.
+ * Call once at startup before using any other functions.
+ */
 void RayCast3D_Init(void);
 
-/* Render one complete frame
- * Casts rays, renders sprites, draws overlays, transfers to display
- * Call once per frame in your main loop */
+/**
+ * @brief Render one complete frame
+ *
+ * Casts rays, renders sprites, draws overlays, transfers to display.
+ * Call once per frame in your main loop.
+ */
 void RayCast3D_Render(void);
 
 /*---------------------------------------------------------------------------

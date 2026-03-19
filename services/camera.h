@@ -1,11 +1,10 @@
-/* camera.h
- * RayCast3D Camera Module
- * First-person camera state and control
+/**
+ * @file      camera.h
+ * @brief     RayCast3D Camera Module - First-person camera state and control
  *
- * Author: Elijah Silguero
- * Created: December 2025
- * Modified: January 2026
- * Hardware: MSPM0G3507 with ST7735 LCD
+ * @author    Elijah Silguero
+ * @date      December 2025
+ * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * Manages camera position, direction, and view plane using
  * Q16.16 fixed-point math for efficient raycasting.
@@ -21,14 +20,14 @@
  * Types
  *---------------------------------------------------------------------------*/
 
-/* Camera state structure (all values in Q16.16 fixed-point) */
+/** Camera state structure (all values in Q16.16 fixed-point) */
 typedef struct {
-    fixed_t posX;    /* World X position */
-    fixed_t posY;    /* World Y position */
-    fixed_t dirX;    /* Direction vector X component */
-    fixed_t dirY;    /* Direction vector Y component */
-    fixed_t planeX;  /* Camera plane X (perpendicular to direction) */
-    fixed_t planeY;  /* Camera plane Y (perpendicular to direction) */
+    fixed_t posX;    /**< World X position */
+    fixed_t posY;    /**< World Y position */
+    fixed_t dirX;    /**< Direction vector X component */
+    fixed_t dirY;    /**< Direction vector Y component */
+    fixed_t planeX;  /**< Camera plane X (perpendicular to direction) */
+    fixed_t planeY;  /**< Camera plane Y (perpendicular to direction) */
 } Camera;
 
 /*---------------------------------------------------------------------------
@@ -36,29 +35,44 @@ typedef struct {
  * Accept double for API convenience, convert to fixed-point internally
  *---------------------------------------------------------------------------*/
 
-/* Set camera world position
- * Inputs: x, y - world coordinates */
+/**
+ * @brief Set camera world position
+ * @param x  World X coordinate
+ * @param y  World Y coordinate
+ */
 void Camera_SetPosition(double x, double y);
 
-/* Set camera facing direction (will be normalized)
- * Inputs: dirX, dirY - direction vector components */
+/**
+ * @brief Set camera facing direction (will be normalized)
+ * @param dirX  Direction vector X component
+ * @param dirY  Direction vector Y component
+ */
 void Camera_SetDirection(double dirX, double dirY);
 
-/* Get current camera direction
- * Outputs: dirX, dirY - pointers to receive direction vector */
+/**
+ * @brief Get current camera direction
+ * @param[out] dirX  Pointer to receive direction X component
+ * @param[out] dirY  Pointer to receive direction Y component
+ */
 void Camera_GetDirection(double* dirX, double* dirY);
 
-/* Move camera relative to its facing direction
- * Inputs: forward - movement along direction (positive = forward)
- *         strafe - movement perpendicular (positive = right) */
+/**
+ * @brief Move camera relative to its facing direction
+ * @param forward  Movement along direction (positive = forward)
+ * @param strafe   Movement perpendicular to direction (positive = right)
+ */
 void Camera_Move(double forward, double strafe);
 
-/* Rotate camera by specified angle
- * Inputs: degrees - rotation angle (positive = clockwise) */
+/**
+ * @brief Rotate camera by specified angle
+ * @param degrees  Rotation angle (positive = clockwise)
+ */
 void Camera_Rotate(double degrees);
 
-/* Get read-only access to camera state
- * Returns: pointer to internal camera structure */
+/**
+ * @brief Get read-only access to camera state
+ * @return Pointer to internal camera structure
+ */
 const Camera* Camera_Get(void);
 
 #endif /* CAMERA_H_ */
