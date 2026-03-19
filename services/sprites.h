@@ -36,6 +36,7 @@
 #define SPRITES_H_
 
 #include <stdint.h>
+#include "../utils/fixed.h"
 
 /*---------------------------------------------------------------------------
  * Constants
@@ -63,6 +64,7 @@
 typedef struct {
     double x;               /**< World X position (column, in tile coordinates) */
     double y;               /**< World Y position (row, in tile coordinates) */
+    fixed_t elevation;      /**< Vertical offset in world units, Q16.16 fixed-point (0 = floor, positive = float up) */
     const uint16_t* image;  /**< Pointer to BGR565 image pixel data */
     uint16_t transparent;   /**< Pixel color treated as transparent (not drawn) */
     int width;              /**< Source image width in pixels */
@@ -70,6 +72,7 @@ typedef struct {
     int scale;              /**< Scale factor (8 = full screen height at distance 1.0) */
     int8_t type;            /**< User-defined tag for game logic (unused by engine) */
     int8_t active;          /**< Slot state: 0 = empty, 1 = in use */
+    uint8_t translucent;    /**< 0 = opaque (default), 1 = 50% translucent blend with background */
 } Sprite;
 
 /*---------------------------------------------------------------------------
@@ -169,6 +172,50 @@ void Sprite_Move(int index, double x, double y);
  * @param scale  Size factor (8 = full screen height at distance 1.0)
  */
 void Sprite_Scale(int index, int scale);
+
+/**
+ * @brief Set a sprite's vertical elevation above the floor.
+ *
+ * Moves the sprite up or down without changing its world (x, y) position.
+ * The offset is in world units (tile coordinates) and is perspective-
+ * projected — a floating sprite appears to shrink as it moves away,
+ * just like walls do.
+ *
+ * @par Example
+ * @code
+ * int lamp = AddSprite(10, 10, lamp_img, 4);
+ * Sprite_SetElevation(lamp, 0.8);  // hang near ceiling
+ *
+ * int item = AddSprite(5, 5, coin_img, 3);
+ * Sprite_SetElevation(item, 0.3);  // float above floor
+ * @endcode
+ *
+ * @param index      Sprite index returned by Sprite_Add
+ * @param elevation  Height in world units (0.0 = floor, positive = up)
+ */
+void Sprite_SetElevation(int index, double elevation);
+
+/**
+ * @brief Enable or disable 50% translucency for a sprite.
+ *
+ * When enabled, sprite pixels are blended 50/50 with the background
+ * behind them (walls, floor, sky), creating a see-through effect.
+ * Useful for ghosts, energy fields, or glass-like objects.
+ *
+ * @note Translucent sprites are slightly more expensive to render
+ *       than opaque sprites (extra buffer read + blend per pixel).
+ *
+ * @par Example
+ * @code
+ * int ghost = AddSprite(5, 5, ghost_img, 6);
+ * Sprite_SetTranslucent(ghost, 1);   // 50% see-through
+ * Sprite_SetElevation(ghost, 0.3);   // floating ghost
+ * @endcode
+ *
+ * @param index    Sprite index returned by Sprite_Add
+ * @param enabled  1 = translucent, 0 = opaque (default)
+ */
+void Sprite_SetTranslucent(int index, int enabled);
 
 /**
  * @brief Get a read-only pointer to a sprite's data.

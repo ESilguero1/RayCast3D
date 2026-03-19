@@ -183,6 +183,17 @@ void Buffer_SetPixel(int x, int y, uint16_t color) {
     }
 }
 
+void Buffer_BlendPixel(int x, int y, uint16_t color) {
+    if (x >= 0 && x < BUFFER_WIDTH && y >= 0 && y < BUFFER_HEIGHT) {
+        int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
+        /* Read existing pixel and un-swap to native color space */
+        uint16_t existing = SWAP16(Buffer_RenderBuffer[index]);
+        /* 50% blend: mask LSBs to prevent channel overflow, halve, add */
+        uint16_t blended = ((color & 0xF7DE) >> 1) + ((existing & 0xF7DE) >> 1);
+        Buffer_RenderBuffer[index] = SWAP16(blended);
+    }
+}
+
 void Buffer_SetPixelFast(int x, int y, uint16_t color) {
     int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
     Buffer_RenderBuffer[index] = SWAP16(color);

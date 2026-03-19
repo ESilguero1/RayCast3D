@@ -78,6 +78,12 @@ void Buffer_SetPixel(int x, int y, uint16_t color);
  *         color - 16-bit RGB565 color value */
 void Buffer_SetPixelFast(int x, int y, uint16_t color);
 
+/* 50% blend a pixel with the existing buffer contents (bounds-checked)
+ * Reads the current pixel, averages with the new color, and writes back.
+ * Inputs: x, y - buffer-local coordinates (0 to BUFFER_WIDTH-1)
+ *         color - 16-bit RGB565 color to blend */
+void Buffer_BlendPixel(int x, int y, uint16_t color);
+
 /* Draw a foreground sprite to the buffer
  * Inputs: side - which quarter (0-3)
  *         sprite - sprite data to render */

@@ -86,13 +86,19 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
 
     int pushdown = (originalSpriteHeight - spriteHeight) >> 1;
 
-    // Calculate drawing boundaries
-    int drawStartY = HALF_SCREEN_HEIGHT - (spriteHeight >> 1) - pushdown;
-    int drawEndY = HALF_SCREEN_HEIGHT + (spriteHeight >> 1) - pushdown;
+    // Project elevation into screen space (world units → screen pixels at this depth)
+    int vMoveScreen = FIXED_TO_INT(sprite.elevation * originalSpriteHeight);
+
+    // Calculate drawing boundaries (elevation moves sprite up in y-up coords)
+    int drawStartY = HALF_SCREEN_HEIGHT - (spriteHeight >> 1) - pushdown + vMoveScreen;
+    int drawEndY = HALF_SCREEN_HEIGHT + (spriteHeight >> 1) - pushdown + vMoveScreen;
     int drawStartX = spriteScreenX - (spriteWidth >> 1);
     int drawEndX = spriteScreenX + ((spriteWidth + 1) >> 1);
 
-    // Clamp Y boundaries
+    // Save unclamped drawEndY for correct texture mapping when clipped
+    int texDrawEndY = drawEndY;
+
+    // Clamp Y boundaries for rendering
     if (drawStartY < 0) drawStartY = 0;
     if (drawEndY > SCREEN_HEIGHT) drawEndY = SCREEN_HEIGHT;
 
@@ -120,12 +126,16 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
 
         // Draw vertical strip
         for (int y = drawStartY; y < drawEndY; y++) {
-            int texY = (drawEndY - y) * sprite.height / spriteHeight;
+            int texY = (texDrawEndY - y) * sprite.height / spriteHeight;
             if (texY < 0 || texY >= sprite.height) continue;
 
             uint16_t pixelColor = imgData[texY * sprite.width + texX];
             if (pixelColor != transparent) {
-                Buffer_SetPixel(bufferX, y, pixelColor);
+                if (sprite.translucent) {
+                    Buffer_BlendPixel(bufferX, y, pixelColor);
+                } else {
+                    Buffer_SetPixel(bufferX, y, pixelColor);
+                }
             }
         }
     }
@@ -169,6 +179,8 @@ uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int hei
             Sprites_Array[i].height = height;
             Sprites_Array[i].scale = scale;
             Sprites_Array[i].transparent = transparent;
+            Sprites_Array[i].elevation = 0;
+            Sprites_Array[i].translucent = 0;
             Sprites_Array[i].type = 0;
             Sprites_Array[i].active = 1;
             Sprites_Count++;
@@ -218,6 +230,18 @@ void Sprite_Scale(int index, int scale) {
     }
 
     Sprites_Array[index].scale = scale;
+}
+
+void Sprite_SetElevation(int index, double elevation) {
+    if (index < 0 || index >= SPRITES_MAX_COUNT) return;
+    if (!Sprites_Array[index].active) return;
+    Sprites_Array[index].elevation = FLOAT_TO_FIXED(elevation);
+}
+
+void Sprite_SetTranslucent(int index, int enabled) {
+    if (index < 0 || index >= SPRITES_MAX_COUNT) return;
+    if (!Sprites_Array[index].active) return;
+    Sprites_Array[index].translucent = enabled ? 1 : 0;
 }
 
 const Sprite* Sprite_Get(int index) {
