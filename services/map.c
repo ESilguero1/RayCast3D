@@ -9,6 +9,7 @@
  */
 
 #include "map.h"
+#include "graphics.h"
 
 /*---------------------------------------------------------------------------
  * Public Variables
@@ -21,21 +22,18 @@ uint8_t Map_WorldMap[MAP_HEIGHT][MAP_WIDTH];
  * Map Loading Functions
  *---------------------------------------------------------------------------*/
 
-void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH]) {
+void Map_Load(const MapInfo* map) {
     for (int row = 0; row < MAP_HEIGHT; row++) {
         for (int col = 0; col < MAP_WIDTH; col++) {
-            Map_WorldMap[row][col] = map[row][col];
+            Map_WorldMap[row][col] = map->grid[row][col];
         }
     }
+    Graphics_SetFloorTexture(map->floorTexture - 1);
+    Graphics_SetCeilingTexture(map->ceilingTexture - 1);
 }
 
-void Map_LoadFromList(const uint8_t (*const maps[])[MAP_WIDTH], int index) {
-    const uint8_t (*map)[MAP_WIDTH] = maps[index];
-    for (int row = 0; row < MAP_HEIGHT; row++) {
-        for (int col = 0; col < MAP_WIDTH; col++) {
-            Map_WorldMap[row][col] = map[row][col];
-        }
-    }
+void Map_LoadFromList(const MapInfo maps[], int index) {
+    Map_Load(&maps[index]);
 }
 
 /*---------------------------------------------------------------------------

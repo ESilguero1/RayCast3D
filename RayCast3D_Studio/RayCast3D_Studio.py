@@ -481,6 +481,78 @@ class RayCast3DStudio:
                           font=('Arial', 9), foreground='gray')
         instr.pack(pady=10)
 
+        # Floor texture selector
+        floor_frame = ttk.LabelFrame(right_frame, text="Floor Texture")
+        floor_frame.pack(fill='x', padx=5, pady=(5, 10))
+
+        self.floor_tex_var = tk.StringVar(value="None (gradient)")
+        self.floor_tex_combo = ttk.Combobox(floor_frame, textvariable=self.floor_tex_var,
+                                             state='readonly', width=18)
+        self.floor_tex_combo.pack(padx=5, pady=5, fill='x')
+        self.floor_tex_combo.bind('<<ComboboxSelected>>', self._on_floor_texture_changed)
+        self._update_floor_texture_combo()
+
+        # Ceiling texture selector
+        ceil_frame = ttk.LabelFrame(right_frame, text="Ceiling Texture")
+        ceil_frame.pack(fill='x', padx=5, pady=(5, 10))
+
+        self.ceil_tex_var = tk.StringVar(value="None (solid color)")
+        self.ceil_tex_combo = ttk.Combobox(ceil_frame, textvariable=self.ceil_tex_var,
+                                            state='readonly', width=18)
+        self.ceil_tex_combo.pack(padx=5, pady=5, fill='x')
+        self.ceil_tex_combo.bind('<<ComboboxSelected>>', self._on_ceil_texture_changed)
+        self._update_ceil_texture_combo()
+
+    def _update_floor_texture_combo(self):
+        """Update the floor texture dropdown with current textures."""
+        choices = ["None (gradient)"] + [t.name for t in self.textures]
+        self.floor_tex_combo['values'] = choices
+
+        # Restore selection from map data
+        floor_idx = self.maps[self.current_map_idx].get("floor_texture", 0)
+        if floor_idx > 0 and floor_idx <= len(self.textures):
+            self.floor_tex_var.set(self.textures[floor_idx - 1].name)
+        else:
+            self.floor_tex_var.set("None (gradient)")
+
+    def _update_ceil_texture_combo(self):
+        """Update the ceiling texture dropdown with current textures."""
+        choices = ["None (solid color)"] + [t.name for t in self.textures]
+        self.ceil_tex_combo['values'] = choices
+
+        # Restore selection from map data
+        ceil_idx = self.maps[self.current_map_idx].get("ceiling_texture", 0)
+        if ceil_idx > 0 and ceil_idx <= len(self.textures):
+            self.ceil_tex_var.set(self.textures[ceil_idx - 1].name)
+        else:
+            self.ceil_tex_var.set("None (solid color)")
+
+    def _on_floor_texture_changed(self, event=None):
+        """Handle floor texture selection change."""
+        selection = self.floor_tex_var.get()
+        if selection == "None (gradient)":
+            self.maps[self.current_map_idx]["floor_texture"] = 0
+        else:
+            for i, tex in enumerate(self.textures):
+                if tex.name == selection:
+                    self.maps[self.current_map_idx]["floor_texture"] = i + 1
+                    break
+        self._auto_export()
+        self._save_project()
+
+    def _on_ceil_texture_changed(self, event=None):
+        """Handle ceiling texture selection change."""
+        selection = self.ceil_tex_var.get()
+        if selection == "None (solid color)":
+            self.maps[self.current_map_idx]["ceiling_texture"] = 0
+        else:
+            for i, tex in enumerate(self.textures):
+                if tex.name == selection:
+                    self.maps[self.current_map_idx]["ceiling_texture"] = i + 1
+                    break
+        self._auto_export()
+        self._save_project()
+
     def _build_texture_tab(self):
         """Build the texture manager tab."""
         main_frame = ttk.Frame(self.texture_tab)
@@ -996,6 +1068,10 @@ class RayCast3DStudio:
             if m["name"] == selected_name:
                 self.current_map_idx = i
                 self._draw_map_grid()
+                if hasattr(self, 'floor_tex_combo'):
+                    self._update_floor_texture_combo()
+                if hasattr(self, 'ceil_tex_combo'):
+                    self._update_ceil_texture_combo()
                 break
 
     def _add_map(self):
@@ -1131,6 +1207,12 @@ class RayCast3DStudio:
             btn = ttk.Button(frame, text=tex.name,
                             command=lambda i=idx: self._select_texture(i))
             btn.pack(fill='x')
+
+        # Also refresh the floor/ceiling texture dropdowns
+        if hasattr(self, 'floor_tex_combo'):
+            self._update_floor_texture_combo()
+        if hasattr(self, 'ceil_tex_combo'):
+            self._update_ceil_texture_combo()
 
     def _create_texture_previews(self, tex):
         """Create both large preview (simulating in-game wall) and tile preview for a texture."""
@@ -1341,7 +1423,7 @@ class RayCast3DStudio:
         """Add a new texture."""
         file_path = filedialog.askopenfilename(
             title="Select Texture Image",
-            filetypes=[("Image files", "*.png *.bmp *.jpg *.jpeg"), ("All files", "*.*")]
+            filetypes=[("Image files", "*.png *.PNG *.bmp *.BMP *.jpg *.JPG *.jpeg *.JPEG"), ("All files", "*.*")]
         )
 
         if not file_path:
@@ -1670,7 +1752,7 @@ class RayCast3DStudio:
         """Add a new sprite."""
         file_path = filedialog.askopenfilename(
             title="Select Sprite Image",
-            filetypes=[("Image files", "*.png *.bmp *.jpg *.jpeg"), ("All files", "*.*")]
+            filetypes=[("Image files", "*.png *.PNG *.bmp *.BMP *.jpg *.JPG *.jpeg *.JPEG"), ("All files", "*.*")]
         )
 
         if not file_path:
@@ -2630,27 +2712,39 @@ class RayCast3DStudio:
             "#ifndef maps_h_",
             "#define maps_h_",
             "",
-            "#include <stdint.h>",
+            '#include "../services/map.h"',
             "",
             f"#define MAP_COUNT {len(self.maps)}",
             "",
         ]
 
-        # Export each map with its name
+        # Export each map grid with _grid suffix
         for map_info in self.maps:
             map_name = map_info["name"]
             map_data = map_info["data"]
-            lines.append(f"static const uint8_t {map_name}[{MAP_SIZE}][{MAP_SIZE}] = {{")
+            lines.append(f"static const uint8_t {map_name}_grid[{MAP_SIZE}][{MAP_SIZE}] = {{")
             for row in map_data:
                 lines.append("    {" + ",".join(str(v) for v in row) + "},")
             lines.append("};")
             lines.append("")
 
-        # Create pointer array for easy map switching
-        lines.append("// Map pointer array for easy switching by index")
-        lines.append(f"static const uint8_t (*const mapList[{len(self.maps)}])[{MAP_SIZE}] = {{")
+        # Export MapInfo descriptors (grid + floor/ceiling textures)
         for map_info in self.maps:
-            lines.append(f"    {map_info['name']},")
+            map_name = map_info["name"]
+            floor_tex = map_info.get("floor_texture", 0)
+            ceil_tex = map_info.get("ceiling_texture", 0)
+            lines.append(f"// floor: {floor_tex} (0=gradient), ceiling: {ceil_tex} (0=solid color)")
+            lines.append(f"static const MapInfo {map_name} = {{ {map_name}_grid, {floor_tex}, {ceil_tex} }};")
+            lines.append("")
+
+        # Map list for loading by index
+        lines.append("// Map list for loading by index")
+        lines.append(f"static const MapInfo mapList[{len(self.maps)}] = {{")
+        for map_info in self.maps:
+            map_name = map_info["name"]
+            floor_tex = map_info.get("floor_texture", 0)
+            ceil_tex = map_info.get("ceiling_texture", 0)
+            lines.append(f"    {{ {map_name}_grid, {floor_tex}, {ceil_tex} }},")
         lines.append("};")
         lines.append("")
         lines.append("#endif /* maps_h_ */")

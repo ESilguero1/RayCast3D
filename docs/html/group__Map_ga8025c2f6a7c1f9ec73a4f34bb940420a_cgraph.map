@@ -1,0 +1,7 @@
+<map id="Map_Load" name="Map_Load">
+<area shape="rect" id="Node000001" title="Load a map from a Studio&#45;exported MapInfo descriptor." alt="" coords="5,31,93,56"/>
+<area shape="rect" id="Node000002" href="$group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c" title="Select a texture for ceiling rendering (enables textured ceilingcasting)." alt="" coords="141,5,341,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,35,131,30,132,35,94,40"/>
+<area shape="rect" id="Node000003" href="$group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be" title="Select a texture for floor rendering (enables textured floorcasting)." alt="" coords="147,55,335,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,46,134,51,133,56,93,51"/>
+</map>

@@ -90,7 +90,7 @@ Quick Start</h1>
 <div class="line">    <span class="comment">// Configure scene</span></div>
 <div class="line">    <a class="code hl_function" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a>(ST7735_DARKGREY);</div>
 <div class="line">    <a class="code hl_function" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a>(ST7735_BLUE);</div>
-<div class="line">    <a class="code hl_function" href="group__Map.html#gac7919e1187a5f5ff9aec51a3f880e22f">Map_Load</a>(map1);</div>
+<div class="line">    <a class="code hl_function" href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a">Map_Load</a>(map1);</div>
 <div class="line">    <a class="code hl_function" href="group__Camera.html#gac6c9e108dd87edf1d4db01a433eeaeca">Camera_SetPosition</a>(12.0, 12.0);</div>
 <div class="line"> </div>
 <div class="line">    <span class="comment">// Main loop</span></div>
@@ -102,9 +102,9 @@ Quick Start</h1>
 <div class="ttc" id="agroup__Camera_html_gac6c9e108dd87edf1d4db01a433eeaeca"><div class="ttname"><a href="group__Camera.html#gac6c9e108dd87edf1d4db01a433eeaeca">Camera_SetPosition</a></div><div class="ttdeci">void Camera_SetPosition(double x, double y)</div><div class="ttdoc">Set camera world position.</div><div class="ttdef"><b>Definition</b> camera.c:44</div></div>
 <div class="ttc" id="agroup__EngineCore_html_ga67949045a83c7ccaff619a9ab05819b3"><div class="ttname"><a href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3">RayCast3D_Render</a></div><div class="ttdeci">void RayCast3D_Render(void)</div><div class="ttdoc">Render one complete frame to the display.</div><div class="ttdef"><b>Definition</b> raycast3d.c:38</div></div>
 <div class="ttc" id="agroup__EngineCore_html_gac4904fc9bf4a1126b9daa1d095e99e16"><div class="ttname"><a href="group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16">RayCast3D_Init</a></div><div class="ttdeci">void RayCast3D_Init(void)</div><div class="ttdoc">Initialize the raycasting engine.</div><div class="ttdef"><b>Definition</b> raycast3d.c:34</div></div>
-<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:239</div></div>
-<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:243</div></div>
-<div class="ttc" id="agroup__Map_html_gac7919e1187a5f5ff9aec51a3f880e22f"><div class="ttname"><a href="group__Map.html#gac7919e1187a5f5ff9aec51a3f880e22f">Map_Load</a></div><div class="ttdeci">void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH])</div><div class="ttdoc">Load a map from a constant 2D array.</div><div class="ttdef"><b>Definition</b> map.c:24</div></div>
+<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:389</div></div>
+<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:393</div></div>
+<div class="ttc" id="agroup__Map_html_ga8025c2f6a7c1f9ec73a4f34bb940420a"><div class="ttname"><a href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a">Map_Load</a></div><div class="ttdeci">void Map_Load(const MapInfo *map)</div><div class="ttdoc">Load a map from a Studio-exported MapInfo descriptor.</div><div class="ttdef"><b>Definition</b> map.c:25</div></div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md3"></a>
 Hardware Requirements</h1>
 <ul>
@@ -183,12 +183,13 @@ Keyboard Shortcuts</h2>
 <h1><a class="anchor" id="autotoc_md10"></a>
 API Modules</h1>
 <ul>
-<li><a href="raycast3d.h">Engine Core</a> — initialization and rendering</li>
-<li><a href="services/camera.h">Camera</a> — movement and orientation</li>
-<li><a href="services/graphics.h">Graphics</a> — visual configuration</li>
-<li><a href="services/map.h">Map</a> — world data</li>
-<li><a href="services/sprites.h">Sprites</a> — dynamic objects</li>
+<li><b>Engine Core</b> — initialization and rendering</li>
+<li><b><a class="el" href="structCamera.html" title="Camera state structure (all values in Q16.16 fixed-point).">Camera</a></b> — movement and orientation</li>
+<li><b>Graphics</b> — visual configuration</li>
+<li><b>Map</b> — world data</li>
+<li><b>Sprites</b> — dynamic objects</li>
 </ul>
+<p>For full API details, see the <a href="https://esilguero1.github.io/RayCast3D/">documentation</a>.</p>
 <h1><a class="anchor" id="autotoc_md11"></a>
 Performance Optimizations</h1>
 <h2><a class="anchor" id="autotoc_md12"></a>

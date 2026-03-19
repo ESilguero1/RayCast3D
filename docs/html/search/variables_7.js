@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['transparent_0',['transparent',['../group__Sprites.html#gaba89899ff1f84c61b1b07da694018f8d',1,'Sprite']]],
-  ['type_1',['type',['../group__Sprites.html#ga06da32fcf7425b43b6b9ba41fc279425',1,'Sprite']]]
+  ['map_5fworldmap_0',['map_worldmap',['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c'],['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c']]]
 ];

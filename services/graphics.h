@@ -69,6 +69,11 @@ void Graphics_Init(void);
  * constants from colors.h (exported by RayCast3D Studio) or ST7735
  * defines such as ST7735_DARKGREY.
  *
+ * @note Has no visible effect while a floor texture is active
+ *       (set via Studio or Graphics_SetFloorTexture()). The color is
+ *       still stored and will be used if the floor texture is later
+ *       disabled.
+ *
  * @param color  BGR565 color value
  */
 void Graphics_SetFloorColor(uint16_t color);
@@ -77,6 +82,11 @@ void Graphics_SetFloorColor(uint16_t color);
  * @brief Set the solid color drawn above the horizon.
  *
  * Takes effect on the next call to RayCast3D_Render().
+ *
+ * @note Has no visible effect while a ceiling texture is active
+ *       (set via Studio or Graphics_SetCeilingTexture()). The color is
+ *       still stored and will be used if the ceiling texture is later
+ *       disabled.
  *
  * @param color  BGR565 color value
  */
@@ -89,15 +99,59 @@ void Graphics_SetSkyColor(uint16_t color);
  * An intensity of 0.0 disables the gradient entirely; 1.0 applies
  * maximum darkening at the horizon line.
  *
+ * @note Has no visible effect while a floor texture is active.
+ *
  * @param intensity  Gradient strength (0.0 = off, 1.0 = full)
  */
 void Graphics_SetFloorGradient(double intensity);
+
+/**
+ * @brief Select a texture for floor rendering (enables textured floorcasting).
+ *
+ * When set to a valid index, the engine replaces the solid-color gradient
+ * floor with perspective-correct textured floorcasting. Set to -1 to
+ * revert to the gradient floor (Graphics_SetFloorColor / Graphics_SetFloorGradient).
+ *
+ * Normally configured per-map in RayCast3D Studio and applied automatically
+ * by Map_Load(). Call directly only to override the Studio setting at runtime.
+ *
+ * @note Textured floorcasting is more CPU-intensive than the solid-color
+ *       gradient. Disable (set to None in Studio) to improve FPS on scenes
+ *       where floor detail is not needed.
+ *
+ * @param texIndex  Index into textures[] (0-based), or -1 to disable
+ */
+void Graphics_SetFloorTexture(int texIndex);
+
+/**
+ * @brief Select a texture for ceiling rendering (enables textured ceilingcasting).
+ *
+ * When set to a valid index, the engine replaces the solid sky color
+ * with perspective-correct textured ceiling. Set to -1 to revert to
+ * the solid color (Graphics_SetSkyColor).
+ *
+ * Normally configured per-map in RayCast3D Studio and applied automatically
+ * by Map_Load(). Call directly only to override the Studio setting at runtime.
+ *
+ * @note Textured ceilingcasting is more CPU-intensive than the solid sky
+ *       color. Disable (set to None in Studio) to improve FPS on scenes
+ *       where ceiling detail is not needed.
+ *
+ * @param texIndex  Index into textures[] (0-based), or -1 to disable
+ */
+void Graphics_SetCeilingTexture(int texIndex);
 
 /**
  * @brief Cast rays for one screen quarter (internal).
  * @param side  Which quarter to render (0-3)
  */
 void CastRays(int side);
+
+/**
+ * @brief Render textured floor and ceiling for one screen quarter (internal, row-based).
+ * @param side  Which quarter to render (0-3)
+ */
+void CastFloors(int side);
 
 /** @internal Render queued overlays for one quarter. */
 void Graphics_RenderOverlays(int side);

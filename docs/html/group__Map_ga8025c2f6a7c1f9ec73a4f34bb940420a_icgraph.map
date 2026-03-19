@@ -1,0 +1,5 @@
+<map id="Map_Load" name="Map_Load">
+<area shape="rect" id="Node000001" title="Load a map from a Studio&#45;exported MapInfo descriptor." alt="" coords="197,5,285,31"/>
+<area shape="rect" id="Node000002" href="$group__Map.html#ga71bd073672b4326960c4f23c9ff67e0a" title="Load a map by index from the Studio&#45;generated map list." alt="" coords="5,5,149,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,21,150,21,150,15,184,15"/>
+</map>

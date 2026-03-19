@@ -23,6 +23,33 @@
 // Z-buffer for depth sorting (fixed-point Q16.16)
 fixed_t ZBuffer[SCREEN_WIDTH];
 
+// Floor texture state (-1 = disabled, 0+ = texture index)
+static int floorTexIndex = -1;
+static const uint16_t* floorTexData = 0;
+static int floorTexRes = 0;
+static int floorTexMask = 0;
+
+// Ceiling texture state (-1 = disabled, 0+ = texture index)
+static int ceilTexIndex = -1;
+static const uint16_t* ceilTexData = 0;
+static int ceilTexRes = 0;
+static int ceilTexMask = 0;
+
+// Precomputed row distance LUT for floorcasting
+// rowDistanceLUT[p] = HALF_SCREEN_HEIGHT / p in Q16.16
+// p = distance below horizon in screen rows (1 = near horizon, 64 = screen bottom)
+static fixed_t rowDistanceLUT[HALF_SCREEN_HEIGHT + 1];
+static int floorLUTInitialized = 0;
+
+static void initRowDistanceLUT(void) {
+    if (floorLUTInitialized) return;
+    rowDistanceLUT[0] = FIXED_LARGE;
+    for (int p = 1; p <= HALF_SCREEN_HEIGHT; p++) {
+        rowDistanceLUT[p] = fixed_div(INT_TO_FIXED(HALF_SCREEN_HEIGHT), INT_TO_FIXED(p));
+    }
+    floorLUTInitialized = 1;
+}
+
 // FPS display state
 static int fpsEnabled = 0;
 static int fpsX = 0;
@@ -56,6 +83,21 @@ typedef struct {
 static FGSpriteEntry fgSpriteQueue[MAX_FG_SPRITE_QUEUE];
 static int fgSpriteQueueCount = 0;
 
+// Per-column wall coverage (written by CastRays, read by CastFloors)
+// drawStart = bottom edge of wall (floor visible below), drawEnd = top edge (ceiling visible above)
+static uint8_t columnDrawStart[BUFFER_WIDTH];
+static uint8_t columnDrawEnd[BUFFER_WIDTH];
+
+// Row-level bounds for fast-path / checked-path split in CastFloors
+// minDrawStart: below this row ALL floor pixels are visible (no per-pixel check needed)
+// maxDrawStart: at or above this row NO floor pixels are visible (stop the loop)
+// minDrawEnd:   below this row NO ceiling pixels are visible (start the loop here)
+// maxDrawEnd:   at or above this row ALL ceiling pixels are visible (no check needed)
+static uint8_t minDrawStart;
+static uint8_t maxDrawStart;
+static uint8_t minDrawEnd;
+static uint8_t maxDrawEnd;
+
 // Forward declarations
 static void drawFPSOverlay(int side);
 static void drawTextQueue(int side);
@@ -68,11 +110,17 @@ void CastRays(int side) {
     int startX = side * BUFFER_WIDTH;
     int endX = startX + BUFFER_WIDTH;
 
-    // Pre-calculate values used in the loop
-    // cameraX = 2 * x / SCREEN_WIDTH - 1, ranges from -1 to +1
-    // We'll compute: cameraX_fixed = (2 * x * 65536 / SCREEN_WIDTH) - 65536
-    // Simplified: cameraX_step = 2 * 65536 / SCREEN_WIDTH = 819 (for 160 pixels)
-    const fixed_t cameraX_step = (2 * FIXED_ONE) / SCREEN_WIDTH;  // 819 for 160px
+    // Initialize wall coverage: no wall = floor/ceiling fill everything
+    for (int i = 0; i < BUFFER_WIDTH; i++) {
+        columnDrawStart[i] = HALF_SCREEN_HEIGHT;
+        columnDrawEnd[i] = HALF_SCREEN_HEIGHT;
+    }
+    minDrawStart = HALF_SCREEN_HEIGHT;
+    maxDrawStart = HALF_SCREEN_HEIGHT;
+    minDrawEnd = HALF_SCREEN_HEIGHT;
+    maxDrawEnd = HALF_SCREEN_HEIGHT;
+
+    const fixed_t cameraX_step = (2 * FIXED_ONE) / SCREEN_WIDTH;
 
     for (int x = startX; x < endX; x++) {
         // Calculate ray position and direction (all fixed-point)
@@ -173,6 +221,15 @@ void CastRays(int side) {
         int drawEnd = HALF_SCREEN_HEIGHT + halfLineHeight;
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
+        // Store wall coverage for CastFloors visibility culling
+        int bufIdx = x - startX;
+        columnDrawStart[bufIdx] = (uint8_t)drawStart;
+        columnDrawEnd[bufIdx] = (uint8_t)drawEnd;
+        if (drawStart < minDrawStart) minDrawStart = drawStart;
+        if (drawStart > maxDrawStart) maxDrawStart = drawStart;
+        if (drawEnd < minDrawEnd) minDrawEnd = drawEnd;
+        if (drawEnd > maxDrawEnd) maxDrawEnd = drawEnd;
+
         int texNum = (Map_WorldMap[mapY][mapX] - 1) % NUM_TEXTURES;
         int texRes = textures[texNum].resolution;
         int texResMask = textures[texNum].mask;  // Use precomputed mask
@@ -231,6 +288,99 @@ void CastRays(int side) {
 }
 
 
+void CastFloors(int side) {
+    if (floorTexIndex < 0 && ceilTexIndex < 0) return;
+
+    const Camera* cam = Camera_Get();
+    int startX = side * BUFFER_WIDTH;
+
+    // Ray direction at leftmost column (x=0)
+    fixed_t rayDirX0 = cam->dirX - cam->planeX;
+    fixed_t rayDirY0 = cam->dirY - cam->planeY;
+
+    // Precompute step scale: 2*plane / SCREEN_WIDTH (constant for all rows)
+    fixed_t scaledPlaneX = (cam->planeX * 2) / SCREEN_WIDTH;
+    fixed_t scaledPlaneY = (cam->planeY * 2) / SCREEN_WIDTH;
+
+    // Floor: y = 0 (screen bottom) to maxDrawStart-1 (no floor visible above this)
+    // Two paths: branchless for rows fully visible, per-pixel check near wall edges
+    if (floorTexIndex >= 0 && floorTexData) {
+        int floorEnd = maxDrawStart < HALF_SCREEN_HEIGHT ? maxDrawStart : HALF_SCREEN_HEIGHT;
+
+        for (int y = 0; y < floorEnd; y++) {
+            int p = HALF_SCREEN_HEIGHT - y;
+            fixed_t rowDist = rowDistanceLUT[p];
+
+            fixed_t floorStepX = fixed_mul(rowDist, scaledPlaneX);
+            fixed_t floorStepY = fixed_mul(rowDist, scaledPlaneY);
+
+            fixed_t floorX = cam->posX + fixed_mul(rowDist, rayDirX0) + floorStepX * startX;
+            fixed_t floorY = cam->posY + fixed_mul(rowDist, rayDirY0) + floorStepY * startX;
+
+            if (y < minDrawStart) {
+                // Fast path: all columns visible, no per-pixel check
+                for (int x = 0; x < BUFFER_WIDTH; x++) {
+                    int tx = (FIXED_FRAC(floorX) * floorTexRes) >> FIXED_SHIFT;
+                    int ty = (FIXED_FRAC(floorY) * floorTexRes) >> FIXED_SHIFT;
+                    Buffer_SetPixelFast(x, y, floorTexData[ty * floorTexRes + tx]);
+                    floorX += floorStepX;
+                    floorY += floorStepY;
+                }
+            } else {
+                // Checked path: some columns covered by walls
+                for (int x = 0; x < BUFFER_WIDTH; x++) {
+                    if (y < columnDrawStart[x]) {
+                        int tx = (FIXED_FRAC(floorX) * floorTexRes) >> FIXED_SHIFT;
+                        int ty = (FIXED_FRAC(floorY) * floorTexRes) >> FIXED_SHIFT;
+                        Buffer_SetPixelFast(x, y, floorTexData[ty * floorTexRes + tx]);
+                    }
+                    floorX += floorStepX;
+                    floorY += floorStepY;
+                }
+            }
+        }
+    }
+
+    // Ceiling: y = minDrawEnd (no ceiling visible below this) to SCREEN_HEIGHT-1
+    // Two paths: per-pixel check near wall edges, branchless for rows fully visible
+    if (ceilTexIndex >= 0 && ceilTexData) {
+        int ceilStart = minDrawEnd > HALF_SCREEN_HEIGHT ? minDrawEnd : HALF_SCREEN_HEIGHT;
+
+        for (int y = ceilStart; y < SCREEN_HEIGHT; y++) {
+            int p = y - HALF_SCREEN_HEIGHT + 1;
+            fixed_t rowDist = rowDistanceLUT[p];
+
+            fixed_t ceilStepX = fixed_mul(rowDist, scaledPlaneX);
+            fixed_t ceilStepY = fixed_mul(rowDist, scaledPlaneY);
+
+            fixed_t ceilX = cam->posX + fixed_mul(rowDist, rayDirX0) + ceilStepX * startX;
+            fixed_t ceilY = cam->posY + fixed_mul(rowDist, rayDirY0) + ceilStepY * startX;
+
+            if (y >= maxDrawEnd) {
+                // Fast path: all columns visible, no per-pixel check
+                for (int x = 0; x < BUFFER_WIDTH; x++) {
+                    int tx = (FIXED_FRAC(ceilX) * ceilTexRes) >> FIXED_SHIFT;
+                    int ty = (FIXED_FRAC(ceilY) * ceilTexRes) >> FIXED_SHIFT;
+                    Buffer_SetPixelFast(x, y, ceilTexData[ty * ceilTexRes + tx]);
+                    ceilX += ceilStepX;
+                    ceilY += ceilStepY;
+                }
+            } else {
+                // Checked path: some columns covered by walls
+                for (int x = 0; x < BUFFER_WIDTH; x++) {
+                    if (y >= columnDrawEnd[x]) {
+                        int tx = (FIXED_FRAC(ceilX) * ceilTexRes) >> FIXED_SHIFT;
+                        int ty = (FIXED_FRAC(ceilY) * ceilTexRes) >> FIXED_SHIFT;
+                        Buffer_SetPixelFast(x, y, ceilTexData[ty * ceilTexRes + tx]);
+                    }
+                    ceilX += ceilStepX;
+                    ceilY += ceilStepY;
+                }
+            }
+        }
+    }
+}
+
 void Graphics_Init(void) {
     Buffer_Init();
     ST7735_DMA_Init();  // Initialize DMA for async display transfers
@@ -246,6 +396,36 @@ void Graphics_SetSkyColor(uint16_t color) {
 
 void Graphics_SetFloorGradient(double intensity) {
     Buffer_SetFloorGradient(intensity);
+}
+
+void Graphics_SetFloorTexture(int texIndex) {
+    if (texIndex >= 0 && texIndex < NUM_TEXTURES) {
+        initRowDistanceLUT();
+        floorTexIndex = texIndex;
+        floorTexData = textures[texIndex].data;
+        floorTexRes = textures[texIndex].resolution;
+        floorTexMask = textures[texIndex].mask;
+        Buffer_SetFloorTextured(1);
+    } else {
+        floorTexIndex = -1;
+        floorTexData = 0;
+        Buffer_SetFloorTextured(0);
+    }
+}
+
+void Graphics_SetCeilingTexture(int texIndex) {
+    if (texIndex >= 0 && texIndex < NUM_TEXTURES) {
+        initRowDistanceLUT();
+        ceilTexIndex = texIndex;
+        ceilTexData = textures[texIndex].data;
+        ceilTexRes = textures[texIndex].resolution;
+        ceilTexMask = textures[texIndex].mask;
+        Buffer_SetCeilingTextured(1);
+    } else {
+        ceilTexIndex = -1;
+        ceilTexData = 0;
+        Buffer_SetCeilingTextured(0);
+    }
 }
 
 static void drawFPSOverlay(int side) {

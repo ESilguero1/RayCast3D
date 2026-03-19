@@ -1,0 +1,9 @@
+<map id="Map_LoadFromList" name="Map_LoadFromList">
+<area shape="rect" id="Node000001" title="Load a map by index from the Studio&#45;generated map list." alt="" coords="5,31,149,56"/>
+<area shape="rect" id="Node000002" href="$group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a" title="Load a map from a Studio&#45;exported MapInfo descriptor." alt="" coords="197,31,285,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,41,184,41,184,46,149,46"/>
+<area shape="rect" id="Node000003" href="$group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c" title="Select a texture for ceiling rendering (enables textured ceilingcasting)." alt="" coords="333,5,533,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="285,35,323,30,324,35,286,40"/>
+<area shape="rect" id="Node000004" href="$group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be" title="Select a texture for floor rendering (enables textured floorcasting)." alt="" coords="339,55,527,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="286,46,326,51,325,56,285,51"/>
+</map>

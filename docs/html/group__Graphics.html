@@ -93,9 +93,18 @@ Functions</h2></td></tr>
 <tr class="memitem:gaf0c9b917a4f2b484c1bb57ebd63dd198" id="r_gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a> (double intensity)</td></tr>
 <tr class="memdesc:gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable a distance-based darkening gradient on the floor.  <br /></td></tr>
 <tr class="separator:gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga030a7f74aae9182018f74ce9ed6156be" id="r_ga030a7f74aae9182018f74ce9ed6156be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be">Graphics_SetFloorTexture</a> (int texIndex)</td></tr>
+<tr class="memdesc:ga030a7f74aae9182018f74ce9ed6156be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Select a texture for floor rendering (enables textured floorcasting).  <br /></td></tr>
+<tr class="separator:ga030a7f74aae9182018f74ce9ed6156be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8b5d5497e10d198d1498f226c90c910c" id="r_ga8b5d5497e10d198d1498f226c90c910c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c">Graphics_SetCeilingTexture</a> (int texIndex)</td></tr>
+<tr class="memdesc:ga8b5d5497e10d198d1498f226c90c910c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Select a texture for ceiling rendering (enables textured ceilingcasting).  <br /></td></tr>
+<tr class="separator:ga8b5d5497e10d198d1498f226c90c910c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga81af24be0237db99a8689b90cc165520" id="r_ga81af24be0237db99a8689b90cc165520"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a> (int side)</td></tr>
 <tr class="memdesc:ga81af24be0237db99a8689b90cc165520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cast rays for one screen quarter (internal).  <br /></td></tr>
 <tr class="separator:ga81af24be0237db99a8689b90cc165520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f1f6772d26ba5d5700f7447257a0293" id="r_ga9f1f6772d26ba5d5700f7447257a0293"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga9f1f6772d26ba5d5700f7447257a0293">CastFloors</a> (int side)</td></tr>
+<tr class="memdesc:ga9f1f6772d26ba5d5700f7447257a0293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render textured floor and ceiling for one screen quarter (internal, row-based).  <br /></td></tr>
+<tr class="separator:ga9f1f6772d26ba5d5700f7447257a0293"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad808eaf90668b417224ea2a84c05d384" id="r_gad808eaf90668b417224ea2a84c05d384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a> (int x, int y, uint16_t color)</td></tr>
 <tr class="memdesc:gad808eaf90668b417224ea2a84c05d384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable an on-screen FPS counter.  <br /></td></tr>
 <tr class="separator:gad808eaf90668b417224ea2a84c05d384"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,6 +123,54 @@ Functions</h2></td></tr>
 <p>The Graphics module controls the visual appearance of the rendered scene. Use it to set floor and sky colors, enable a distance-based floor gradient, display an FPS counter, and queue per-frame text and foreground sprites that are drawn on top of the 3D scene.</p>
 <p>Overlay functions (Graphics_Text, Graphics_ForegroundSprite) are queued — call them each frame before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>. The queues are automatically cleared after each frame completes. </p>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ga9f1f6772d26ba5d5700f7447257a0293" name="ga9f1f6772d26ba5d5700f7447257a0293"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9f1f6772d26ba5d5700f7447257a0293">&#9670;&#160;</a></span>CastFloors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CastFloors </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>side</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/graphics.h&gt;</code></p>
+
+<p>Render textured floor and ceiling for one screen quarter (internal, row-based). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">side</td><td>Which quarter to render (0-3) </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="group__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_cgraph.png" border="0" usemap="#agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_cgraph" alt=""/></div>
+<map name="agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_cgraph" id="agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_cgraph">
+<area shape="rect" title="Render textured floor and ceiling for one screen quarter (internal, row&#45;based)." alt="" coords="5,5,96,31"/>
+<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="144,5,247,31"/>
+<area shape="poly" title=" " alt="" coords="96,15,131,15,131,21,96,21"/>
+</map>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="group__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_icgraph.png" border="0" usemap="#agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_icgraph" alt=""/></div>
+<map name="agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_icgraph" id="agroup__Graphics_ga9f1f6772d26ba5d5700f7447257a0293_icgraph">
+<area shape="rect" title="Render textured floor and ceiling for one screen quarter (internal, row&#45;based)." alt="" coords="200,5,291,31"/>
+<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,5,152,31"/>
+<area shape="poly" title=" " alt="" coords="186,21,152,21,152,15,186,15"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="ga81af24be0237db99a8689b90cc165520" name="ga81af24be0237db99a8689b90cc165520"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga81af24be0237db99a8689b90cc165520">&#9670;&#160;</a></span>CastRays()</h2>
 
@@ -341,6 +398,49 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
+<a id="ga8b5d5497e10d198d1498f226c90c910c" name="ga8b5d5497e10d198d1498f226c90c910c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8b5d5497e10d198d1498f226c90c910c">&#9670;&#160;</a></span>Graphics_SetCeilingTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Graphics_SetCeilingTexture </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>texIndex</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/graphics.h&gt;</code></p>
+
+<p>Select a texture for ceiling rendering (enables textured ceilingcasting). </p>
+<p>When set to a valid index, the engine replaces the solid sky color with perspective-correct textured ceiling. Set to -1 to revert to the solid color (Graphics_SetSkyColor).</p>
+<p>Normally configured per-map in RayCast3D Studio and applied automatically by <a class="el" href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a" title="Load a map from a Studio-exported MapInfo descriptor.">Map_Load()</a>. Call directly only to override the Studio setting at runtime.</p>
+<dl class="section note"><dt>Note</dt><dd>Textured ceilingcasting is more CPU-intensive than the solid sky color. Disable (set to None in Studio) to improve FPS on scenes where ceiling detail is not needed.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">texIndex</td><td>Index into textures[] (0-based), or -1 to disable </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="group__Graphics_ga8b5d5497e10d198d1498f226c90c910c_icgraph.png" border="0" usemap="#agroup__Graphics_ga8b5d5497e10d198d1498f226c90c910c_icgraph" alt=""/></div>
+<map name="agroup__Graphics_ga8b5d5497e10d198d1498f226c90c910c_icgraph" id="agroup__Graphics_ga8b5d5497e10d198d1498f226c90c910c_icgraph">
+<area shape="rect" title="Select a texture for ceiling rendering (enables textured ceilingcasting)." alt="" coords="333,5,533,31"/>
+<area shape="rect" href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a" title="Load a map from a Studio&#45;exported MapInfo descriptor." alt="" coords="197,5,285,31"/>
+<area shape="poly" title=" " alt="" coords="319,21,286,21,286,15,319,15"/>
+<area shape="rect" href="group__Map.html#ga71bd073672b4326960c4f23c9ff67e0a" title="Load a map by index from the Studio&#45;generated map list." alt="" coords="5,5,149,31"/>
+<area shape="poly" title=" " alt="" coords="184,21,150,21,150,15,184,15"/>
+</map>
+</div>
+
+</div>
+</div>
 <a id="ga5bcface68984dd0368dc11d393257d19" name="ga5bcface68984dd0368dc11d393257d19"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga5bcface68984dd0368dc11d393257d19">&#9670;&#160;</a></span>Graphics_SetFloorColor()</h2>
 
@@ -361,6 +461,7 @@ Here is the caller graph for this function:</div>
 
 <p>Set the solid color drawn below the horizon. </p>
 <p>Takes effect on the next call to <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>. Use color constants from <a class="el" href="colors_8h_source.html">colors.h</a> (exported by RayCast3D Studio) or ST7735 defines such as ST7735_DARKGREY.</p>
+<dl class="section note"><dt>Note</dt><dd>Has no visible effect while a floor texture is active (set via Studio or <a class="el" href="group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be" title="Select a texture for floor rendering (enables textured floorcasting).">Graphics_SetFloorTexture()</a>). The color is still stored and will be used if the floor texture is later disabled.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">color</td><td>BGR565 color value </td></tr>
@@ -390,12 +491,56 @@ Here is the caller graph for this function:</div>
 
 <p>Enable a distance-based darkening gradient on the floor. </p>
 <p>Simulates depth by darkening floor pixels farther from the camera. An intensity of 0.0 disables the gradient entirely; 1.0 applies maximum darkening at the horizon line.</p>
+<dl class="section note"><dt>Note</dt><dd>Has no visible effect while a floor texture is active.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">intensity</td><td>Gradient strength (0.0 = off, 1.0 = full) </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ga030a7f74aae9182018f74ce9ed6156be" name="ga030a7f74aae9182018f74ce9ed6156be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga030a7f74aae9182018f74ce9ed6156be">&#9670;&#160;</a></span>Graphics_SetFloorTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Graphics_SetFloorTexture </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>texIndex</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/graphics.h&gt;</code></p>
+
+<p>Select a texture for floor rendering (enables textured floorcasting). </p>
+<p>When set to a valid index, the engine replaces the solid-color gradient floor with perspective-correct textured floorcasting. Set to -1 to revert to the gradient floor (Graphics_SetFloorColor / Graphics_SetFloorGradient).</p>
+<p>Normally configured per-map in RayCast3D Studio and applied automatically by <a class="el" href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a" title="Load a map from a Studio-exported MapInfo descriptor.">Map_Load()</a>. Call directly only to override the Studio setting at runtime.</p>
+<dl class="section note"><dt>Note</dt><dd>Textured floorcasting is more CPU-intensive than the solid-color gradient. Disable (set to None in Studio) to improve FPS on scenes where floor detail is not needed.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">texIndex</td><td>Index into textures[] (0-based), or -1 to disable </td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="group__Graphics_ga030a7f74aae9182018f74ce9ed6156be_icgraph.png" border="0" usemap="#agroup__Graphics_ga030a7f74aae9182018f74ce9ed6156be_icgraph" alt=""/></div>
+<map name="agroup__Graphics_ga030a7f74aae9182018f74ce9ed6156be_icgraph" id="agroup__Graphics_ga030a7f74aae9182018f74ce9ed6156be_icgraph">
+<area shape="rect" title="Select a texture for floor rendering (enables textured floorcasting)." alt="" coords="333,5,521,31"/>
+<area shape="rect" href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a" title="Load a map from a Studio&#45;exported MapInfo descriptor." alt="" coords="197,5,285,31"/>
+<area shape="poly" title=" " alt="" coords="320,21,286,21,286,15,320,15"/>
+<area shape="rect" href="group__Map.html#ga71bd073672b4326960c4f23c9ff67e0a" title="Load a map by index from the Studio&#45;generated map list." alt="" coords="5,5,149,31"/>
+<area shape="poly" title=" " alt="" coords="184,21,150,21,150,15,184,15"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -419,6 +564,7 @@ Here is the caller graph for this function:</div>
 
 <p>Set the solid color drawn above the horizon. </p>
 <p>Takes effect on the next call to <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>.</p>
+<dl class="section note"><dt>Note</dt><dd>Has no visible effect while a ceiling texture is active (set via Studio or <a class="el" href="group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c" title="Select a texture for ceiling rendering (enables textured ceilingcasting).">Graphics_SetCeilingTexture()</a>). The color is still stored and will be used if the ceiling texture is later disabled.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">color</td><td>BGR565 color value </td></tr>

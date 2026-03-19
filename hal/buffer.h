@@ -49,6 +49,16 @@ void Buffer_SetSkyColor(uint16_t color);
  * Inputs: intensity - 0.0 (solid) to 1.0 (full gradient to black) */
 void Buffer_SetFloorGradient(double intensity);
 
+/* Enable/disable textured floor mode
+ * When enabled, Buffer_Clear skips the floor gradient (rendered by CastFloors)
+ * Inputs: enabled - 1 to enable textured floor, 0 for gradient fallback */
+void Buffer_SetFloorTextured(int enabled);
+
+/* Enable/disable textured ceiling mode
+ * When enabled, Buffer_Clear skips the sky fill (rendered by CastFloors)
+ * Inputs: enabled - 1 to enable textured ceiling, 0 for solid sky color */
+void Buffer_SetCeilingTextured(int enabled);
+
 /*---------------------------------------------------------------------------
  * Rendering Operations
  *---------------------------------------------------------------------------*/
@@ -56,10 +66,17 @@ void Buffer_SetFloorGradient(double intensity);
 /* Clear render buffer with sky and floor gradient */
 void Buffer_Clear(void);
 
-/* Set a single pixel in the render buffer
+/* Set a single pixel in the render buffer (bounds-checked)
  * Inputs: x, y - buffer-local coordinates (0 to BUFFER_WIDTH-1)
  *         color - 16-bit RGB565 color value */
 void Buffer_SetPixel(int x, int y, uint16_t color);
+
+/* Set a single pixel without bounds checking (caller must guarantee valid coords)
+ * Use for tight inner loops where x and y are already known to be in range.
+ * Inputs: x - buffer-local column (0 to BUFFER_WIDTH-1)
+ *         y - screen row (0 to BUFFER_HEIGHT-1)
+ *         color - 16-bit RGB565 color value */
+void Buffer_SetPixelFast(int x, int y, uint16_t color);
 
 /* Draw a foreground sprite to the buffer
  * Inputs: side - which quarter (0-3)

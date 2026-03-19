@@ -46,8 +46,11 @@ void RayCast3D_Render(void) {
     for (int side = 0; side < 4; side++) {
         Buffer_Clear();
 
-        /* Cast rays for this quarter */
+        /* Cast rays first — stores wall coverage for floor/ceiling culling */
         CastRays(side);
+
+        /* Render textured floor/ceiling — skips pixels behind walls */
+        CastFloors(side);
 
         /* Render world sprites */
         Sprites_RenderAll(side);

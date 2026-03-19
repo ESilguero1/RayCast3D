@@ -47,6 +47,12 @@ static fixed_t GradientIntensity = FIXED_ONE;  /* 1.0 = full gradient */
 /* Floor gradient stored pre-swapped for DMA */
 static uint16_t FloorGradient[SCREEN_HEIGHT / 2];
 
+/* When 1, Buffer_Clear skips floor half (CastFloors handles it) */
+static int FloorTextured = 0;
+
+/* When 1, Buffer_Clear skips sky half (CastFloors handles it) */
+static int CeilingTextured = 0;
+
 /*---------------------------------------------------------------------------
  * Private Function Prototypes
  *---------------------------------------------------------------------------*/
@@ -121,6 +127,14 @@ void Buffer_SetFloorGradient(double intensity) {
     precalculateFloorGradient();
 }
 
+void Buffer_SetFloorTextured(int enabled) {
+    FloorTextured = enabled ? 1 : 0;
+}
+
+void Buffer_SetCeilingTextured(int enabled) {
+    CeilingTextured = enabled ? 1 : 0;
+}
+
 /*---------------------------------------------------------------------------
  * Public Functions - Rendering Operations
  *---------------------------------------------------------------------------*/
@@ -129,13 +143,23 @@ void Buffer_Clear(void) {
     /* Optimized: use 32-bit writes to store 2 pixels at once */
     uint32_t* bufPtr32 = (uint32_t*)Buffer_RenderBuffer;
 
-    /* Sky (top half of screen = buffer rows 0-63) */
-    uint32_t skyColor32 = SkyColorSwapped | ((uint32_t)SkyColorSwapped << 16);
-    for (int i = 0; i < BUFFER_HALF_SIZE / 8; i++) {
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
-        *bufPtr32++ = skyColor32;
+    if (CeilingTextured) {
+        /* Ceiling will be rendered by CastFloors — skip sky fill, advance pointer */
+        bufPtr32 += BUFFER_HALF_SIZE / 2;
+    } else {
+        /* Sky (top half of screen = buffer rows 0-63) */
+        uint32_t skyColor32 = SkyColorSwapped | ((uint32_t)SkyColorSwapped << 16);
+        for (int i = 0; i < BUFFER_HALF_SIZE / 8; i++) {
+            *bufPtr32++ = skyColor32;
+            *bufPtr32++ = skyColor32;
+            *bufPtr32++ = skyColor32;
+            *bufPtr32++ = skyColor32;
+        }
+    }
+
+    if (FloorTextured) {
+        /* Floor will be rendered by CastFloors — skip gradient fill */
+        return;
     }
 
     /* Floor gradient (bottom half of screen = buffer rows 64-127) */
@@ -157,6 +181,11 @@ void Buffer_SetPixel(int x, int y, uint16_t color) {
         int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
         Buffer_RenderBuffer[index] = SWAP16(color);
     }
+}
+
+void Buffer_SetPixelFast(int x, int y, uint16_t color) {
+    int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
+    Buffer_RenderBuffer[index] = SWAP16(color);
 }
 
 void Buffer_Blit(uint16_t* srcBuffer, int srcWidth, int srcHeight,
