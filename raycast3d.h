@@ -6,7 +6,6 @@
  *
  * @author    Elijah Silguero
  * @date      December 2025
- * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * This library provides a complete raycasting engine optimized
  * for embedded systems using Q16.16 fixed-point math.
@@ -15,6 +14,12 @@
  *   1. Call RayCast3D_Init() once at startup
  *   2. Configure scene: Map_Load(), Camera_SetPosition(), etc.
  *   3. In main loop: RayCast3D_Render()
+ */
+
+ /**
+ * @defgroup EngineCore Engine Core
+ * @brief Initialization and main rendering loop.
+ * @{
  */
 
 #ifndef RAYCAST3D_H

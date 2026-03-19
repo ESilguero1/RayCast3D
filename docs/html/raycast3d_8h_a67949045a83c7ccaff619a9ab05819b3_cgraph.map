@@ -1,0 +1,41 @@
+<map id="RayCast3D_Render" name="RayCast3D_Render">
+<area shape="rect" id="Node000001" title="Render one complete frame." alt="" coords="5,180,152,205"/>
+<area shape="rect" id="Node000002" href="$buffer_8c.html#ac71d3cf53ba805077b1dc0fd282644bc" title=" " alt="" coords="259,5,361,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,178,100,149,125,112,158,72,199,40,221,29,244,22,246,27,223,34,201,44,162,76,130,115,105,152,89,181"/>
+<area shape="rect" id="Node000003" href="$buffer_8c.html#a31eaf9441ff10fa5b8bbbfb8288b9e0c" title=" " alt="" coords="237,55,383,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="89,178,134,134,165,109,199,89,223,79,225,84,201,94,168,114,138,138,93,182"/>
+<area shape="rect" id="Node000007" href="$buffer_8c.html#a727875e268c2b1eb8b9a55057092a5a8" title=" " alt="" coords="230,104,390,129"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="112,177,199,146,249,131,251,136,201,151,114,182"/>
+<area shape="rect" id="Node000010" href="$graphics_8c.html#a81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter." alt="" coords="530,155,613,180"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="152,186,516,167,516,173,152,192"/>
+<area shape="rect" id="Node000014" href="$fpscounter_8c.html#ad4d1647ff660324629a8f6de53556f70" title=" " alt="" coords="235,255,385,280"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="109,203,201,239,234,249,232,254,199,245,107,208"/>
+<area shape="rect" id="Node000015" href="$graphics_8c.html#ab36227ed0c26e5134125198e7929ad44" title=" " alt="" coords="200,304,420,329"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="93,204,138,247,168,270,201,290,218,297,216,302,199,295,165,275,134,251,90,208"/>
+<area shape="rect" id="Node000016" href="$graphics_8c.html#a7a48fc296c607b7e66f99eaf848b9be6" title=" " alt="" coords="215,353,405,379"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="89,204,130,270,162,308,201,340,213,346,210,351,199,344,159,312,125,273,84,207"/>
+<area shape="rect" id="Node000017" href="$sprites_8c.html#af384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="241,205,379,231"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="153,198,228,206,227,212,152,203"/>
+<area shape="rect" id="Node000004" href="$ST7735__DMA_8c.html#a377b0c4827d9b54c55aeefe3d317bdce" title=" " alt="" coords="477,55,666,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="383,65,463,65,463,70,383,70"/>
+<area shape="rect" id="Node000005" href="$SPI__DMA_8c.html#a3c66bc830a86564ffd9b36b9f7b6a62d" title=" " alt="" coords="747,5,877,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="633,52,735,31,736,36,634,57"/>
+<area shape="rect" id="Node000006" href="$SPI__DMA_8c.html#ac0a637d7221f6259a0b14f35162ca983" title=" " alt="" coords="727,55,897,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="666,65,713,65,713,70,666,70"/>
+<area shape="rect" id="Node000008" href="$ST7735__DMA_8c.html#a4822e9b435f7982b4de2f6fa531cb4f4" title=" " alt="" coords="468,104,675,129"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="390,114,454,114,454,119,390,119"/>
+<area shape="rect" id="Node000009" href="$SPI__DMA_8c.html#ab7ec0d638723c7bea4ccd51186ebf537" title=" " alt="" coords="723,104,901,129"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="675,114,709,114,709,119,675,119"/>
+<area shape="rect" id="Node000011" href="$buffer_8c.html#af65e2abd21e5a547a8962f6bc1318b26" title=" " alt="" coords="752,155,872,180"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="613,165,738,165,738,170,613,170"/>
+<area shape="rect" id="Node000012" href="$camera_8c.html#a2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="761,253,863,279"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="613,169,645,176,676,189,692,201,701,214,710,227,724,238,749,250,747,255,721,243,706,230,697,217,688,205,673,194,643,181,612,174"/>
+<area shape="rect" id="Node000013" href="$fixed_8c.html#a67e333b9721083396ee11e2af336d254" title="Fast reciprocal for larger values (up to ~32)" alt="" coords="746,204,878,229"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="614,173,737,199,736,204,612,178"/>
+<area shape="poly" id="edge17_Node000017_Node000012" title=" " alt="" coords="379,226,468,238,618,251,747,260,747,265,618,257,468,243,378,231"/>
+<area shape="rect" id="Node000018" href="$sprites_8c.html#a6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="498,204,645,229"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="379,215,484,214,484,220,379,220"/>
+<area shape="poly" id="edge19_Node000018_Node000011" title=" " alt="" coords="633,201,738,180,739,185,634,207"/>
+<area shape="poly" id="edge20_Node000018_Node000012" title=" " alt="" coords="634,227,747,250,746,255,633,232"/>
+<area shape="poly" id="edge21_Node000018_Node000013" title=" " alt="" coords="645,214,732,214,732,219,645,219"/>
+</map>

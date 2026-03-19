@@ -1,0 +1,7 @@
+<map id="Sprites_RenderOne" name="Sprites_RenderOne">
+<area shape="rect" id="Node000001" title="Render a single sprite." alt="" coords="385,5,532,31"/>
+<area shape="rect" id="Node000002" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="200,5,337,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="371,21,338,21,338,15,371,15"/>
+<area shape="rect" id="Node000003" href="$group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,5,152,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="186,21,153,21,153,15,186,15"/>
+</map>

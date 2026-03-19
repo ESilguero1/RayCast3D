@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['tex_5fcol_5fwidths_0',['tex_col_widths',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#ac47b4c1d316a41007b8cc730a780c60b',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['tex_5fpreview_5finfo_1',['tex_preview_info',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a3e960bbb6ba4ebd4cf614941bef77d97',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['tex_5fpreview_5flabel_2',['tex_preview_label',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a4146402481579bbb2f724c90635583f1',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['tex_5fres_5fvar_3',['tex_res_var',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a708f5d175586bfcc5013884dc2bd56b3',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['text_4',['text',['../structTextEntry.html#a9e11fdaa8ab22ec9af9f4484455145db',1,'TextEntry']]],
+  ['texture_5fcanvas_5',['texture_canvas',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a6f3370ac31e087c785e81ea0c5863ba0',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['texture_5fcanvas_5fwindow_6',['texture_canvas_window',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#aa017802f63675e39a52b25f02a34e289',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['texture_5flist_5fframe_7',['texture_list_frame',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a010533ef944781b6242b15415a515e0f',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['texture_5fpalette_5fframe_8',['texture_palette_frame',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a0e3db80efa8a8c2ced818c51628f23e0',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['texture_5frows_9',['texture_rows',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#aa69be2aa9ae08ba4fb3de2dad4f2c12c',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['texture_5ftab_10',['texture_tab',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a5b443eb24a3727addda2893ea3dda3d2',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['textures_11',['textures',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#abe78491d96c58645c6bb3ac1118b4d14',1,'RayCast3D_Studio.RayCast3DStudio.textures'],['../textures_8h.html#a990c25dce1c490503c1f301675c73469',1,'textures:&#160;textures.h']]],
+  ['tile_5fimages_12',['tile_images',['../classRayCast3D__Studio_1_1RayCast3DStudio.html#a221a68e15dbd82744bae1199fff00ef4',1,'RayCast3D_Studio::RayCast3DStudio']]],
+  ['tile_5fpreview_13',['tile_preview',['../classRayCast3D__Studio_1_1Texture.html#ab3ecf95106d4d9eb8bba60773bf41d32',1,'RayCast3D_Studio::Texture']]],
+  ['transparent_14',['transparent',['../structSpriteImage.html#a32f1ca9d5ebf3957ece2b1bd939c699b',1,'SpriteImage::transparent'],['../classRayCast3D__Studio_1_1Sprite.html#ab93d526ab1a96559cc6e394c22e87750',1,'RayCast3D_Studio.Sprite.transparent'],['../structFGSpriteEntry.html#a7a6705837c2552ae7fc0a1e4afd226ed',1,'FGSpriteEntry::transparent'],['../structSprite.html#aba89899ff1f84c61b1b07da694018f8d',1,'Sprite::transparent']]],
+  ['type_15',['type',['../structSprite.html#a06da32fcf7425b43b6b9ba41fc279425',1,'Sprite']]]
+];

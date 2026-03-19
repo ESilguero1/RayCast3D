@@ -4,10 +4,15 @@
  *
  * @author    Elijah Silguero
  * @date      December 2025
- * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * Manages camera position, direction, and view plane using
  * Q16.16 fixed-point math for efficient raycasting.
+ */
+
+ /**
+ * @defgroup Camera Camera
+ * @brief Controls player position and view direction.
+ * @{
  */
 
 #ifndef CAMERA_H_

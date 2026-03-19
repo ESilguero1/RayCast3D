@@ -1,0 +1,5 @@
+<map id="Camera_SetDirection" name="Camera_SetDirection">
+<area shape="rect" id="Node000001" title="Set camera facing direction (will be normalized)" alt="" coords="5,5,165,31"/>
+<area shape="rect" id="Node000002" href="$fixed_8c.html#a4a69f663cb788b677c2788984c8699c0" title="Fast fixed&#45;point square root using Newton&#45;Raphson." alt="" coords="213,5,299,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,15,199,15,199,21,166,21"/>
+</map>

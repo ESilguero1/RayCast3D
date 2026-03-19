@@ -1,0 +1,5 @@
+<map id="Sprites_RenderOne" name="Sprites_RenderOne">
+<area shape="rect" id="Node000001" title="Render a single sprite." alt="" coords="5,5,152,31"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="200,5,303,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,15,187,15,187,21,152,21"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="Buffer_RenderDMA" name="Buffer_RenderDMA">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,151,56"/>
+<area shape="rect" id="Node000002" href="$ST7735__DMA_8c.html#a377b0c4827d9b54c55aeefe3d317bdce" title=" " alt="" coords="199,31,388,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,41,185,41,185,46,151,46"/>
+<area shape="rect" id="Node000003" href="$SPI__DMA_8c.html#a3c66bc830a86564ffd9b36b9f7b6a62d" title=" " alt="" coords="456,5,587,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,30,442,24,442,29,389,35"/>
+<area shape="rect" id="Node000004" href="$SPI__DMA_8c.html#ac0a637d7221f6259a0b14f35162ca983" title=" " alt="" coords="436,55,607,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,51,422,54,422,60,388,56"/>
+</map>

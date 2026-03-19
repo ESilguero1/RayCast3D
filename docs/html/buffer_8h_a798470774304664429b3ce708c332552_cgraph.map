@@ -1,0 +1,7 @@
+<map id="Buffer_IsBusy" name="Buffer_IsBusy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,116,31"/>
+<area shape="rect" id="Node000002" href="$ST7735__DMA_8c.html#a3599864485c67c07b6e83e418b79513b" title=" " alt="" coords="164,5,323,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,15,150,15,150,21,116,21"/>
+<area shape="rect" id="Node000003" href="$SPI__DMA_8c.html#a3c66bc830a86564ffd9b36b9f7b6a62d" title=" " alt="" coords="371,5,501,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="323,15,357,15,357,21,323,21"/>
+</map>

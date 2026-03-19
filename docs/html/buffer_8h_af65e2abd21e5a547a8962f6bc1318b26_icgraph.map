@@ -1,0 +1,14 @@
+<map id="Buffer_SetPixel" name="Buffer_SetPixel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="647,56,767,81"/>
+<area shape="rect" id="Node000002" href="$buffer_8c.html#ac332892b4aadfcbe127f87f3382659ca" title=" " alt="" coords="385,5,599,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="638,55,546,33,547,28,639,50"/>
+<area shape="rect" id="Node000003" href="$graphics_8c.html#a81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter." alt="" coords="227,57,310,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="633,72,310,73,310,67,633,66"/>
+<area shape="rect" id="Node000005" href="$sprites_8c.html#a6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="419,107,565,132"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="639,87,547,109,546,104,638,82"/>
+<area shape="rect" id="Node000004" href="$raycast3d_8c.html#a67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,83,152,108"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="214,80,153,88,152,83,213,75"/>
+<area shape="rect" id="Node000006" href="$sprites_8c.html#af384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="200,107,337,132"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="405,122,338,122,338,117,405,117"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="186,112,152,107,153,102,187,106"/>
+</map>

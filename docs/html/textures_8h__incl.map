@@ -1,0 +1,19 @@
+<map id="assets/textures.h" name="assets/textures.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,140,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="112,299,183,324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,32,49,58,30,94,19,135,18,156,22,177,39,212,63,243,91,269,118,289,115,293,88,273,60,247,34,215,17,178,13,156,14,134,25,92,44,55,61,29"/>
+<area shape="rect" id="Node000003" href="$graphics_8h.html" title="RayCast3D Graphics Library &#45; Core raycasting and rendering." alt="" coords="72,79,231,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="87,29,130,68,127,71,84,33"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="197,102,235,120,252,134,266,151,269,164,266,178,258,217,251,234,239,252,214,276,186,295,183,290,211,272,235,249,247,231,253,216,261,177,264,164,261,153,248,137,232,124,195,106"/>
+<area shape="rect" id="Node000004" href="$fixed_8h.html" title="RayCast3D Fixed&#45;Point Math Library (Q16.16)" alt="" coords="93,225,202,251"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="154,105,151,212,145,212,148,104"/>
+<area shape="rect" id="Node000005" href="$camera_8h.html" title="RayCast3D Camera Module &#45; First&#45;person camera state and control." alt="" coords="31,152,114,177"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="140,106,97,145,94,141,137,102"/>
+<area shape="rect" id="Node000006" href="$map_8h.html" title="RayCast3D Map Management Module &#45; World map loading and access." alt="" coords="189,152,252,177"/>
+<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="165,102,202,140,198,144,161,106"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="150,251,150,285,145,285,145,251"/>
+<area shape="poly" id="edge7_Node000005_Node000002" title=" " alt="" coords="74,178,73,211,76,231,83,249,99,271,119,289,115,293,95,275,78,252,71,232,68,212,69,178"/>
+<area shape="poly" id="edge8_Node000005_Node000004" title=" " alt="" coords="86,175,127,214,123,218,83,179"/>
+<area shape="poly" id="edge10_Node000006_Node000002" title=" " alt="" coords="225,178,226,212,223,232,216,252,200,275,180,293,176,289,196,271,212,249,218,231,221,211,220,178"/>
+<area shape="poly" id="edge11_Node000006_Node000004" title=" " alt="" coords="210,180,171,218,167,214,207,176"/>
+</map>

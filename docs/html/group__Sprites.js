@@ -1,0 +1,35 @@
+var group__Sprites =
+[
+    [ "Sprite", "structSprite.html", [
+      [ "active", "group__Sprites.html#ga4313190d3d4867266543f1225d5ba561", null ],
+      [ "height", "group__Sprites.html#ga1f07c8f2080c193759aec0e13503d7ab", null ],
+      [ "image", "group__Sprites.html#ga3f8c62d879fabcbccc77ecc4e8f567c3", null ],
+      [ "scale", "group__Sprites.html#ga8e5eae0ba00a77e6527f6a1374987efa", null ],
+      [ "transparent", "group__Sprites.html#gaba89899ff1f84c61b1b07da694018f8d", null ],
+      [ "type", "group__Sprites.html#ga06da32fcf7425b43b6b9ba41fc279425", null ],
+      [ "width", "group__Sprites.html#ga0a3364944c5e361fc9e7ae406224d682", null ],
+      [ "x", "group__Sprites.html#gabb2fa14e95603ee91d7acf652f1a9714", null ],
+      [ "y", "group__Sprites.html#ga9d25f913409312b76b63e2f4e70c9635", null ]
+    ] ],
+    [ "SPRITES_MAX_COUNT", "group__Sprites.html#ga19d5d14b4dfd4106f0de2035e853a790", null ],
+    [ "Sprite_Add", "group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2", null ],
+    [ "Sprite_Clear", "group__Sprites.html#ga12d4e2e7c0a46bcdfa22dd1ee705f1b5", null ],
+    [ "Sprite_Get", "group__Sprites.html#ga7a987633deca56d52fc5e43dae209125", null ],
+    [ "Sprite_Move", "group__Sprites.html#ga1175e3864df7aeef428eb35f7b270c1d", null ],
+    [ "Sprite_Remove", "group__Sprites.html#ga609b79576bd150bc73ab733f66f09e0c", null ],
+    [ "Sprite_Scale", "group__Sprites.html#ga12258e884cf06c337d11f5344ca14548", null ],
+    [ "Sprites_GetCount", "group__Sprites.html#ga3d5acf258d6516935e304d9b28de8f22", null ],
+    [ "Sprites_RenderAll", "group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db", null ],
+    [ "Sprites_RenderOne", "group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9", null ],
+    [ "Sprite::active", "group__Sprites.html#ga4313190d3d4867266543f1225d5ba561", null ],
+    [ "Sprite::height", "group__Sprites.html#ga1f07c8f2080c193759aec0e13503d7ab", null ],
+    [ "Sprite::image", "group__Sprites.html#ga3f8c62d879fabcbccc77ecc4e8f567c3", null ],
+    [ "Sprite::scale", "group__Sprites.html#ga8e5eae0ba00a77e6527f6a1374987efa", null ],
+    [ "Sprites_Array", "group__Sprites.html#ga3e4dd46e77cd0f0713f66171dfb43795", null ],
+    [ "Sprites_Count", "group__Sprites.html#gad56e1faf393c140cce5ab709f502978b", null ],
+    [ "Sprite::transparent", "group__Sprites.html#gaba89899ff1f84c61b1b07da694018f8d", null ],
+    [ "Sprite::type", "group__Sprites.html#ga06da32fcf7425b43b6b9ba41fc279425", null ],
+    [ "Sprite::width", "group__Sprites.html#ga0a3364944c5e361fc9e7ae406224d682", null ],
+    [ "Sprite::x", "group__Sprites.html#gabb2fa14e95603ee91d7acf652f1a9714", null ],
+    [ "Sprite::y", "group__Sprites.html#ga9d25f913409312b76b63e2f4e70c9635", null ]
+];

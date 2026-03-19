@@ -96,108 +96,15 @@ The Studio automatically exports to the `assets/` folder:
 | `↑/↓` | Navigate list items |
 | `Escape` | Deselect |
 
-## API Reference
+## API Modules
 
-### Engine Core
+- [Engine Core](group__EngineCore.html) — initialization and rendering  
+- [Camera](group__Camera.html) — movement and orientation  
+- [Graphics](group__Graphics.html) — visual configuration  
+- [Map](group__Map.html) — world data  
+- [Sprites](group__Sprites.html) — dynamic objects  
 
-```c
-void RayCast3D_Init(void);
-void RayCast3D_Render(void);
-```
-- `RayCast3D_Init()` — Call once at startup. Initializes display and DMA.
-- `RayCast3D_Render()` — Call once per frame. Casts rays, renders sprites, draws overlays, transfers to display.
-
-### Graphics Configuration
-
-```c
-void Graphics_SetFloorColor(uint16_t color);
-void Graphics_SetSkyColor(uint16_t color);
-void Graphics_SetFloorGradient(double intensity);
-```
-- Set floor/sky colors using BGR565 constants (from `colors.h` or ST7735 defines)
-- `intensity` controls floor gradient darkness (0.0 = none, 1.0 = full gradient)
-
-### Camera Control
-
-```c
-void Camera_SetPosition(double x, double y);
-void Camera_SetDirection(double dirX, double dirY);
-void Camera_GetDirection(double* dirX, double* dirY);
-void Camera_Move(double forward, double strafe);
-void Camera_Rotate(double degrees);
-const Camera* Camera_Get(void);
-```
-- `SetPosition` / `SetDirection` — Initialize camera state
-- `GetDirection` — Get current direction as doubles (useful for collision checks)
-- `Move` — Move forward/backward and strafe left/right
-- `Rotate` — Turn camera by degrees (positive = clockwise)
-- `Get` — Access camera state (posX, posY, dirX, dirY, planeX, planeY)
-
-### Map Management
-
-```c
-void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH]);
-void Map_LoadFromList(const uint8_t* maps[], int index);
-uint8_t Map_GetValue(double x, double y);
-uint8_t Map_GetValueFixed(fixed_t x, fixed_t y);
-```
-- Load maps created in RayCast3D Studio
-- `Map_GetValue` / `Map_GetValueFixed` — return wall texture index (0 = empty space)
-
-### World Sprites
-
-```c
-uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int height, int scale, uint16_t transparent);
-void Sprite_Remove(int index);
-void Sprite_Move(int index, double x, double y);
-void Sprite_Scale(int index, int scale);
-const Sprite* Sprite_Get(int index);
-int Sprites_GetCount(void);
-void Sprite_Clear(void);
-```
-- `Sprite_Add` — Add sprite at world position, returns index (or -1 if full)
-- `Sprite_Remove` — Remove sprite by index
-- `Sprite_Move` — Update sprite world position
-- `Sprite_Scale` — Update sprite scale (8 = full screen height)
-- `Sprite_Get` — Get read-only pointer to sprite data (NULL if invalid/inactive)
-- `Sprites_GetCount` — Get number of active sprites
-- `Sprite_Clear` — Remove all sprites
-
-**Note:** Use the `AddSprite(x, y, name, scale)` macro from `images.h` for sprites created in the Studio.
-
-## UI Overlay Functions
-
-### FPS Display
-```c
-Graphics_DisplayFPS(int x, int y, uint16_t color);
-Graphics_DisableFPS(void);
-```
-- Call `Graphics_DisplayFPS()` once during setup to enable FPS counter
-- Automatically initializes Timer G12 for timing
-- FPS is updated internally each frame (averaged over 16 frames)
-- Drawn automatically inside `RayCast3D_Render()` after sprites
-- Call `Graphics_DisableFPS()` to hide
-
-### Per-Frame Text
-```c
-Graphics_Text(const char* text, int x, int y, uint16_t color);
-```
-- Call before `RayCast3D_Render()` each frame you want text displayed
-- Queued internally (max 8 text entries, 32 chars each)
-- Drawn after sprites, before FPS overlay
-- Queue automatically cleared after `RayCast3D_Render()` completes
-- Handles text spanning the screen center (split-buffer boundary)
-
-### Per-Frame Foreground Sprites
-```c
-Graphics_ForegroundSprite(const uint16_t* image, int x, int y, int width, int height, int scale, uint16_t transparent);
-```
-- Call before `RayCast3D_Render()` each frame you want sprite displayed
-- Queued internally (max 8 sprites)
-- `x, y` is screen position (y is bottom of sprite)
-- `scale` of 2 = 32 pixels tall for 16px source (scale/8 * SCREEN_HEIGHT)
-- `transparent` color is not drawn
-- Queue automatically cleared after `RayCast3D_Render()` completes
+For information on use of modules, see the docs
 
 ## Performance Optimizations
 

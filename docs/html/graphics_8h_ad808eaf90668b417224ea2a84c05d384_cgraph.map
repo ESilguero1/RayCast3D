@@ -1,0 +1,5 @@
+<map id="Graphics_DisplayFPS" name="Graphics_DisplayFPS">
+<area shape="rect" id="Node000001" title="Enable FPS overlay on screen." alt="" coords="5,5,164,31"/>
+<area shape="rect" id="Node000002" href="$fpscounter_8c.html#af859b37c0e80de4f0c8d1ac4257000bf" title=" " alt="" coords="212,5,337,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,15,198,15,198,21,164,21"/>
+</map>

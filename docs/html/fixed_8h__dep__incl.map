@@ -1,0 +1,20 @@
+<map id="utils/fixed.h" name="utils/fixed.h">
+<area shape="rect" id="Node000001" title="RayCast3D Fixed&#45;Point Math Library (Q16.16)" alt="" coords="127,5,224,31"/>
+<area shape="rect" id="Node000002" href="$raycast3d_8h.html" title="RayCast3D &#45; Fixed&#45;Point Raycasting Engine." alt="" coords="66,225,165,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,28,87,35,60,45,37,60,17,80,9,100,10,120,17,140,31,160,65,196,99,223,96,227,62,200,26,164,13,143,5,121,4,99,13,77,33,56,58,40,85,30,112,23"/>
+<area shape="rect" id="Node000003" href="$camera_8h.html" title="RayCast3D Camera Module &#45; First&#45;person camera state and control." alt="" coords="27,79,169,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,42,112,80,109,76,151,38"/>
+<area shape="rect" id="Node000004" href="$graphics_8h.html" title="RayCast3D Graphics Library &#45; Core raycasting and rendering." alt="" coords="183,152,330,177"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="238,24,288,42,311,57,329,77,334,89,334,100,322,121,302,140,280,154,277,150,299,136,318,118,329,99,329,90,325,80,308,61,286,47,236,29"/>
+<area shape="rect" id="Node000007" href="$map_8h.html" title="RayCast3D Map Management Module &#45; World map loading and access." alt="" coords="193,79,315,104"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="200,38,243,76,239,80,196,42"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="104,118,116,225,111,225,98,118"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="137,107,232,149,230,154,135,112"/>
+<area shape="poly" id="edge7_Node000004_Node000002" title=" " alt="" coords="223,186,140,227,137,223,221,181"/>
+<area shape="rect" id="Node000005" href="$textures_8h_source.html" title=" " alt="" coords="317,225,452,251"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="291,182,365,223,362,227,288,186"/>
+<area shape="rect" id="Node000006" href="$buffer_8h_source.html" title=" " alt="" coords="199,225,293,251"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="255,192,250,226,245,225,250,191"/>
+<area shape="poly" id="edge10_Node000007_Node000002" title=" " alt="" coords="224,114,198,132,173,154,143,192,123,227,119,224,139,189,169,150,195,128,221,109"/>
+<area shape="poly" id="edge11_Node000007_Node000004" title=" " alt="" coords="257,118,259,152,253,152,252,118"/>
+</map>

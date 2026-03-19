@@ -1,0 +1,5 @@
+<map id="fixed_cos" name="fixed_cos">
+<area shape="rect" id="Node000001" title="Fast cosine using lookup table." alt="" coords="176,5,259,31"/>
+<area shape="rect" id="Node000002" href="$camera_8c.html#a4f784aa8781859da4b7ecf955abe5fe3" title="Rotate camera by specified angle." alt="" coords="5,5,128,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,21,128,21,128,15,162,15"/>
+</map>

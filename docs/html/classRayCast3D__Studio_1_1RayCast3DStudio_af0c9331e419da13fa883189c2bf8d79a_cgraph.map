@@ -1,0 +1,27 @@
+<map id="RayCast3D_Studio.RayCast3DStudio._update_sprite_resolution" name="RayCast3D_Studio.RayCast3DStudio._update_sprite_resolution">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,334,213,389"/>
+<area shape="rect" id="Node000002" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a5ca6e00294179888be222c21d7530d81" title=" " alt="" coords="281,133,489,173"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,332,344,180,347,184,148,336"/>
+<area shape="rect" id="Node000007" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#aa62da4bdef3b80207fa6249ed2821a1d" title=" " alt="" coords="281,262,489,317"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="213,332,267,317,268,323,214,337"/>
+<area shape="rect" id="Node000010" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#ad9263694c686214efa797526554221c7" title=" " alt="" coords="261,341,508,381"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="213,359,248,359,248,364,213,364"/>
+<area shape="rect" id="Node000012" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a994a2876ab36143b493804e69d59be10" title=" " alt="" coords="281,405,489,445"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="214,383,285,400,284,405,213,388"/>
+<area shape="rect" id="Node000013" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a94288abcedb040c66c9a6f2ffa369f5f" title=" " alt="" coords="281,470,489,525"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="150,387,202,421,263,455,279,462,277,467,260,460,199,426,147,391"/>
+<area shape="rect" id="Node000003" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a72aab4d92d86f7b406975be0b0d98c94" title=" " alt="" coords="561,5,769,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="415,131,479,93,555,55,574,47,576,52,557,60,481,98,418,135"/>
+<area shape="rect" id="Node000004" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a3c81f0baedb3c1c5f401dc46677c61e0" title=" " alt="" coords="559,69,771,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="473,131,564,110,565,115,474,136"/>
+<area shape="rect" id="Node000005" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a536c2e2815a9e58c54eb0cbeb68ca276" title=" " alt="" coords="561,133,769,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="489,151,548,151,548,156,489,156"/>
+<area shape="rect" id="Node000006" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#af405516e02c9f3c338b2dd8db49e415f" title=" " alt="" coords="556,197,775,237"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="474,171,565,192,564,197,473,176"/>
+<area shape="rect" id="Node000008" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#a228b9091d4f8e0ec93dfd319d66463c3" title=" " alt="" coords="561,262,769,317"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="489,287,548,287,548,292,489,292"/>
+<area shape="rect" id="Node000009" href="$namespaceRayCast3D__Studio.html#a7a9b6fa6d240cc40fb1321b3962489fe" title=" " alt="" coords="823,269,1009,309"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="770,287,809,287,809,292,770,292"/>
+<area shape="rect" id="Node000011" href="$namespaceRayCast3D__Studio.html#a2ab90752c1fa0a444d90b64f9947448e" title=" " alt="" coords="573,341,758,381"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="508,359,559,359,559,364,508,364"/>
+</map>

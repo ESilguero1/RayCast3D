@@ -1,0 +1,10 @@
+<map id="RayCast3D_Studio.RayCast3DStudio._create_texture_previews" name="RayCast3D_Studio.RayCast3DStudio._create_texture_previews">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,213,117"/>
+<area shape="rect" id="Node000002" href="$classRayCast3D__Studio_1_1RayCast3DStudio.html#ac908f4f2583f8d127ca4fdddb8c8d147" title=" " alt="" coords="261,5,480,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,61,275,46,276,51,214,66"/>
+<area shape="rect" id="Node000003" href="$namespaceRayCast3D__Studio.html#a33aecf617c9ae08fc1e319cd86ca461a" title=" " alt="" coords="277,69,464,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,87,263,87,263,92,214,92"/>
+<area shape="rect" id="Node000004" href="$namespaceRayCast3D__Studio.html#a2ab90752c1fa0a444d90b64f9947448e" title=" " alt="" coords="528,99,713,139"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="214,112,262,119,393,125,514,123,514,128,393,131,261,124,213,117"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="464,98,515,104,514,109,464,103"/>
+</map>

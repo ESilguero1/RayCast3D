@@ -4,10 +4,15 @@
  *
  * @author    Elijah Silguero (with contributions from Surya Balaji)
  * @date      December 2025
- * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * Provides billboarded sprite rendering integrated with the
  * raycasting Z-buffer for proper depth occlusion.
+ */
+
+/**
+ * @defgroup Sprites Sprites
+ * @brief Dynamic objects in the world.
+ * @{
  */
 
 #ifndef SPRITES_H_

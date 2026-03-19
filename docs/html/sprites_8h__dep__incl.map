@@ -1,0 +1,7 @@
+<map id="services/sprites.h" name="services/sprites.h">
+<area shape="rect" id="Node000001" title="RayCast3D Sprite Rendering Module &#45; Billboard sprites with depth sorting." alt="" coords="45,5,181,31"/>
+<area shape="rect" id="Node000002" href="$buffer_8h_source.html" title=" " alt="" coords="5,79,100,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,43,64,80,60,77,92,40"/>
+<area shape="rect" id="Node000003" href="$raycast3d_8h.html" title="RayCast3D &#45; Fixed&#45;Point Raycasting Engine." alt="" coords="125,79,223,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,40,166,77,162,80,130,43"/>
+</map>

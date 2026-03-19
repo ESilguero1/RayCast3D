@@ -1,0 +1,9 @@
+<map id="Graphics_Init" name="Graphics_Init">
+<area shape="rect" id="Node000001" title="Initialize the graphics subsystem." alt="" coords="5,31,112,56"/>
+<area shape="rect" id="Node000002" href="$buffer_8c.html#ab80b4751aea286b5e23853f03f21cfa8" title=" " alt="" coords="183,5,273,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,33,169,24,170,29,113,38"/>
+<area shape="rect" id="Node000003" href="$ST7735__DMA_8c.html#ae027523c554ddeef59a2c46b72ed1a3b" title=" " alt="" coords="160,55,296,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="113,48,147,53,146,58,112,54"/>
+<area shape="rect" id="Node000004" href="$SPI__DMA_8c.html#a6f7e269a4b847dd9643cdc477fd8608f" title=" " alt="" coords="344,55,452,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="296,65,331,65,331,70,296,70"/>
+</map>

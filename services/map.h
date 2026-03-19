@@ -4,10 +4,15 @@
  *
  * @author    Elijah Silguero
  * @date      December 2025
- * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * Manages the 2D grid map used for raycasting walls.
  * Map values represent wall texture indices (0 = empty).
+ */
+
+ /**
+ * @defgroup Map Map
+ * @brief Loading and querying world data.
+ * @{
  */
 
 #ifndef MAP_H_SERVICE_

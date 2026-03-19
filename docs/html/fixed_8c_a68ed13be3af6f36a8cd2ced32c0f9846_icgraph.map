@@ -1,0 +1,8 @@
+<map id="fixed_sin" name="fixed_sin">
+<area shape="rect" id="Node000001" title="Fast sine using lookup table." alt="" coords="307,5,385,31"/>
+<area shape="rect" id="Node000002" href="$camera_8c.html#a4f784aa8781859da4b7ecf955abe5fe3" title="Rotate camera by specified angle." alt="" coords="5,5,128,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="292,21,128,21,128,15,292,15"/>
+<area shape="rect" id="Node000003" href="$fixed_8c.html#a13317d7ef269f01c2404ffc645101f6c" title="Fast cosine using lookup table." alt="" coords="176,31,259,56"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="294,31,259,38,258,33,293,26"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="162,37,128,31,129,26,163,32"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="Buffer_WaitComplete" name="Buffer_WaitComplete">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,165,31"/>
+<area shape="rect" id="Node000002" href="$ST7735__DMA_8c.html#a4822e9b435f7982b4de2f6fa531cb4f4" title=" " alt="" coords="213,5,420,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,15,200,15,200,21,165,21"/>
+<area shape="rect" id="Node000003" href="$SPI__DMA_8c.html#ab7ec0d638723c7bea4ccd51186ebf537" title=" " alt="" coords="468,5,647,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,15,454,15,454,21,420,21"/>
+</map>

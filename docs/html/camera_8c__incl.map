@@ -1,0 +1,22 @@
+<map id="services/camera.c" name="services/camera.c">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,237,31"/>
+<area shape="rect" id="Node000002" href="$camera_8h.html" title="RayCast3D Camera Module &#45; First&#45;person camera state and control." alt="" coords="5,152,88,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,33,109,80,63,142,59,139,105,77,152,29"/>
+<area shape="rect" id="Node000004" href="$fixed_8h.html" title="RayCast3D Fixed&#45;Point Math Library (Q16.16)" alt="" coords="99,225,208,251"/>
+<area shape="poly" id="edge12_Node000001_Node000004" title=" " alt="" coords="165,32,153,79,150,151,153,211,148,212,145,151,148,78,160,30"/>
+<area shape="rect" id="Node000005" href="$graphics_8h.html" title="RayCast3D Graphics Library &#45; Core raycasting and rendering." alt="" coords="163,79,253,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="176,30,197,65,192,68,171,32"/>
+<area shape="rect" id="Node000007" href="$fastmath_8h.html" title=" " alt="" coords="277,79,414,104"/>
+<area shape="poly" id="edge13_Node000001_Node000007" title=" " alt="" coords="196,28,305,71,303,76,194,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="163,299,234,324"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="52,177,65,212,75,231,89,249,119,273,153,291,151,296,116,278,85,253,71,234,60,214,47,179"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="65,175,126,215,123,220,62,180"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="163,250,186,286,182,289,159,252"/>
+<area shape="poly" id="edge8_Node000005_Node000002" title=" " alt="" coords="183,106,87,149,84,144,181,102"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="236,102,266,121,280,135,290,151,294,164,291,178,278,211,260,242,222,290,217,287,255,239,273,209,285,177,288,164,286,153,275,138,262,125,233,106"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="206,105,165,213,160,212,201,104"/>
+<area shape="rect" id="Node000006" href="$map_8h.html" title="RayCast3D Map Management Module &#45; World map loading and access." alt="" coords="214,152,277,177"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="217,103,235,139,231,141,212,106"/>
+<area shape="poly" id="edge10_Node000006_Node000003" title=" " alt="" coords="245,178,223,251,210,287,205,285,217,250,240,177"/>
+<area shape="poly" id="edge11_Node000006_Node000004" title=" " alt="" coords="232,179,181,219,177,215,229,175"/>
+</map>

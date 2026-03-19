@@ -1,0 +1,29 @@
+<map id="services/sprites.c" name="services/sprites.c">
+<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,315,31"/>
+<area shape="rect" id="Node000002" href="$sprites_8h.html" title="RayCast3D Sprite Rendering Module &#45; Billboard sprites with depth sorting." alt="" coords="5,152,84,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,33,137,51,113,64,91,81,68,109,54,140,50,138,64,106,87,77,110,60,135,46,187,28"/>
+<area shape="rect" id="Node000004" href="$graphics_8h.html" title="RayCast3D Graphics Library &#45; Core raycasting and rendering." alt="" coords="203,152,292,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="250,31,250,138,245,138,245,31"/>
+<area shape="rect" id="Node000005" href="$fixed_8h.html" title="RayCast3D Fixed&#45;Point Math Library (Q16.16)" alt="" coords="307,299,417,324"/>
+<area shape="poly" id="edge17_Node000001_Node000005" title=" " alt="" coords="263,29,296,59,339,104,381,161,399,192,413,225,414,243,409,261,388,290,384,287,404,258,409,242,407,226,394,194,376,164,335,108,293,63,260,33"/>
+<area shape="rect" id="Node000008" href="$buffer_8h.html" title=" " alt="" coords="101,79,207,104"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="234,33,182,72,178,68,231,29"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="503,79,573,104"/>
+<area shape="poly" id="edge18_Node000001_Node000009" title=" " alt="" coords="295,28,490,76,489,81,293,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="159,372,229,397"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="49,177,63,243,78,284,101,322,126,346,155,364,152,368,123,350,97,326,74,287,58,245,43,178"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="234,180,213,200,196,226,188,261,185,297,191,358,186,359,180,297,183,260,192,224,209,197,230,176"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="293,169,319,176,346,187,371,202,391,224,397,240,396,257,382,288,377,286,390,256,391,241,386,227,368,206,344,191,317,181,292,174"/>
+<area shape="rect" id="Node000006" href="$camera_8h.html" title="RayCast3D Camera Module &#45; First&#45;person camera state and control." alt="" coords="206,225,289,251"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="250,178,250,212,245,212,245,178"/>
+<area shape="rect" id="Node000007" href="$map_8h.html" title="RayCast3D Map Management Module &#45; World map loading and access." alt="" coords="313,225,376,251"/>
+<area shape="poly" id="edge10_Node000004_Node000007" title=" " alt="" coords="265,175,319,215,316,219,261,180"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="336,326,235,369,233,364,334,322"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="245,252,205,360,200,358,240,250"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="267,248,333,289,330,294,264,253"/>
+<area shape="poly" id="edge11_Node000007_Node000003" title=" " alt="" coords="334,253,218,364,214,361,330,249"/>
+<area shape="poly" id="edge12_Node000007_Node000005" title=" " alt="" coords="350,250,359,285,353,286,345,252"/>
+<area shape="poly" id="edge16_Node000008_Node000002" title=" " alt="" coords="138,106,76,147,73,142,135,102"/>
+<area shape="poly" id="edge14_Node000008_Node000003" title=" " alt="" coords="157,104,163,195,179,323,188,358,183,359,174,325,157,196,152,104"/>
+<area shape="poly" id="edge15_Node000008_Node000004" title=" " alt="" coords="171,102,223,141,220,146,167,106"/>
+</map>

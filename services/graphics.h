@@ -4,10 +4,15 @@
  *
  * @author    Elijah Silguero (with contributions from Surya Balaji)
  * @date      December 2025
- * @hardware  MSPM0G3507 with ST7735 LCD
  *
  * Provides the main rendering interface including raycasting,
  * sprite rendering, FPS display, and text overlay functions.
+ */
+
+ /**
+ * @defgroup Graphics Graphics
+ * @brief Visual configuration and UI overlays.
+ * @{
  */
 
 #ifndef GRAPHICS_H_
