@@ -104,6 +104,8 @@ The Studio automatically exports to the `assets/` folder:
 - **Map** — world data
 - **Sprites** — dynamic objects
 
+For full API details, see the [documentation](https://esilguero1.github.io/RayCast3D/).
+
 ## Performance Optimizations
 
 ### Fixed-Point Math (Q16.16)
