@@ -212,7 +212,6 @@ Key optimizations:
 - Lookup tables for `sin`/`cos` (256 entries with quadrant mirroring)
 - Reciprocal lookup tables to minimize division operations
 - Precomputed constants (`SCREEN_HEIGHT_SHIFTED`, texture masks)
-- Cache-friendly sprite rendering (row-major traversal)
 
 ### Rotation Drift Prevention
 

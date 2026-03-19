@@ -45,15 +45,6 @@ static int compareSprites(const void *a, const void *b) {
     return 0;
 }
 
-// Maximum columns a sprite can span (usually much less than screen width)
-#define MAX_VISIBLE_COLUMNS 80
-
-// Structure to track visible columns for cache-friendly sprite rendering
-typedef struct {
-    int8_t bufferX;  // Buffer X position (-1 if not visible)
-    int8_t texX;     // Texture X coordinate
-} VisibleColumn;
-
 void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     const Camera* cam = Camera_Get();
 
@@ -80,7 +71,7 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     fixed_t ratio = fixed_div(transformX, transformY);
     int spriteScreenX = (HALF_SCREEN_WIDTH) * (FIXED_ONE + ratio) >> FIXED_SHIFT;
 
-    // Calculate sprite dimensions (use precomputed constant)
+    // Calculate sprite dimensions
     int originalSpriteHeight = (int)(SCREEN_HEIGHT_SHIFTED / transformY);
     if (originalSpriteHeight < 0) originalSpriteHeight = -originalSpriteHeight;
 
@@ -105,54 +96,36 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     if (drawStartY < 0) drawStartY = 0;
     if (drawEndY > SCREEN_HEIGHT) drawEndY = SCREEN_HEIGHT;
 
-    // === PASS 1: Build visibility list for columns ===
-    // This allows us to do row-major texture access in pass 2
-    VisibleColumn visibleCols[MAX_VISIBLE_COLUMNS];
-    int numVisible = 0;
-
     // Quarter-screen: each side covers BUFFER_WIDTH (40) columns
     int sideStartX = side * BUFFER_WIDTH;
     int sideEndX = sideStartX + BUFFER_WIDTH;
 
-    for (int stripe = drawStartX; stripe < drawEndX && numVisible < MAX_VISIBLE_COLUMNS; stripe++) {
-        // Check if this screen column falls within current side's range
-        if (stripe >= sideStartX && stripe < sideEndX) {
-            int bufferX = stripe - sideStartX;
+    // Clamp X to current quarter
+    if (drawStartX < sideStartX) drawStartX = sideStartX;
+    if (drawEndX > sideEndX) drawEndX = sideEndX;
 
-            // Check ZBuffer visibility
-            if (stripe >= 0 && stripe < SCREEN_WIDTH && transformY < ZBuffer[stripe]) {
-                int texX = (stripe - drawStartX) * sprite.width / spriteWidth;
-                if (texX >= 0 && texX < sprite.width) {
-                    visibleCols[numVisible].bufferX = bufferX;
-                    visibleCols[numVisible].texX = texX;
-                    numVisible++;
-                }
-            }
-        }
-    }
-
-    if (numVisible == 0) return;  // Nothing visible
-
-    // === PASS 2: Row-major rendering for cache efficiency ===
-    // Outer loop: Y (rows) - texture rows are contiguous in memory
-    // Inner loop: visible X columns
     const uint16_t* imgData = sprite.image;
     uint16_t transparent = sprite.transparent;
-    int imgWidth = sprite.width;
 
-    for (int y = drawStartY; y < drawEndY; y++) {
-        // Calculate texY once per row
-        int texY = (drawEndY - y) * sprite.height / spriteHeight;
-        if (texY < 0 || texY >= sprite.height) continue;
+    // Render column by column
+    for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+        // Check ZBuffer visibility
+        if (stripe < 0 || stripe >= SCREEN_WIDTH || transformY >= ZBuffer[stripe])
+            continue;
 
-        // Row base pointer - now we iterate X which is contiguous in memory
-        const uint16_t* rowPtr = imgData + texY * imgWidth;
+        int texX = (stripe - (spriteScreenX - (spriteWidth >> 1))) * sprite.width / spriteWidth;
+        if (texX < 0 || texX >= sprite.width) continue;
 
-        // Iterate through visible columns (cache-friendly X access)
-        for (int i = 0; i < numVisible; i++) {
-            uint16_t pixelColor = rowPtr[visibleCols[i].texX];
+        int bufferX = stripe - sideStartX;
+
+        // Draw vertical strip
+        for (int y = drawStartY; y < drawEndY; y++) {
+            int texY = (drawEndY - y) * sprite.height / spriteHeight;
+            if (texY < 0 || texY >= sprite.height) continue;
+
+            uint16_t pixelColor = imgData[texY * sprite.width + texX];
             if (pixelColor != transparent) {
-                Buffer_SetPixel(visibleCols[i].bufferX, y, pixelColor);
+                Buffer_SetPixel(bufferX, y, pixelColor);
             }
         }
     }
