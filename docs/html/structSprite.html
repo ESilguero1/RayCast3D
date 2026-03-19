@@ -76,6 +76,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>World sprite descriptor.  
+ <a href="structSprite.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="sprites_8h_source.html">sprites.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -100,7 +103,9 @@ Data Fields</h2></td></tr>
 <tr class="separator:ga4313190d3d4867266543f1225d5ba561"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="structSprite.html">Sprite</a> structure for world sprites </p>
+<div class="textblock"><p>World sprite descriptor. </p>
+<p>Each sprite occupies a slot in the global Sprites_Array. It holds a world-space position, a pointer to its BGR565 image data, and rendering parameters (dimensions, scale, transparency key). The raycaster projects the sprite into screen space as a billboard and depth-tests it against the Z-buffer each frame.</p>
+<p>The <code>type</code> field is not used by the engine — it is available for your game logic (e.g., to distinguish enemies from items). </p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>services/<a class="el" href="sprites_8h_source.html">sprites.h</a></li>
 </ul>

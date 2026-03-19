@@ -8,7 +8,6 @@ var searchData=
   ['map_5floadfromlist_5',['map_loadfromlist',['../group__Map.html#ga7418693c58a0bb0a888929ebed58a16e',1,'Map_LoadFromList(const uint8_t(*const maps[])[MAP_WIDTH], int index):&#160;map.c'],['../group__Map.html#ga7418693c58a0bb0a888929ebed58a16e',1,'Map_LoadFromList(const uint8_t(*const maps[])[MAP_WIDTH], int index):&#160;map.c']]],
   ['map_5fwidth_6',['MAP_WIDTH',['../group__Map.html#gaa037a6d6a4f04d51c7ec1c9ee9054e76',1,'map.h']]],
   ['map_5fworldmap_7',['map_worldmap',['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c'],['../group__Map.html#ga8d5bcbece602af1d448aa3e13344867b',1,'Map_WorldMap:&#160;map.c']]],
-  ['mask_8',['mask',['../group__Graphics.html#gac805abd69204e745c21382cb094bae8d',1,'TextureInfo']]],
-  ['math_20q16_2016_9',['Fixed-Point Math (Q16.16)',['../index.html#autotoc_md12',1,'']]],
-  ['modules_10',['API Modules',['../index.html#autotoc_md10',1,'']]]
+  ['math_20q16_2016_8',['Fixed-Point Math (Q16.16)',['../index.html#autotoc_md12',1,'']]],
+  ['modules_9',['API Modules',['../index.html#autotoc_md10',1,'']]]
 ];

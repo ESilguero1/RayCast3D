@@ -71,64 +71,48 @@ $(function() {
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">Graphics</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Visual configuration and UI overlays.  
+<p>Scene appearance and UI overlay rendering.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structTextureInfo.html">TextureInfo</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gaec45a917f7bb034a25836f3c43e1d444" id="r_gaec45a917f7bb034a25836f3c43e1d444"><td class="memItemLeft" align="right" valign="top"><a id="gaec45a917f7bb034a25836f3c43e1d444" name="gaec45a917f7bb034a25836f3c43e1d444"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Graphics_Init</b> (void)</td></tr>
-<tr class="memdesc:gaec45a917f7bb034a25836f3c43e1d444"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the graphics subsystem. <br /></td></tr>
+<tr class="memitem:gaec45a917f7bb034a25836f3c43e1d444" id="r_gaec45a917f7bb034a25836f3c43e1d444"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444">Graphics_Init</a> (void)</td></tr>
+<tr class="memdesc:gaec45a917f7bb034a25836f3c43e1d444"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the graphics subsystem.  <br /></td></tr>
 <tr class="separator:gaec45a917f7bb034a25836f3c43e1d444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5bcface68984dd0368dc11d393257d19" id="r_ga5bcface68984dd0368dc11d393257d19"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a> (uint16_t color)</td></tr>
-<tr class="memdesc:ga5bcface68984dd0368dc11d393257d19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set floor color.  <br /></td></tr>
+<tr class="memdesc:ga5bcface68984dd0368dc11d393257d19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the solid color drawn below the horizon.  <br /></td></tr>
 <tr class="separator:ga5bcface68984dd0368dc11d393257d19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab5ab82a607b33728150e1eab754faa88" id="r_gab5ab82a607b33728150e1eab754faa88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a> (uint16_t color)</td></tr>
-<tr class="memdesc:gab5ab82a607b33728150e1eab754faa88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set sky color.  <br /></td></tr>
+<tr class="memdesc:gab5ab82a607b33728150e1eab754faa88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the solid color drawn above the horizon.  <br /></td></tr>
 <tr class="separator:gab5ab82a607b33728150e1eab754faa88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf0c9b917a4f2b484c1bb57ebd63dd198" id="r_gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a> (double intensity)</td></tr>
-<tr class="memdesc:gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set floor gradient darkness.  <br /></td></tr>
+<tr class="memdesc:gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable a distance-based darkening gradient on the floor.  <br /></td></tr>
 <tr class="separator:gaf0c9b917a4f2b484c1bb57ebd63dd198"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga81af24be0237db99a8689b90cc165520" id="r_ga81af24be0237db99a8689b90cc165520"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a> (int side)</td></tr>
-<tr class="memdesc:ga81af24be0237db99a8689b90cc165520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cast rays for one screen quarter.  <br /></td></tr>
+<tr class="memdesc:ga81af24be0237db99a8689b90cc165520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cast rays for one screen quarter (internal).  <br /></td></tr>
 <tr class="separator:ga81af24be0237db99a8689b90cc165520"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad808eaf90668b417224ea2a84c05d384" id="r_gad808eaf90668b417224ea2a84c05d384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a> (int x, int y, uint16_t color)</td></tr>
-<tr class="memdesc:gad808eaf90668b417224ea2a84c05d384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable FPS overlay on screen.  <br /></td></tr>
+<tr class="memdesc:gad808eaf90668b417224ea2a84c05d384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable an on-screen FPS counter.  <br /></td></tr>
 <tr class="separator:gad808eaf90668b417224ea2a84c05d384"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafb4886d58f7483ab282bc9c1e5e15aa8" id="r_gafb4886d58f7483ab282bc9c1e5e15aa8"><td class="memItemLeft" align="right" valign="top"><a id="gafb4886d58f7483ab282bc9c1e5e15aa8" name="gafb4886d58f7483ab282bc9c1e5e15aa8"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Graphics_DisableFPS</b> (void)</td></tr>
-<tr class="memdesc:gafb4886d58f7483ab282bc9c1e5e15aa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disable FPS overlay. <br /></td></tr>
+<tr class="memitem:gafb4886d58f7483ab282bc9c1e5e15aa8" id="r_gafb4886d58f7483ab282bc9c1e5e15aa8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8">Graphics_DisableFPS</a> (void)</td></tr>
+<tr class="memdesc:gafb4886d58f7483ab282bc9c1e5e15aa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hide the FPS counter.  <br /></td></tr>
 <tr class="separator:gafb4886d58f7483ab282bc9c1e5e15aa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab83899386ec976913b43dc534dd897cf" id="r_gab83899386ec976913b43dc534dd897cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gab83899386ec976913b43dc534dd897cf">Graphics_Text</a> (const char *text, int x, int y, uint16_t color)</td></tr>
-<tr class="memdesc:gab83899386ec976913b43dc534dd897cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queue text for rendering on the current frame.  <br /></td></tr>
+<tr class="memdesc:gab83899386ec976913b43dc534dd897cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queue a text string for display on the current frame.  <br /></td></tr>
 <tr class="separator:gab83899386ec976913b43dc534dd897cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2ca977fa31c84e31c93a8a765e0d3a33" id="r_ga2ca977fa31c84e31c93a8a765e0d3a33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33">Graphics_ForegroundSprite</a> (const uint16_t *image, int x, int y, int width, int height, int scale, uint16_t transparent)</td></tr>
-<tr class="memdesc:ga2ca977fa31c84e31c93a8a765e0d3a33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queue a foreground sprite for rendering on the current frame.  <br /></td></tr>
+<tr class="memdesc:ga2ca977fa31c84e31c93a8a765e0d3a33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queue a 2D foreground sprite for display on the current frame.  <br /></td></tr>
 <tr class="separator:ga2ca977fa31c84e31c93a8a765e0d3a33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:gad58222a93622102334d2f5bef9e89c18" id="r_gad58222a93622102334d2f5bef9e89c18"><td class="memItemLeft" align="right" valign="top">const uint16_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gad58222a93622102334d2f5bef9e89c18">TextureInfo::data</a></td></tr>
-<tr class="separator:gad58222a93622102334d2f5bef9e89c18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabbf9deaddb8510a982954a86084ea112" id="r_gabbf9deaddb8510a982954a86084ea112"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gabbf9deaddb8510a982954a86084ea112">TextureInfo::resolution</a></td></tr>
-<tr class="separator:gabbf9deaddb8510a982954a86084ea112"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac805abd69204e745c21382cb094bae8d" id="r_gac805abd69204e745c21382cb094bae8d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Graphics.html#gac805abd69204e745c21382cb094bae8d">TextureInfo::mask</a></td></tr>
-<tr class="separator:gac805abd69204e745c21382cb094bae8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Visual configuration and UI overlays. </p>
+<p>Scene appearance and UI overlay rendering. </p>
+<p>The Graphics module controls the visual appearance of the rendered scene. Use it to set floor and sky colors, enable a distance-based floor gradient, display an FPS counter, and queue per-frame text and foreground sprites that are drawn on top of the 3D scene.</p>
+<p>Overlay functions (Graphics_Text, Graphics_ForegroundSprite) are queued — call them each frame before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>. The queues are automatically cleared after each frame completes. </p>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ga81af24be0237db99a8689b90cc165520" name="ga81af24be0237db99a8689b90cc165520"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga81af24be0237db99a8689b90cc165520">&#9670;&#160;</a></span>CastRays()</h2>
@@ -148,7 +132,7 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Cast rays for one screen quarter. </p>
+<p>Cast rays for one screen quarter (internal). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">side</td><td>Which quarter to render (0-3) </td></tr>
@@ -160,8 +144,8 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Graphics_ga81af24be0237db99a8689b90cc165520_cgraph.png" border="0" usemap="#agroup__Graphics_ga81af24be0237db99a8689b90cc165520_cgraph" alt=""/></div>
 <map name="agroup__Graphics_ga81af24be0237db99a8689b90cc165520_cgraph" id="agroup__Graphics_ga81af24be0237db99a8689b90cc165520_cgraph">
-<area shape="rect" title="Cast rays for one screen quarter." alt="" coords="5,5,88,31"/>
-<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="136,5,239,31"/>
+<area shape="rect" title="Cast rays for one screen quarter (internal)." alt="" coords="5,5,88,31"/>
+<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="136,5,239,31"/>
 <area shape="poly" title=" " alt="" coords="88,15,122,15,122,21,88,21"/>
 </map>
 </div>
@@ -170,11 +154,34 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Graphics_ga81af24be0237db99a8689b90cc165520_icgraph.png" border="0" usemap="#agroup__Graphics_ga81af24be0237db99a8689b90cc165520_icgraph" alt=""/></div>
 <map name="agroup__Graphics_ga81af24be0237db99a8689b90cc165520_icgraph" id="agroup__Graphics_ga81af24be0237db99a8689b90cc165520_icgraph">
-<area shape="rect" title="Cast rays for one screen quarter." alt="" coords="200,5,283,31"/>
-<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,5,152,31"/>
+<area shape="rect" title="Cast rays for one screen quarter (internal)." alt="" coords="200,5,283,31"/>
+<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,5,152,31"/>
 <area shape="poly" title=" " alt="" coords="186,21,152,21,152,15,186,15"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="gafb4886d58f7483ab282bc9c1e5e15aa8" name="gafb4886d58f7483ab282bc9c1e5e15aa8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafb4886d58f7483ab282bc9c1e5e15aa8">&#9670;&#160;</a></span>Graphics_DisableFPS()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Graphics_DisableFPS </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/graphics.h&gt;</code></p>
+
+<p>Hide the FPS counter. </p>
+<p>Disables the overlay enabled by <a class="el" href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384" title="Enable an on-screen FPS counter.">Graphics_DisplayFPS()</a>. Timer G12 continues to run but the counter is no longer drawn. </p>
 
 </div>
 </div>
@@ -212,12 +219,12 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Enable FPS overlay on screen. </p>
-<p>Automatically initializes Timer G12 for timing. FPS is updated internally each frame (averaged over 16 frames). Call once during setup.</p>
+<p>Enable an on-screen FPS counter. </p>
+<p>Call once during setup to display a live frames-per-second readout. Automatically initializes Timer G12 for frame timing. The displayed value is a rolling average over 16 frames and is drawn automatically by <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a> after sprites and text overlays.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">x</td><td>Screen X position </td></tr>
-    <tr><td class="paramname">y</td><td>Screen Y position </td></tr>
+    <tr><td class="paramname">x</td><td>Screen X position of the counter </td></tr>
+    <tr><td class="paramname">y</td><td>Screen Y position of the counter </td></tr>
     <tr><td class="paramname">color</td><td>BGR565 text color </td></tr>
   </table>
   </dd>
@@ -283,20 +290,54 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Queue a foreground sprite for rendering on the current frame. </p>
-<p>Call before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame.">RayCast3D_Render()</a> each frame you want sprite displayed. Queue is automatically cleared after <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame.">RayCast3D_Render()</a> completes. Max 8 sprites.</p>
+<p>Queue a 2D foreground sprite for display on the current frame. </p>
+<p>Foreground sprites are drawn on top of the 3D scene (walls, world sprites, text) and are not affected by the depth buffer. Must be called before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a> every frame you want the sprite to appear — the queue is automatically cleared after each frame. Supports up to 8 entries per frame.</p>
+<dl class="section note"><dt>Note</dt><dd>For Studio-created sprites, use the <code>AddFGSprite</code> macro from <a class="el" href="images_8h_source.html">images.h</a> instead — it fills in the image, dimensions, and transparent color automatically.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">image</td><td>Pointer to 16-bit color image data </td></tr>
-    <tr><td class="paramname">x</td><td>Screen X position </td></tr>
-    <tr><td class="paramname">y</td><td>Screen Y position (bottom of sprite) </td></tr>
+    <tr><td class="paramname">image</td><td>Pointer to 16-bit BGR565 image data </td></tr>
+    <tr><td class="paramname">x</td><td>Screen X position (left edge) </td></tr>
+    <tr><td class="paramname">y</td><td>Screen Y position (bottom edge of sprite) </td></tr>
     <tr><td class="paramname">width</td><td>Source image width in pixels </td></tr>
     <tr><td class="paramname">height</td><td>Source image height in pixels </td></tr>
-    <tr><td class="paramname">scale</td><td>Scale factor (scale/8 * SCREEN_HEIGHT) </td></tr>
-    <tr><td class="paramname">transparent</td><td>Color key that will not be drawn </td></tr>
+    <tr><td class="paramname">scale</td><td>Scale factor (rendered height = scale/8 * SCREEN_HEIGHT) </td></tr>
+    <tr><td class="paramname">transparent</td><td>Pixel color treated as transparent (not drawn) </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="gaec45a917f7bb034a25836f3c43e1d444" name="gaec45a917f7bb034a25836f3c43e1d444"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaec45a917f7bb034a25836f3c43e1d444">&#9670;&#160;</a></span>Graphics_Init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Graphics_Init </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/graphics.h&gt;</code></p>
+
+<p>Initialize the graphics subsystem. </p>
+<p>Configures the ST7735 display, SPI, DMA, and internal render buffers. Called automatically by <a class="el" href="group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16" title="Initialize the raycasting engine.">RayCast3D_Init()</a> — do not call directly. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="group__Graphics_gaec45a917f7bb034a25836f3c43e1d444_icgraph.png" border="0" usemap="#agroup__Graphics_gaec45a917f7bb034a25836f3c43e1d444_icgraph" alt=""/></div>
+<map name="agroup__Graphics_gaec45a917f7bb034a25836f3c43e1d444_icgraph" id="agroup__Graphics_gaec45a917f7bb034a25836f3c43e1d444_icgraph">
+<area shape="rect" title="Initialize the graphics subsystem." alt="" coords="176,5,283,31"/>
+<area shape="rect" href="group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16" title="Initialize the raycasting engine." alt="" coords="5,5,128,31"/>
+<area shape="poly" title=" " alt="" coords="162,21,128,21,128,15,162,15"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -318,7 +359,8 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Set floor color. </p>
+<p>Set the solid color drawn below the horizon. </p>
+<p>Takes effect on the next call to <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>. Use color constants from <a class="el" href="colors_8h_source.html">colors.h</a> (exported by RayCast3D Studio) or ST7735 defines such as ST7735_DARKGREY.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">color</td><td>BGR565 color value </td></tr>
@@ -346,10 +388,11 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Set floor gradient darkness. </p>
+<p>Enable a distance-based darkening gradient on the floor. </p>
+<p>Simulates depth by darkening floor pixels farther from the camera. An intensity of 0.0 disables the gradient entirely; 1.0 applies maximum darkening at the horizon line.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">intensity</td><td>Gradient intensity (0.0 = none, 1.0 = full gradient) </td></tr>
+    <tr><td class="paramname">intensity</td><td>Gradient strength (0.0 = off, 1.0 = full) </td></tr>
   </table>
   </dd>
 </dl>
@@ -374,7 +417,8 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Set sky color. </p>
+<p>Set the solid color drawn above the horizon. </p>
+<p>Takes effect on the next call to <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">color</td><td>BGR565 color value </td></tr>
@@ -424,63 +468,17 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/graphics.h&gt;</code></p>
 
-<p>Queue text for rendering on the current frame. </p>
-<p>Call before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame.">RayCast3D_Render()</a> each frame you want text displayed. Queue is automatically cleared after <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame.">RayCast3D_Render()</a> completes. Max 8 text entries, 32 chars each.</p>
+<p>Queue a text string for display on the current frame. </p>
+<p>Must be called before <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a> every frame you want the text to appear — the queue is automatically cleared after each frame. Supports up to 8 entries per frame, each up to 32 characters. Text that spans the screen center (the split-buffer boundary at x = 80) is handled automatically.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">text</td><td>String to display </td></tr>
-    <tr><td class="paramname">x</td><td>Screen X position </td></tr>
-    <tr><td class="paramname">y</td><td>Screen Y position </td></tr>
+    <tr><td class="paramname">text</td><td>Null-terminated string to display </td></tr>
+    <tr><td class="paramname">x</td><td>Screen X position (left edge of first character) </td></tr>
+    <tr><td class="paramname">y</td><td>Screen Y position (top edge) </td></tr>
     <tr><td class="paramname">color</td><td>BGR565 text color </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="gad58222a93622102334d2f5bef9e89c18" name="gad58222a93622102334d2f5bef9e89c18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad58222a93622102334d2f5bef9e89c18">&#9670;&#160;</a></span>data</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint16_t* TextureInfo::data</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Pointer to texture pixel data </p>
-
-</div>
-</div>
-<a id="gac805abd69204e745c21382cb094bae8d" name="gac805abd69204e745c21382cb094bae8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac805abd69204e745c21382cb094bae8d">&#9670;&#160;</a></span>mask</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int TextureInfo::mask</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Precomputed: resolution - 1 (for power-of-2 textures) </p>
-
-</div>
-</div>
-<a id="gabbf9deaddb8510a982954a86084ea112" name="gabbf9deaddb8510a982954a86084ea112"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabbf9deaddb8510a982954a86084ea112">&#9670;&#160;</a></span>resolution</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int TextureInfo::resolution</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Texture dimension (e.g., 16, 32, 64, 128) </p>
 
 </div>
 </div>

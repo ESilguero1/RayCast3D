@@ -76,6 +76,9 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p><a class="el" href="structCamera.html" title="Camera state structure (all values in Q16.16 fixed-point).">Camera</a> state structure (all values in Q16.16 fixed-point).  
+ <a href="structCamera.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="camera_8h_source.html">camera.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -94,7 +97,9 @@ Data Fields</h2></td></tr>
 <tr class="separator:gaed41d189429332f23039ad26552ef744"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="structCamera.html">Camera</a> state structure (all values in Q16.16 fixed-point) </p>
+<div class="textblock"><p><a class="el" href="structCamera.html" title="Camera state structure (all values in Q16.16 fixed-point).">Camera</a> state structure (all values in Q16.16 fixed-point). </p>
+<p>Contains the player's position in the tile grid, a unit-length direction vector indicating where the camera faces, and a camera plane vector perpendicular to the direction that defines the field of view. The plane's magnitude controls the FOV width (default 0.66, giving roughly a 66-degree horizontal FOV).</p>
+<p>Access via <a class="el" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read-only access to the full camera state.">Camera_Get()</a>. Do not modify directly — use the Camera_Set / Camera_Move / Camera_Rotate functions instead. </p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>services/<a class="el" href="camera_8h_source.html">camera.h</a></li>
 </ul>

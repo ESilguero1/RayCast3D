@@ -1,5 +1,5 @@
 <map id="CastRays" name="CastRays">
-<area shape="rect" id="Node000001" title="Cast rays for one screen quarter." alt="" coords="5,5,88,31"/>
-<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="136,5,239,31"/>
+<area shape="rect" id="Node000001" title="Cast rays for one screen quarter (internal)." alt="" coords="5,5,88,31"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="136,5,239,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,15,122,15,122,21,88,21"/>
 </map>

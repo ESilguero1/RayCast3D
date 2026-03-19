@@ -83,72 +83,66 @@ $(document).ready(function() { init_codefold(0); });
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#ifndef GRAPHICS_H_</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#define GRAPHICS_H_</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;../utils/fixed.h&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="comment">// Include sub-modules</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;camera.h&quot;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;map.h&quot;</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="comment">// Screen dimensions</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define SCREEN_WIDTH 160</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#define SCREEN_HEIGHT 128</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structTextureInfo.html">   33</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="group__Graphics.html#gad58222a93622102334d2f5bef9e89c18">   34</a></span>    <span class="keyword">const</span> uint16_t* <a class="code hl_variable" href="group__Graphics.html#gad58222a93622102334d2f5bef9e89c18">data</a>;  </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="group__Graphics.html#gabbf9deaddb8510a982954a86084ea112">   35</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="group__Graphics.html#gabbf9deaddb8510a982954a86084ea112">resolution</a>;        </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="group__Graphics.html#gac805abd69204e745c21382cb094bae8d">   36</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="group__Graphics.html#gac805abd69204e745c21382cb094bae8d">mask</a>;              </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>} <a class="code hl_struct" href="structTextureInfo.html">TextureInfo</a>;</div>
-</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">// Precomputed constants for hot paths</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#define SCREEN_HEIGHT_SHIFTED ((int64_t)SCREEN_HEIGHT &lt;&lt; FIXED_SHIFT)</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#define HALF_SCREEN_HEIGHT (SCREEN_HEIGHT / 2)</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#define HALF_SCREEN_WIDTH (SCREEN_WIDTH / 2)</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="comment">// Depth buffer for sprite sorting (fixed-point Q16.16)</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keyword">extern</span> fixed_t ZBuffer[SCREEN_WIDTH];</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444">Graphics_Init</a>(<span class="keywordtype">void</span>);</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a>(uint16_t color);</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a>(uint16_t color);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a>(<span class="keywordtype">double</span> intensity);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a>(<span class="keywordtype">int</span> side);</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment">// Internal functions (called by RayCast3D_Render)</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="keywordtype">void</span> Graphics_RenderOverlays(<span class="keywordtype">int</span> side);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="keywordtype">void</span> Graphics_ClearOverlayQueues(<span class="keywordtype">void</span>);</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t color);</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8">Graphics_DisableFPS</a>(<span class="keywordtype">void</span>);</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gab83899386ec976913b43dc534dd897cf">Graphics_Text</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* text, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t color);</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33">Graphics_ForegroundSprite</a>(<span class="keyword">const</span> uint16_t* image, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> scale, uint16_t transparent);</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="preprocessor">#endif </span><span class="comment">/* GRAPHICS_H_ */</span><span class="preprocessor"></span></div>
-<div class="ttc" id="agroup__Graphics_html_ga2ca977fa31c84e31c93a8a765e0d3a33"><div class="ttname"><a href="group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33">Graphics_ForegroundSprite</a></div><div class="ttdeci">void Graphics_ForegroundSprite(const uint16_t *image, int x, int y, int width, int height, int scale, uint16_t transparent)</div><div class="ttdoc">Queue a foreground sprite for rendering on the current frame.</div><div class="ttdef"><b>Definition</b> graphics.c:329</div></div>
-<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set floor color.</div><div class="ttdef"><b>Definition</b> graphics.c:239</div></div>
-<div class="ttc" id="agroup__Graphics_html_ga81af24be0237db99a8689b90cc165520"><div class="ttname"><a href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a></div><div class="ttdeci">void CastRays(int side)</div><div class="ttdoc">Cast rays for one screen quarter.</div><div class="ttdef"><b>Definition</b> graphics.c:64</div></div>
-<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set sky color.</div><div class="ttdef"><b>Definition</b> graphics.c:243</div></div>
-<div class="ttc" id="agroup__Graphics_html_gab83899386ec976913b43dc534dd897cf"><div class="ttname"><a href="group__Graphics.html#gab83899386ec976913b43dc534dd897cf">Graphics_Text</a></div><div class="ttdeci">void Graphics_Text(const char *text, int x, int y, uint16_t color)</div><div class="ttdoc">Queue text for rendering on the current frame.</div><div class="ttdef"><b>Definition</b> graphics.c:313</div></div>
-<div class="ttc" id="agroup__Graphics_html_gabbf9deaddb8510a982954a86084ea112"><div class="ttname"><a href="group__Graphics.html#gabbf9deaddb8510a982954a86084ea112">TextureInfo::resolution</a></div><div class="ttdeci">int resolution</div><div class="ttdef"><b>Definition</b> graphics.h:35</div></div>
-<div class="ttc" id="agroup__Graphics_html_gac805abd69204e745c21382cb094bae8d"><div class="ttname"><a href="group__Graphics.html#gac805abd69204e745c21382cb094bae8d">TextureInfo::mask</a></div><div class="ttdeci">int mask</div><div class="ttdef"><b>Definition</b> graphics.h:36</div></div>
-<div class="ttc" id="agroup__Graphics_html_gad58222a93622102334d2f5bef9e89c18"><div class="ttname"><a href="group__Graphics.html#gad58222a93622102334d2f5bef9e89c18">TextureInfo::data</a></div><div class="ttdeci">const uint16_t * data</div><div class="ttdef"><b>Definition</b> graphics.h:34</div></div>
-<div class="ttc" id="agroup__Graphics_html_gad808eaf90668b417224ea2a84c05d384"><div class="ttname"><a href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a></div><div class="ttdeci">void Graphics_DisplayFPS(int x, int y, uint16_t color)</div><div class="ttdoc">Enable FPS overlay on screen.</div><div class="ttdef"><b>Definition</b> graphics.c:281</div></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#ifndef GRAPHICS_H_</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define GRAPHICS_H_</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &quot;../utils/fixed.h&quot;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="comment">// Include sub-modules</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &quot;camera.h&quot;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &quot;map.h&quot;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">// Screen dimensions</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#define SCREEN_WIDTH 160</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#define SCREEN_HEIGHT 128</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="comment">/* Texture info structure (allows per-texture resolution) */</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">const</span> uint16_t* data;  <span class="comment">/*&lt; Pointer to texture pixel data */</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">int</span> resolution;        <span class="comment">/*&lt; Texture dimension (e.g., 16, 32, 64, 128) */</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">int</span> mask;              <span class="comment">/*&lt; Precomputed: resolution - 1 (for power-of-2 textures) */</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>} TextureInfo;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="comment">// Precomputed constants for hot paths</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#define SCREEN_HEIGHT_SHIFTED ((int64_t)SCREEN_HEIGHT &lt;&lt; FIXED_SHIFT)</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#define HALF_SCREEN_HEIGHT (SCREEN_HEIGHT / 2)</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#define HALF_SCREEN_WIDTH (SCREEN_WIDTH / 2)</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="comment">// Depth buffer for sprite sorting (fixed-point Q16.16)</span></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">extern</span> fixed_t ZBuffer[SCREEN_WIDTH];</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444">Graphics_Init</a>(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a>(uint16_t color);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a>(uint16_t color);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a>(<span class="keywordtype">double</span> intensity);</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a>(<span class="keywordtype">int</span> side);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="keywordtype">void</span> Graphics_RenderOverlays(<span class="keywordtype">int</span> side);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="keywordtype">void</span> Graphics_ClearOverlayQueues(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a>(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t color);</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8">Graphics_DisableFPS</a>(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#gab83899386ec976913b43dc534dd897cf">Graphics_Text</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* text, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, uint16_t color);</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33">Graphics_ForegroundSprite</a>(<span class="keyword">const</span> uint16_t* image, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span> scale, uint16_t transparent);</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span><span class="preprocessor">#endif </span><span class="comment">/* GRAPHICS_H_ */</span><span class="preprocessor"></span></div>
+<div class="ttc" id="agroup__Graphics_html_ga2ca977fa31c84e31c93a8a765e0d3a33"><div class="ttname"><a href="group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33">Graphics_ForegroundSprite</a></div><div class="ttdeci">void Graphics_ForegroundSprite(const uint16_t *image, int x, int y, int width, int height, int scale, uint16_t transparent)</div><div class="ttdoc">Queue a 2D foreground sprite for display on the current frame.</div><div class="ttdef"><b>Definition</b> graphics.c:329</div></div>
+<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:239</div></div>
+<div class="ttc" id="agroup__Graphics_html_ga81af24be0237db99a8689b90cc165520"><div class="ttname"><a href="group__Graphics.html#ga81af24be0237db99a8689b90cc165520">CastRays</a></div><div class="ttdeci">void CastRays(int side)</div><div class="ttdoc">Cast rays for one screen quarter (internal).</div><div class="ttdef"><b>Definition</b> graphics.c:64</div></div>
+<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:243</div></div>
+<div class="ttc" id="agroup__Graphics_html_gab83899386ec976913b43dc534dd897cf"><div class="ttname"><a href="group__Graphics.html#gab83899386ec976913b43dc534dd897cf">Graphics_Text</a></div><div class="ttdeci">void Graphics_Text(const char *text, int x, int y, uint16_t color)</div><div class="ttdoc">Queue a text string for display on the current frame.</div><div class="ttdef"><b>Definition</b> graphics.c:313</div></div>
+<div class="ttc" id="agroup__Graphics_html_gad808eaf90668b417224ea2a84c05d384"><div class="ttname"><a href="group__Graphics.html#gad808eaf90668b417224ea2a84c05d384">Graphics_DisplayFPS</a></div><div class="ttdeci">void Graphics_DisplayFPS(int x, int y, uint16_t color)</div><div class="ttdoc">Enable an on-screen FPS counter.</div><div class="ttdef"><b>Definition</b> graphics.c:281</div></div>
 <div class="ttc" id="agroup__Graphics_html_gaec45a917f7bb034a25836f3c43e1d444"><div class="ttname"><a href="group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444">Graphics_Init</a></div><div class="ttdeci">void Graphics_Init(void)</div><div class="ttdoc">Initialize the graphics subsystem.</div><div class="ttdef"><b>Definition</b> graphics.c:234</div></div>
-<div class="ttc" id="agroup__Graphics_html_gaf0c9b917a4f2b484c1bb57ebd63dd198"><div class="ttname"><a href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a></div><div class="ttdeci">void Graphics_SetFloorGradient(double intensity)</div><div class="ttdoc">Set floor gradient darkness.</div><div class="ttdef"><b>Definition</b> graphics.c:247</div></div>
-<div class="ttc" id="agroup__Graphics_html_gafb4886d58f7483ab282bc9c1e5e15aa8"><div class="ttname"><a href="group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8">Graphics_DisableFPS</a></div><div class="ttdeci">void Graphics_DisableFPS(void)</div><div class="ttdoc">Disable FPS overlay.</div><div class="ttdef"><b>Definition</b> graphics.c:289</div></div>
-<div class="ttc" id="astructTextureInfo_html"><div class="ttname"><a href="structTextureInfo.html">TextureInfo</a></div><div class="ttdef"><b>Definition</b> graphics.h:33</div></div>
+<div class="ttc" id="agroup__Graphics_html_gaf0c9b917a4f2b484c1bb57ebd63dd198"><div class="ttname"><a href="group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198">Graphics_SetFloorGradient</a></div><div class="ttdeci">void Graphics_SetFloorGradient(double intensity)</div><div class="ttdoc">Enable a distance-based darkening gradient on the floor.</div><div class="ttdef"><b>Definition</b> graphics.c:247</div></div>
+<div class="ttc" id="agroup__Graphics_html_gafb4886d58f7483ab282bc9c1e5e15aa8"><div class="ttname"><a href="group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8">Graphics_DisableFPS</a></div><div class="ttdeci">void Graphics_DisableFPS(void)</div><div class="ttdoc">Hide the FPS counter.</div><div class="ttdef"><b>Definition</b> graphics.c:289</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

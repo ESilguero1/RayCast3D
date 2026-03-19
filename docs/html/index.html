@@ -100,11 +100,11 @@ Quick Start</h1>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="agroup__Camera_html_gac6c9e108dd87edf1d4db01a433eeaeca"><div class="ttname"><a href="group__Camera.html#gac6c9e108dd87edf1d4db01a433eeaeca">Camera_SetPosition</a></div><div class="ttdeci">void Camera_SetPosition(double x, double y)</div><div class="ttdoc">Set camera world position.</div><div class="ttdef"><b>Definition</b> camera.c:44</div></div>
-<div class="ttc" id="agroup__EngineCore_html_ga67949045a83c7ccaff619a9ab05819b3"><div class="ttname"><a href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3">RayCast3D_Render</a></div><div class="ttdeci">void RayCast3D_Render(void)</div><div class="ttdoc">Render one complete frame.</div><div class="ttdef"><b>Definition</b> raycast3d.c:38</div></div>
+<div class="ttc" id="agroup__EngineCore_html_ga67949045a83c7ccaff619a9ab05819b3"><div class="ttname"><a href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3">RayCast3D_Render</a></div><div class="ttdeci">void RayCast3D_Render(void)</div><div class="ttdoc">Render one complete frame to the display.</div><div class="ttdef"><b>Definition</b> raycast3d.c:38</div></div>
 <div class="ttc" id="agroup__EngineCore_html_gac4904fc9bf4a1126b9daa1d095e99e16"><div class="ttname"><a href="group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16">RayCast3D_Init</a></div><div class="ttdeci">void RayCast3D_Init(void)</div><div class="ttdoc">Initialize the raycasting engine.</div><div class="ttdef"><b>Definition</b> raycast3d.c:34</div></div>
-<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set floor color.</div><div class="ttdef"><b>Definition</b> graphics.c:239</div></div>
-<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set sky color.</div><div class="ttdef"><b>Definition</b> graphics.c:243</div></div>
-<div class="ttc" id="agroup__Map_html_gac7919e1187a5f5ff9aec51a3f880e22f"><div class="ttname"><a href="group__Map.html#gac7919e1187a5f5ff9aec51a3f880e22f">Map_Load</a></div><div class="ttdeci">void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH])</div><div class="ttdoc">Load a map from a constant array.</div><div class="ttdef"><b>Definition</b> map.c:24</div></div>
+<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:239</div></div>
+<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:243</div></div>
+<div class="ttc" id="agroup__Map_html_gac7919e1187a5f5ff9aec51a3f880e22f"><div class="ttname"><a href="group__Map.html#gac7919e1187a5f5ff9aec51a3f880e22f">Map_Load</a></div><div class="ttdeci">void Map_Load(const uint8_t map[MAP_HEIGHT][MAP_WIDTH])</div><div class="ttdoc">Load a map from a constant 2D array.</div><div class="ttdef"><b>Definition</b> map.c:24</div></div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md3"></a>
 Hardware Requirements</h1>
 <ul>
@@ -142,8 +142,8 @@ Features</h2>
 <ul>
 <li><b>Map Editor</b> — 24×24 grid editor with click-and-drag wall placement. Supports multiple maps with add/rename/delete. Perimeter walls are enforced automatically.</li>
 <li><b>Texture Manager</b> — Import textures from image files (PNG, JPG, etc.). Supports 16×16, 32×32, 64×64, and 128×128 resolutions. Each texture can have a different resolution for quality/memory trade-offs.</li>
-<li><b><a class="el" href="structSprite.html">Sprite</a> Manager</b> — Import sprite images with automatic transparent color detection. Supports alpha channel transparency or top-left pixel as transparent key. Preview shows simulated in-game appearance.</li>
-<li><b>Color Picker</b> — Define named colors with a visual color picker. Colors are exported as BGR565 constants for use with <code><a class="el" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19" title="Set floor color.">Graphics_SetFloorColor()</a></code>, <code><a class="el" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88" title="Set sky color.">Graphics_SetSkyColor()</a></code>, etc.</li>
+<li><b><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> Manager</b> — Import sprite images with automatic transparent color detection. Supports alpha channel transparency or top-left pixel as transparent key. Preview shows simulated in-game appearance.</li>
+<li><b>Color Picker</b> — Define named colors with a visual color picker. Colors are exported as BGR565 constants for use with <code><a class="el" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19" title="Set the solid color drawn below the horizon.">Graphics_SetFloorColor()</a></code>, <code><a class="el" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88" title="Set the solid color drawn above the horizon.">Graphics_SetSkyColor()</a></code>, etc.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md8"></a>
 Auto-Export</h2>
@@ -152,11 +152,11 @@ Auto-Export</h2>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">File   </th><th class="markdownTableHeadNone">Contents    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="textures_8h_source.html">textures.h</a></code>   </td><td class="markdownTableBodyNone">Wall textures with <code><a class="el" href="structTextureInfo.html">TextureInfo</a></code> structs    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="textures_8h_source.html">textures.h</a></code>   </td><td class="markdownTableBodyNone">Wall textures with <code>TextureInfo</code> structs    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code><a class="el" href="map_8h_source.html">map.h</a></code>   </td><td class="markdownTableBodyNone">Map data arrays and <code>mapList[]</code> pointer array    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="images_8h_source.html">images.h</a></code>   </td><td class="markdownTableBodyNone"><a class="el" href="structSprite.html">Sprite</a> images with <code>SpriteImage</code> structs    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="images_8h_source.html">images.h</a></code>   </td><td class="markdownTableBodyNone"><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> images with <code>SpriteImage</code> structs    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code><a class="el" href="colors_8h_source.html">colors.h</a></code>   </td><td class="markdownTableBodyNone">Named color constants in BGR565 format   </td></tr>
 </table>
@@ -183,18 +183,12 @@ Keyboard Shortcuts</h2>
 <h1><a class="anchor" id="autotoc_md10"></a>
 API Modules</h1>
 <ul>
-<li><a href="group__EngineCore.html">Engine Core</a> — initialization and rendering <br  />
-</li>
-<li><a href="group__Camera.html">Camera</a> — movement and orientation <br  />
-</li>
-<li><a href="group__Graphics.html">Graphics</a> — visual configuration <br  />
-</li>
-<li><a href="group__Map.html">Map</a> — world data <br  />
-</li>
-<li><a href="group__Sprites.html">Sprites</a> — dynamic objects <br  />
-</li>
+<li><a href="raycast3d.h">Engine Core</a> — initialization and rendering</li>
+<li><a href="services/camera.h">Camera</a> — movement and orientation</li>
+<li><a href="services/graphics.h">Graphics</a> — visual configuration</li>
+<li><a href="services/map.h">Map</a> — world data</li>
+<li><a href="services/sprites.h">Sprites</a> — dynamic objects</li>
 </ul>
-<p>For information on use of modules, see the docs</p>
 <h1><a class="anchor" id="autotoc_md11"></a>
 Performance Optimizations</h1>
 <h2><a class="anchor" id="autotoc_md12"></a>

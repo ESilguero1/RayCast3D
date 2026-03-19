@@ -1,8 +1,8 @@
 <map id="Sprites_RenderAll" name="Sprites_RenderAll">
-<area shape="rect" id="Node000001" title="Render all active sprites for a screen quarter." alt="" coords="5,5,143,31"/>
-<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="385,5,488,31"/>
+<area shape="rect" id="Node000001" title="Render all active sprites for a screen quarter (internal)." alt="" coords="5,5,143,31"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="385,5,488,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,15,372,15,372,21,143,21"/>
-<area shape="rect" id="Node000003" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="191,31,337,56"/>
+<area shape="rect" id="Node000003" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="191,31,337,56"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,25,177,29,176,34,143,30"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="337,30,371,25,372,30,338,35"/>
 </map>

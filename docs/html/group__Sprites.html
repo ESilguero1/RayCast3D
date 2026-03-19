@@ -79,12 +79,13 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Dynamic objects in the world.  
+<p>Billboarded world sprites with depth-sorted rendering.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSprite.html">Sprite</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">World sprite descriptor.  <a href="structSprite.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -95,32 +96,31 @@ Macros</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:gaf384a3302cb5e94d248c50534fb024db" id="r_gaf384a3302cb5e94d248c50534fb024db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db">Sprites_RenderAll</a> (int side)</td></tr>
-<tr class="memdesc:gaf384a3302cb5e94d248c50534fb024db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render all active sprites for a screen quarter.  <br /></td></tr>
+<tr class="memdesc:gaf384a3302cb5e94d248c50534fb024db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render all active sprites for a screen quarter (internal).  <br /></td></tr>
 <tr class="separator:gaf384a3302cb5e94d248c50534fb024db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6a127e2b21b20bc31da3a600cfaa79c9" id="r_ga6a127e2b21b20bc31da3a600cfaa79c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9">Sprites_RenderOne</a> (<a class="el" href="structSprite.html">Sprite</a> sprite, int side, int spriteIndex)</td></tr>
-<tr class="memdesc:ga6a127e2b21b20bc31da3a600cfaa79c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a single sprite.  <br /></td></tr>
+<tr class="memdesc:ga6a127e2b21b20bc31da3a600cfaa79c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a single sprite to the current screen quarter (internal).  <br /></td></tr>
 <tr class="separator:ga6a127e2b21b20bc31da3a600cfaa79c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gace6a9618de463bb0ebe3c50fc05f92b2" id="r_gace6a9618de463bb0ebe3c50fc05f92b2"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2">Sprite_Add</a> (double x, double y, const uint16_t *image, int width, int height, int scale, uint16_t transparent)</td></tr>
 <tr class="memdesc:gace6a9618de463bb0ebe3c50fc05f92b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a new sprite to the world.  <br /></td></tr>
 <tr class="separator:gace6a9618de463bb0ebe3c50fc05f92b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga12d4e2e7c0a46bcdfa22dd1ee705f1b5" id="r_ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"><td class="memItemLeft" align="right" valign="top"><a id="ga12d4e2e7c0a46bcdfa22dd1ee705f1b5" name="ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Sprite_Clear</b> (void)</td></tr>
-<tr class="memdesc:ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove all sprites from the world. <br /></td></tr>
+<tr class="memitem:ga12d4e2e7c0a46bcdfa22dd1ee705f1b5" id="r_ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga12d4e2e7c0a46bcdfa22dd1ee705f1b5">Sprite_Clear</a> (void)</td></tr>
+<tr class="memdesc:ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove all sprites from the world.  <br /></td></tr>
 <tr class="separator:ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga609b79576bd150bc73ab733f66f09e0c" id="r_ga609b79576bd150bc73ab733f66f09e0c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga609b79576bd150bc73ab733f66f09e0c">Sprite_Remove</a> (int index)</td></tr>
-<tr class="memdesc:ga609b79576bd150bc73ab733f66f09e0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a specific sprite.  <br /></td></tr>
+<tr class="memdesc:ga609b79576bd150bc73ab733f66f09e0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a specific sprite by index.  <br /></td></tr>
 <tr class="separator:ga609b79576bd150bc73ab733f66f09e0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1175e3864df7aeef428eb35f7b270c1d" id="r_ga1175e3864df7aeef428eb35f7b270c1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga1175e3864df7aeef428eb35f7b270c1d">Sprite_Move</a> (int index, double x, double y)</td></tr>
 <tr class="memdesc:ga1175e3864df7aeef428eb35f7b270c1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move a sprite to a new world position.  <br /></td></tr>
 <tr class="separator:ga1175e3864df7aeef428eb35f7b270c1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga12258e884cf06c337d11f5344ca14548" id="r_ga12258e884cf06c337d11f5344ca14548"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga12258e884cf06c337d11f5344ca14548">Sprite_Scale</a> (int index, int scale)</td></tr>
-<tr class="memdesc:ga12258e884cf06c337d11f5344ca14548"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set sprite scale factor.  <br /></td></tr>
+<tr class="memdesc:ga12258e884cf06c337d11f5344ca14548"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change a sprite's scale factor.  <br /></td></tr>
 <tr class="separator:ga12258e884cf06c337d11f5344ca14548"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7a987633deca56d52fc5e43dae209125" id="r_ga7a987633deca56d52fc5e43dae209125"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structSprite.html">Sprite</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga7a987633deca56d52fc5e43dae209125">Sprite_Get</a> (int index)</td></tr>
-<tr class="memdesc:ga7a987633deca56d52fc5e43dae209125"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a read-only pointer to a sprite.  <br /></td></tr>
+<tr class="memdesc:ga7a987633deca56d52fc5e43dae209125"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a read-only pointer to a sprite's data.  <br /></td></tr>
 <tr class="separator:ga7a987633deca56d52fc5e43dae209125"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3d5acf258d6516935e304d9b28de8f22" id="r_ga3d5acf258d6516935e304d9b28de8f22"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga3d5acf258d6516935e304d9b28de8f22">Sprites_GetCount</a> (void)</td></tr>
-<tr class="memdesc:ga3d5acf258d6516935e304d9b28de8f22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get count of active sprites.  <br /></td></tr>
+<tr class="memdesc:ga3d5acf258d6516935e304d9b28de8f22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of active sprites.  <br /></td></tr>
 <tr class="separator:ga3d5acf258d6516935e304d9b28de8f22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -149,7 +149,10 @@ Variables</h2></td></tr>
 <tr class="separator:ga3e4dd46e77cd0f0713f66171dfb43795"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Dynamic objects in the world. </p>
+<p>Billboarded world sprites with depth-sorted rendering. </p>
+<p>The Sprites module manages dynamic objects placed in the 3D world. Sprites are always rendered facing the camera (billboarded) and are depth-tested against the raycaster's Z-buffer so they appear correctly behind or in front of walls. Up to <a class="el" href="group__Sprites.html#ga19d5d14b4dfd4106f0de2035e853a790">SPRITES_MAX_COUNT</a> sprites can be active at once.</p>
+<dl class="section note"><dt>Note</dt><dd>For sprites created in RayCast3D Studio, **always prefer the <code>AddSprite(x,y,name,scale)</code> and <code>AddFGSprite(name,x,y,scale)</code> macros from <a class="el" href="images_8h_source.html">images.h</a>** — they automatically fill in the image pointer, dimensions, and transparent color so you only need to specify position and scale. Use <a class="el" href="group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2" title="Add a new sprite to the world.">Sprite_Add()</a> directly only when working with image data that was not created through the Studio.</dd></dl>
+<p>After adding a sprite, use <a class="el" href="group__Sprites.html#ga1175e3864df7aeef428eb35f7b270c1d" title="Move a sprite to a new world position.">Sprite_Move()</a> and <a class="el" href="group__Sprites.html#ga12258e884cf06c337d11f5344ca14548" title="Change a sprite&#39;s scale factor.">Sprite_Scale()</a> to update it at runtime. Rendering is handled automatically by <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a>. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ga19d5d14b4dfd4106f0de2035e853a790" name="ga19d5d14b4dfd4106f0de2035e853a790"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga19d5d14b4dfd4106f0de2035e853a790">&#9670;&#160;</a></span>SPRITES_MAX_COUNT</h2>
@@ -228,19 +231,44 @@ Variables</h2></td></tr>
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
 <p>Add a new sprite to the world. </p>
+<p>Finds the first empty slot in the sprite array and initializes it.</p>
+<dl class="section note"><dt>Note</dt><dd>For Studio-created sprites, use the <code>AddSprite</code> macro from <a class="el" href="images_8h_source.html">images.h</a> instead — it calls this function automatically with the correct image, dimensions, and transparent color.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">x</td><td>World X position </td></tr>
-    <tr><td class="paramname">y</td><td>World Y position </td></tr>
-    <tr><td class="paramname">image</td><td>Pointer to image data </td></tr>
+    <tr><td class="paramname">x</td><td>World X position (column) </td></tr>
+    <tr><td class="paramname">y</td><td>World Y position (row) </td></tr>
+    <tr><td class="paramname">image</td><td>Pointer to BGR565 image data </td></tr>
     <tr><td class="paramname">width</td><td>Image width in pixels </td></tr>
     <tr><td class="paramname">height</td><td>Image height in pixels </td></tr>
-    <tr><td class="paramname">scale</td><td>Size factor (8 = full screen height) </td></tr>
-    <tr><td class="paramname">transparent</td><td>Color key for transparency </td></tr>
+    <tr><td class="paramname">scale</td><td>Size factor (8 = full screen height at distance 1.0) </td></tr>
+    <tr><td class="paramname">transparent</td><td>Pixel color treated as transparent (not drawn) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="structSprite.html">Sprite</a> index, or -1 if no slots available </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> index (use for Move/Remove/Scale), or -1 if all slots full </dd></dl>
+
+</div>
+</div>
+<a id="ga12d4e2e7c0a46bcdfa22dd1ee705f1b5" name="ga12d4e2e7c0a46bcdfa22dd1ee705f1b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga12d4e2e7c0a46bcdfa22dd1ee705f1b5">&#9670;&#160;</a></span>Sprite_Clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Sprite_Clear </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/sprites.h&gt;</code></p>
+
+<p>Remove all sprites from the world. </p>
+<p>Marks every slot as inactive and resets the sprite count to zero. </p>
 
 </div>
 </div>
@@ -262,14 +290,14 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Get a read-only pointer to a sprite. </p>
+<p>Get a read-only pointer to a sprite's data. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html">Sprite</a> index </td></tr>
+    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> index </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Pointer to sprite, or NULL if invalid/inactive </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the <a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> struct, or NULL if the index is out of range or the slot is inactive </dd></dl>
 
 </div>
 </div>
@@ -310,9 +338,9 @@ Variables</h2></td></tr>
 <p>Move a sprite to a new world position. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html">Sprite</a> index returned by Sprite_Add </td></tr>
-    <tr><td class="paramname">x</td><td>New world X coordinate </td></tr>
-    <tr><td class="paramname">y</td><td>New world Y coordinate </td></tr>
+    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> index returned by Sprite_Add </td></tr>
+    <tr><td class="paramname">x</td><td>New world X coordinate (column) </td></tr>
+    <tr><td class="paramname">y</td><td>New world Y coordinate (row) </td></tr>
   </table>
   </dd>
 </dl>
@@ -337,10 +365,11 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Remove a specific sprite. </p>
+<p>Remove a specific sprite by index. </p>
+<p>Marks the slot as inactive so it can be reused by a future <a class="el" href="group__Sprites.html#gace6a9618de463bb0ebe3c50fc05f92b2" title="Add a new sprite to the world.">Sprite_Add()</a> call. Does nothing if the index is out of range.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html">Sprite</a> index returned by Sprite_Add </td></tr>
+    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> index returned by Sprite_Add </td></tr>
   </table>
   </dd>
 </dl>
@@ -375,11 +404,12 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Set sprite scale factor. </p>
+<p>Change a sprite's scale factor. </p>
+<p>A scale of 8 makes the sprite fill the full screen height when at distance 1.0 from the camera. Smaller values shrink it.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html">Sprite</a> index returned by Sprite_Add </td></tr>
-    <tr><td class="paramname">scale</td><td>Size factor (8 = full screen height) </td></tr>
+    <tr><td class="paramname">index</td><td><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> index returned by Sprite_Add </td></tr>
+    <tr><td class="paramname">scale</td><td>Size factor (8 = full screen height at distance 1.0) </td></tr>
   </table>
   </dd>
 </dl>
@@ -404,8 +434,8 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Get count of active sprites. </p>
-<dl class="section return"><dt>Returns</dt><dd>Number of active sprites </dd></dl>
+<p>Get the number of active sprites. </p>
+<dl class="section return"><dt>Returns</dt><dd>Count of sprites currently in the world </dd></dl>
 
 </div>
 </div>
@@ -427,10 +457,11 @@ Variables</h2></td></tr>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Render all active sprites for a screen quarter. </p>
+<p>Render all active sprites for a screen quarter (internal). </p>
+<p>Sorts sprites back-to-front by distance from the camera and renders each one with depth testing against the Z-buffer. Called automatically by <a class="el" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display.">RayCast3D_Render()</a> — do not call directly.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">side</td><td>Which quarter (0-3) </td></tr>
+    <tr><td class="paramname">side</td><td>Which screen quarter to render (0-3) </td></tr>
   </table>
   </dd>
 </dl>
@@ -439,10 +470,10 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Sprites_gaf384a3302cb5e94d248c50534fb024db_cgraph.png" border="0" usemap="#agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_cgraph" alt=""/></div>
 <map name="agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_cgraph" id="agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_cgraph">
-<area shape="rect" title="Render all active sprites for a screen quarter." alt="" coords="5,5,143,31"/>
-<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="385,5,488,31"/>
+<area shape="rect" title="Render all active sprites for a screen quarter (internal)." alt="" coords="5,5,143,31"/>
+<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="385,5,488,31"/>
 <area shape="poly" title=" " alt="" coords="143,15,372,15,372,21,143,21"/>
-<area shape="rect" href="group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="191,31,337,56"/>
+<area shape="rect" href="group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="191,31,337,56"/>
 <area shape="poly" title=" " alt="" coords="143,25,177,29,176,34,143,30"/>
 <area shape="poly" title=" " alt="" coords="337,30,371,25,372,30,338,35"/>
 </map>
@@ -452,8 +483,8 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Sprites_gaf384a3302cb5e94d248c50534fb024db_icgraph.png" border="0" usemap="#agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_icgraph" alt=""/></div>
 <map name="agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_icgraph" id="agroup__Sprites_gaf384a3302cb5e94d248c50534fb024db_icgraph">
-<area shape="rect" title="Render all active sprites for a screen quarter." alt="" coords="200,5,337,31"/>
-<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,5,152,31"/>
+<area shape="rect" title="Render all active sprites for a screen quarter (internal)." alt="" coords="200,5,337,31"/>
+<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,5,152,31"/>
 <area shape="poly" title=" " alt="" coords="186,21,153,21,153,15,186,15"/>
 </map>
 </div>
@@ -494,12 +525,13 @@ Here is the caller graph for this function:</div>
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
 
-<p>Render a single sprite. </p>
+<p>Render a single sprite to the current screen quarter (internal). </p>
+<p>Projects the sprite into screen space, clips to the current quarter, and draws visible pixels with Z-buffer occlusion.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sprite</td><td><a class="el" href="structSprite.html">Sprite</a> data </td></tr>
-    <tr><td class="paramname">side</td><td>Which quarter (0-3) </td></tr>
-    <tr><td class="paramname">spriteIndex</td><td>Index for Z-buffer lookup </td></tr>
+    <tr><td class="paramname">sprite</td><td><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> data (passed by value) </td></tr>
+    <tr><td class="paramname">side</td><td>Which screen quarter (0-3) </td></tr>
+    <tr><td class="paramname">spriteIndex</td><td>Index into Sprites_Array for distance sorting </td></tr>
   </table>
   </dd>
 </dl>
@@ -508,8 +540,8 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_cgraph.png" border="0" usemap="#agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_cgraph" alt=""/></div>
 <map name="agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_cgraph" id="agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_cgraph">
-<area shape="rect" title="Render a single sprite." alt="" coords="5,5,152,31"/>
-<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="200,5,303,31"/>
+<area shape="rect" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="5,5,152,31"/>
+<area shape="rect" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="200,5,303,31"/>
 <area shape="poly" title=" " alt="" coords="152,15,187,15,187,21,152,21"/>
 </map>
 </div>
@@ -518,10 +550,10 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="group__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_icgraph.png" border="0" usemap="#agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_icgraph" alt=""/></div>
 <map name="agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_icgraph" id="agroup__Sprites_ga6a127e2b21b20bc31da3a600cfaa79c9_icgraph">
-<area shape="rect" title="Render a single sprite." alt="" coords="385,5,532,31"/>
-<area shape="rect" href="group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="200,5,337,31"/>
+<area shape="rect" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="385,5,532,31"/>
+<area shape="rect" href="group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter (internal)." alt="" coords="200,5,337,31"/>
 <area shape="poly" title=" " alt="" coords="371,21,338,21,338,15,371,15"/>
-<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,5,152,31"/>
+<area shape="rect" href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,5,152,31"/>
 <area shape="poly" title=" " alt="" coords="186,21,153,21,153,15,186,15"/>
 </map>
 </div>
@@ -540,7 +572,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>0 = slot empty, 1 = in use </p>
+<p>Slot state: 0 = empty, 1 = in use </p>
 
 </div>
 </div>
@@ -555,7 +587,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Image height in pixels </p>
+<p>Source image height in pixels </p>
 
 </div>
 </div>
@@ -570,7 +602,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pointer to image data </p>
+<p>Pointer to BGR565 image pixel data </p>
 
 </div>
 </div>
@@ -585,7 +617,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Scale factor (8 = full height) </p>
+<p>Scale factor (8 = full screen height at distance 1.0) </p>
 
 </div>
 </div>
@@ -610,7 +642,7 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p><code>#include &lt;services/sprites.h&gt;</code></p>
-<p><a class="el" href="structSprite.html">Sprite</a> array (access via Sprite_* functions preferred) </p>
+<p><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> array (access via Sprite_* functions preferred) </p>
 
 </div>
 </div>
@@ -650,7 +682,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Transparent color key </p>
+<p>Pixel color treated as transparent (not drawn) </p>
 
 </div>
 </div>
@@ -665,7 +697,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>User-defined sprite type </p>
+<p>User-defined tag for game logic (unused by engine) </p>
 
 </div>
 </div>
@@ -680,7 +712,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Image width in pixels </p>
+<p>Source image width in pixels </p>
 
 </div>
 </div>
@@ -695,7 +727,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>World X position </p>
+<p>World X position (column, in tile coordinates) </p>
 
 </div>
 </div>
@@ -710,7 +742,7 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>World Y position </p>
+<p>World Y position (row, in tile coordinates) </p>
 
 </div>
 </div>

@@ -98,13 +98,11 @@ The Studio automatically exports to the `assets/` folder:
 
 ## API Modules
 
-- [Engine Core](group__EngineCore.html) — initialization and rendering  
-- [Camera](group__Camera.html) — movement and orientation  
-- [Graphics](group__Graphics.html) — visual configuration  
-- [Map](group__Map.html) — world data  
-- [Sprites](group__Sprites.html) — dynamic objects  
-
-For information on use of modules, see the docs
+- **Engine Core** — initialization and rendering
+- **Camera** — movement and orientation
+- **Graphics** — visual configuration
+- **Map** — world data
+- **Sprites** — dynamic objects
 
 ## Performance Optimizations
 

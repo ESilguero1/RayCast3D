@@ -16,9 +16,16 @@
  *   3. In main loop: RayCast3D_Render()
  */
 
- /**
+/**
  * @defgroup EngineCore Engine Core
- * @brief Initialization and main rendering loop.
+ * @brief Top-level engine initialization and per-frame rendering.
+ *
+ * The Engine Core provides the two entry points for the RayCast3D library.
+ * Call RayCast3D_Init() once at startup to configure the display and DMA
+ * hardware, then call RayCast3D_Render() once per iteration of your main
+ * loop to cast rays, draw sprites and overlays, and transfer the frame
+ * to the ST7735 display via DMA.
+ *
  * @{
  */
 
@@ -30,18 +37,22 @@
  *---------------------------------------------------------------------------*/
 
 /**
- * @brief Initialize the raycasting engine
+ * @brief Initialize the raycasting engine.
  *
- * Sets up display and DMA.
- * Call once at startup before using any other functions.
+ * Configures the ST7735 display, SPI bus, and DMA channel 0 for
+ * asynchronous frame transfers. Must be called once at startup
+ * before any other RayCast3D function.
  */
 void RayCast3D_Init(void);
 
 /**
- * @brief Render one complete frame
+ * @brief Render one complete frame to the display.
  *
- * Casts rays, renders sprites, draws overlays, transfers to display.
- * Call once per frame in your main loop.
+ * Performs the full rendering pipeline for each of the four screen
+ * quarters: clears the depth buffer, casts rays to draw textured walls,
+ * renders world sprites with depth sorting, draws queued UI overlays
+ * (text, foreground sprites, FPS counter), and transfers each quarter
+ * to the ST7735 via DMA. Call once per iteration of your main loop.
  */
 void RayCast3D_Render(void);
 

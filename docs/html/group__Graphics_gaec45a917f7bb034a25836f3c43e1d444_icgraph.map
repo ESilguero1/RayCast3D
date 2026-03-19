@@ -1,0 +1,5 @@
+<map id="Graphics_Init" name="Graphics_Init">
+<area shape="rect" id="Node000001" title="Initialize the graphics subsystem." alt="" coords="176,5,283,31"/>
+<area shape="rect" id="Node000002" href="$group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16" title="Initialize the raycasting engine." alt="" coords="5,5,128,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,21,128,21,128,15,162,15"/>
+</map>

@@ -1,13 +1,13 @@
 <map id="RayCast3D_Render" name="RayCast3D_Render">
-<area shape="rect" id="Node000001" title="Render one complete frame." alt="" coords="5,31,152,56"/>
-<area shape="rect" id="Node000002" href="$group__Graphics.html#ga81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter." alt="" coords="417,5,500,31"/>
+<area shape="rect" id="Node000001" title="Render one complete frame to the display." alt="" coords="5,31,152,56"/>
+<area shape="rect" id="Node000002" href="$group__Graphics.html#ga81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter (internal)." alt="" coords="417,5,500,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,36,404,19,404,24,152,41"/>
-<area shape="rect" id="Node000004" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="200,56,337,81"/>
+<area shape="rect" id="Node000004" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter (internal)." alt="" coords="200,56,337,81"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="153,50,186,55,186,60,152,56"/>
-<area shape="rect" id="Node000003" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to camera state." alt="" coords="580,56,683,81"/>
+<area shape="rect" id="Node000003" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="580,56,683,81"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="501,27,575,49,573,55,500,33"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="338,66,566,66,566,71,338,71"/>
-<area shape="rect" id="Node000005" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="385,107,532,132"/>
+<area shape="rect" id="Node000005" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="385,107,532,132"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="318,79,398,100,396,106,317,84"/>
 <area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="502,104,573,83,575,88,504,109"/>
 </map>

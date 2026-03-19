@@ -1,12 +1,12 @@
 <map id="Camera_Get" name="Camera_Get">
-<area shape="rect" id="Node000001" title="Get read&#45;only access to camera state." alt="" coords="580,55,683,80"/>
-<area shape="rect" id="Node000002" href="$group__Graphics.html#ga81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter." alt="" coords="227,5,310,31"/>
+<area shape="rect" id="Node000001" title="Get read&#45;only access to the full camera state." alt="" coords="580,55,683,80"/>
+<area shape="rect" id="Node000002" href="$group__Graphics.html#ga81af24be0237db99a8689b90cc165520" title="Cast rays for one screen quarter (internal)." alt="" coords="227,5,310,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="566,57,532,51,310,24,310,19,532,46,567,52"/>
-<area shape="rect" id="Node000004" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter." alt="" coords="200,55,337,80"/>
+<area shape="rect" id="Node000004" href="$group__Sprites.html#gaf384a3302cb5e94d248c50534fb024db" title="Render all active sprites for a screen quarter (internal)." alt="" coords="200,55,337,80"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="566,70,337,70,337,65,566,65"/>
-<area shape="rect" id="Node000005" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite." alt="" coords="385,105,532,131"/>
+<area shape="rect" id="Node000005" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="385,105,532,131"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="575,87,504,108,502,103,573,81"/>
-<area shape="rect" id="Node000003" href="$group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame." alt="" coords="5,31,152,56"/>
+<area shape="rect" id="Node000003" href="$group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3" title="Render one complete frame to the display." alt="" coords="5,31,152,56"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="214,28,153,36,152,31,213,23"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="186,60,152,55,153,50,187,54"/>
 <area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="396,104,317,83,318,78,398,99"/>
