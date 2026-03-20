@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['inline_20arithmetic_0',['Inline Arithmetic',['../group__fixed__arith.html',1,'']]]
+  ['sprites_0',['Sprites',['../group__Sprites.html',1,'']]]
 ];

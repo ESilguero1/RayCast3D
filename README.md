@@ -103,6 +103,7 @@ The Studio automatically exports to the `assets/` folder:
 - **Graphics** — visual configuration
 - **Map** — world data
 - **Sprites** — dynamic objects
+- **Fixed Point** — math that doesn't need an FPU
 
 For full API details, see the [documentation](https://esilguero1.github.io/RayCast3D/).
 
@@ -165,21 +166,6 @@ Q3: Render to B (while DMA sends A) → Wait for DMA → Start DMA from B
 - **~100% SPI utilization**: CPU and DMA run in parallel with minimal idle time
 
 **Hardware resource:** DMA Channel 0 is reserved for display transfers and is not available for other uses.
-
-## Fixed-Point API
-
-Located in `utils/fixed.h`:
-
-| Macro/Function | Description |
-|----------------|-------------|
-| `INT_TO_FIXED(x)` | Convert integer to fixed-point |
-| `FIXED_TO_INT(x)` | Convert fixed-point to integer (truncates) |
-| `FLOAT_TO_FIXED(x)` | Convert float/double to fixed-point |
-| `fixed_mul(a, b)` | Multiply two fixed-point values |
-| `fixed_div(a, b)` | Divide two fixed-point values |
-| `fixed_sin(angle)` | Sine (angle in fixed-point radians) |
-| `fixed_cos(angle)` | Cosine (angle in fixed-point radians) |
-| `fixed_sqrt(x)` | Square root using Newton-Raphson |
 
 ## License
 

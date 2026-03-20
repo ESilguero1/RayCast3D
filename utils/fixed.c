@@ -16,7 +16,7 @@
 // Sine lookup table for 0 to 90 degrees (256 entries)
 // Values are Q16.16 fixed-point, computed as sin(i * 90 / 255) * 65536
 // We only store 0-90 degrees and use symmetry for other quadrants
-const fixed_t sin_table[SIN_TABLE_SIZE] = {
+const fixed_t Fixed_SinTable[SIN_TABLE_SIZE] = {
     0, 402, 804, 1206, 1608, 2010, 2412, 2814,
     3216, 3617, 4019, 4420, 4821, 5222, 5623, 6023,
     6424, 6824, 7224, 7623, 8022, 8421, 8820, 9218,
@@ -54,8 +54,8 @@ const fixed_t sin_table[SIN_TABLE_SIZE] = {
 // Reciprocal lookup table for fast division
 // Maps values from 0.25 to 4.0 (in steps) to their reciprocals
 // Index 0 = 1/0.25 = 4.0, Index 255 = 1/4.0 = 0.25
-// Stored as Q16.16: recip_table[i] = 65536 / (0.25 + i * (4.0 - 0.25) / 255)
-const fixed_t recip_table[RECIP_TABLE_SIZE] = {
+// Stored as Q16.16: Fixed_RecipTable[i] = 65536 / (0.25 + i * (4.0 - 0.25) / 255)
+const fixed_t Fixed_RecipTable[RECIP_TABLE_SIZE] = {
     262144, 259553, 257018, 254538, 252110, 249734, 247407, 245129,
     242897, 240712, 238570, 236472, 234416, 232401, 230425, 228489,
     226590, 224728, 222901, 221110, 219352, 217628, 215936, 214276,
@@ -94,7 +94,7 @@ const fixed_t recip_table[RECIP_TABLE_SIZE] = {
 // Fast sine using lookup table
 // Input: angle in fixed-point radians
 // Output: sine value in fixed-point (-1.0 to 1.0 range)
-fixed_t fixed_sin(fixed_t angle) {
+fixed_t Fixed_Sin(fixed_t angle) {
     // Normalize angle to [0, 2*PI)
     while (angle < 0) angle += FIXED_2PI;
     while (angle >= FIXED_2PI) angle -= FIXED_2PI;
@@ -112,17 +112,17 @@ fixed_t fixed_sin(fixed_t angle) {
     fixed_t value;
     switch (quadrant) {
         case 0:  // 0 to PI/2: sin increases 0 to 1
-            value = sin_table[index];
+            value = Fixed_SinTable[index];
             break;
         case 1:  // PI/2 to PI: sin decreases 1 to 0
-            value = sin_table[SIN_TABLE_SIZE - 1 - index];
+            value = Fixed_SinTable[SIN_TABLE_SIZE - 1 - index];
             break;
         case 2:  // PI to 3*PI/2: sin decreases 0 to -1
-            value = -sin_table[index];
+            value = -Fixed_SinTable[index];
             break;
         case 3:  // 3*PI/2 to 2*PI: sin increases -1 to 0
         default:
-            value = -sin_table[SIN_TABLE_SIZE - 1 - index];
+            value = -Fixed_SinTable[SIN_TABLE_SIZE - 1 - index];
             break;
     }
 
@@ -130,13 +130,13 @@ fixed_t fixed_sin(fixed_t angle) {
 }
 
 // Fast cosine: cos(x) = sin(x + PI/2)
-fixed_t fixed_cos(fixed_t angle) {
-    return fixed_sin(angle + FIXED_PI_HALF);
+fixed_t Fixed_Cos(fixed_t angle) {
+    return Fixed_Sin(angle + FIXED_PI_HALF);
 }
 
 // Fast reciprocal for values in range ~0.25 to 4.0
 // Returns FIXED_LARGE for values too close to zero
-fixed_t fixed_recip(fixed_t x) {
+fixed_t Fixed_Recip(fixed_t x) {
     if (x == 0) return FIXED_LARGE;
 
     int negative = 0;
@@ -149,7 +149,7 @@ fixed_t fixed_recip(fixed_t x) {
     // Values outside this range need special handling
     if (x < 16384) {
         // x < 0.25: result would be > 4.0, use division
-        fixed_t result = fixed_div(FIXED_ONE, x);
+        fixed_t result = Fixed_Div(FIXED_ONE, x);
         return negative ? -result : result;
     }
 
@@ -161,11 +161,11 @@ fixed_t fixed_recip(fixed_t x) {
             int index = ((scaled - 16384) * (RECIP_TABLE_SIZE - 1)) / (262144 - 16384);
             if (index < 0) index = 0;
             if (index >= RECIP_TABLE_SIZE) index = RECIP_TABLE_SIZE - 1;
-            fixed_t result = recip_table[index] >> 3;  // Divide result by 8
+            fixed_t result = Fixed_RecipTable[index] >> 3;  // Divide result by 8
             return negative ? -result : result;
         }
         // x > 32: very small result, use division
-        fixed_t result = fixed_div(FIXED_ONE, x);
+        fixed_t result = Fixed_Div(FIXED_ONE, x);
         return negative ? -result : result;
     }
 
@@ -174,13 +174,13 @@ fixed_t fixed_recip(fixed_t x) {
     if (index < 0) index = 0;
     if (index >= RECIP_TABLE_SIZE) index = RECIP_TABLE_SIZE - 1;
 
-    fixed_t result = recip_table[index];
+    fixed_t result = Fixed_RecipTable[index];
     return negative ? -result : result;
 }
 
 // Reciprocal for larger values (used in raycasting for perpWallDist)
 // Handles the range needed for SCREEN_HEIGHT / perpWallDist calculation
-fixed_t fixed_recip_large(fixed_t x) {
+fixed_t Fixed_RecipLarge(fixed_t x) {
     if (x == 0) return FIXED_LARGE;
 
     // Guard against near-zero values that would overflow int32 when computing reciprocal
@@ -190,13 +190,13 @@ fixed_t fixed_recip_large(fixed_t x) {
 
     // For raycasting, we typically need 1/x where x is 0.1 to 32+
     // Use division for accuracy in the critical path
-    return fixed_div(FIXED_ONE, x);
+    return Fixed_Div(FIXED_ONE, x);
 }
 
 // Fast fixed-point square root using Newton-Raphson iteration
 // Input: x in Q16.16 format (must be non-negative)
 // Output: sqrt(x) in Q16.16 format
-fixed_t fixed_sqrt(fixed_t x) {
+fixed_t Fixed_Sqrt(fixed_t x) {
     if (x <= 0) return 0;
 
     // Initial guess: shift right by 8 (approximate sqrt by halving exponent)
@@ -219,10 +219,10 @@ fixed_t fixed_sqrt(fixed_t x) {
 
     // Newton-Raphson: x_new = (x_old + n/x_old) / 2
     // 4 iterations is usually enough for Q16.16 precision
-    guess = (guess + fixed_div(x, guess)) >> 1;
-    guess = (guess + fixed_div(x, guess)) >> 1;
-    guess = (guess + fixed_div(x, guess)) >> 1;
-    guess = (guess + fixed_div(x, guess)) >> 1;
+    guess = (guess + Fixed_Div(x, guess)) >> 1;
+    guess = (guess + Fixed_Div(x, guess)) >> 1;
+    guess = (guess + Fixed_Div(x, guess)) >> 1;
+    guess = (guess + Fixed_Div(x, guess)) >> 1;
 
     return guess;
 }

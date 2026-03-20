@@ -1,7 +1,7 @@
 <map id="Sprites_RenderOne" name="Sprites_RenderOne">
 <area shape="rect" id="Node000001" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="5,31,152,56"/>
-<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="215,5,317,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,31,201,24,202,29,153,36"/>
-<area shape="rect" id="Node000003" href="$group__fixed__recip.html#ga67e333b9721083396ee11e2af336d254" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="200,55,332,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,50,187,54,186,60,152,55"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="216,5,319,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,31,202,24,203,29,153,36"/>
+<area shape="rect" id="Node000003" href="$group__Fixed.html#gae47cef8924b6401088d127e0bc119ab6" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="200,55,335,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,50,186,54,186,60,152,55"/>
 </map>

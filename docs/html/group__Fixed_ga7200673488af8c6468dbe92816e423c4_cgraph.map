@@ -1,0 +1,5 @@
+<map id="Fixed_Cos" name="Fixed_Cos">
+<area shape="rect" id="Node000001" title="Fast cosine via quarter&#45;wave lookup table." alt="" coords="5,5,92,31"/>
+<area shape="rect" id="Node000002" href="$group__Fixed.html#gacd57afbead0630c390232fa907ee8759" title="Fast sine via quarter&#45;wave lookup table." alt="" coords="140,5,223,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,15,126,15,126,21,92,21"/>
+</map>

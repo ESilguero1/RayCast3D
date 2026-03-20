@@ -78,7 +78,7 @@ static void precalculateFloorGradient(void) {
         /* intensity=1.0: factor goes 1.0->0.0 (full gradient to black) */
         /* intensity=0.0: factor stays at 1.0 (solid color) */
         fixed_t baseFactor = y * baseStep;
-        fixed_t factor = FIXED_ONE - fixed_mul(GradientIntensity, baseFactor);
+        fixed_t factor = FIXED_ONE - Fixed_Mul(GradientIntensity, baseFactor);
 
         /* Scale color components */
         uint16_t scaledR = (r * factor) >> FIXED_SHIFT;

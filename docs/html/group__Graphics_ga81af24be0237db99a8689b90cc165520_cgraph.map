@@ -1,7 +1,7 @@
 <map id="CastRays" name="CastRays">
 <area shape="rect" id="Node000001" title="Cast rays for one screen quarter (internal)." alt="" coords="5,31,88,56"/>
-<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="151,5,253,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,34,136,26,137,31,89,39"/>
-<area shape="rect" id="Node000003" href="$group__fixed__recip.html#ga67e333b9721083396ee11e2af336d254" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="136,55,268,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="89,47,123,52,122,58,88,52"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="152,5,255,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,34,138,26,139,31,88,39"/>
+<area shape="rect" id="Node000003" href="$group__Fixed.html#gae47cef8924b6401088d127e0bc119ab6" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="136,55,271,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="88,47,123,52,122,58,88,52"/>
 </map>

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['functions_0',['Trigonometric Functions',['../group__fixed__trig.html',1,'']]]
+  ['map_0',['Map',['../group__Map.html',1,'']]],
+  ['math_1',['Fixed-Point Math',['../group__Fixed.html',1,'']]]
 ];

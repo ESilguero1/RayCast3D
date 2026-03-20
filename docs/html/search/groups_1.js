@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['approximation_0',['Reciprocal Approximation',['../group__fixed__recip.html',1,'']]],
-  ['arithmetic_1',['Inline Arithmetic',['../group__fixed__arith.html',1,'']]]
+  ['engine_20core_0',['Engine Core',['../group__EngineCore.html',1,'']]]
 ];

@@ -52,21 +52,21 @@ void Camera_SetDirection(double dirX, double dirY) {
     fixed_t fy = FLOAT_TO_FIXED(dirY);
 
     // Normalize direction vector using fixed-point
-    fixed_t lenSq = fixed_mul(fx, fx) + fixed_mul(fy, fy);
+    fixed_t lenSq = Fixed_Mul(fx, fx) + Fixed_Mul(fy, fy);
 
     if (lenSq > 0) {
-        fixed_t len = fixed_sqrt(lenSq);
+        fixed_t len = Fixed_Sqrt(lenSq);
 
         if (len > CAMERA_MIN_DIR_LENGTH) {
-            CameraState.dirX = fixed_div(fx, len);
-            CameraState.dirY = fixed_div(fy, len);
+            CameraState.dirX = Fixed_Div(fx, len);
+            CameraState.dirY = Fixed_Div(fy, len);
         }
     }
 
     // Calculate perpendicular camera plane with FOV ratio 0.66
     // Plane is perpendicular to direction using (-y, x) rotation (90° counter-clockwise)
-    CameraState.planeX = -fixed_mul(CameraState.dirY, CAMERA_FOV_RATIO_FIXED);
-    CameraState.planeY = fixed_mul(CameraState.dirX, CAMERA_FOV_RATIO_FIXED);
+    CameraState.planeX = -Fixed_Mul(CameraState.dirY, CAMERA_FOV_RATIO_FIXED);
+    CameraState.planeY = Fixed_Mul(CameraState.dirX, CAMERA_FOV_RATIO_FIXED);
 }
 
 void Camera_GetDirection(double* dirX, double* dirY) {
@@ -79,12 +79,12 @@ void Camera_Move(double forward, double strafe) {
     fixed_t str = FLOAT_TO_FIXED(strafe);
 
     // Move forward/backward along direction vector
-    fixed_t newX = CameraState.posX + fixed_mul(CameraState.dirX, fwd);
-    fixed_t newY = CameraState.posY + fixed_mul(CameraState.dirY, fwd);
+    fixed_t newX = CameraState.posX + Fixed_Mul(CameraState.dirX, fwd);
+    fixed_t newY = CameraState.posY + Fixed_Mul(CameraState.dirY, fwd);
 
     // Strafe (move perpendicular to direction)
-    newX += fixed_mul(CameraState.planeX, str);
-    newY += fixed_mul(CameraState.planeY, str);
+    newX += Fixed_Mul(CameraState.planeX, str);
+    newY += Fixed_Mul(CameraState.planeY, str);
 
     // No collision detection - up to the user!!
     CameraState.posX = newX;
@@ -96,30 +96,30 @@ void Camera_Rotate(double degrees) {
     fixed_t radians = FLOAT_TO_FIXED(-degrees * FASTMATH_DEG_TO_RAD);
 
     // Use fixed-point sin/cos lookup
-    fixed_t cosA = fixed_cos(radians);
-    fixed_t sinA = fixed_sin(radians);
+    fixed_t cosA = Fixed_Cos(radians);
+    fixed_t sinA = Fixed_Sin(radians);
 
     // Rotate direction vector
     fixed_t oldDirX = CameraState.dirX;
-    CameraState.dirX = fixed_mul(CameraState.dirX, cosA) - fixed_mul(CameraState.dirY, sinA);
-    CameraState.dirY = fixed_mul(oldDirX, sinA) + fixed_mul(CameraState.dirY, cosA);
+    CameraState.dirX = Fixed_Mul(CameraState.dirX, cosA) - Fixed_Mul(CameraState.dirY, sinA);
+    CameraState.dirY = Fixed_Mul(oldDirX, sinA) + Fixed_Mul(CameraState.dirY, cosA);
 
     // Re-normalize direction vector to prevent drift
     // Without this, repeated rotations cause the vector length to drift from 1.0
-    fixed_t lenSq = fixed_mul(CameraState.dirX, CameraState.dirX) + fixed_mul(CameraState.dirY, CameraState.dirY);
+    fixed_t lenSq = Fixed_Mul(CameraState.dirX, CameraState.dirX) + Fixed_Mul(CameraState.dirY, CameraState.dirY);
     if (lenSq > 0 && lenSq != FIXED_ONE) {
-        fixed_t len = fixed_sqrt(lenSq);
+        fixed_t len = Fixed_Sqrt(lenSq);
         if (len > 0) {
-            CameraState.dirX = fixed_div(CameraState.dirX, len);
-            CameraState.dirY = fixed_div(CameraState.dirY, len);
+            CameraState.dirX = Fixed_Div(CameraState.dirX, len);
+            CameraState.dirY = Fixed_Div(CameraState.dirY, len);
         }
     }
 
     // Recalculate plane from normalized direction (ensures perpendicularity and correct FOV)
     // Plane is perpendicular to direction using (-y, x) rotation (90° counter-clockwise)
     // This matches the initial camera state: dir=(0,-1) → plane=(0.66, 0)
-    CameraState.planeX = -fixed_mul(CameraState.dirY, CAMERA_FOV_RATIO_FIXED);
-    CameraState.planeY = fixed_mul(CameraState.dirX, CAMERA_FOV_RATIO_FIXED);
+    CameraState.planeX = -Fixed_Mul(CameraState.dirY, CAMERA_FOV_RATIO_FIXED);
+    CameraState.planeY = Fixed_Mul(CameraState.dirX, CAMERA_FOV_RATIO_FIXED);
 }
 
 const Camera* Camera_Get(void) {

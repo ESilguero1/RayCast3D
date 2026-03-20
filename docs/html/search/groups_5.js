@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['graphics_0',['Graphics',['../group__Graphics.html',1,'']]]
+  ['point_20math_0',['Fixed-Point Math',['../group__Fixed.html',1,'']]]
 ];

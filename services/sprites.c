@@ -57,18 +57,18 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     fixed_t spriteY = spritePosY - cam->posY;
 
     // Inverse camera transformation
-    fixed_t det = fixed_mul(cam->planeX, cam->dirY) - fixed_mul(cam->dirX, cam->planeY);
+    fixed_t det = Fixed_Mul(cam->planeX, cam->dirY) - Fixed_Mul(cam->dirX, cam->planeY);
     if (det == 0) return;
-    fixed_t invDet = fixed_recip_large(det);
+    fixed_t invDet = Fixed_RecipLarge(det);
 
-    fixed_t transformX = fixed_mul(invDet, fixed_mul(cam->dirY, spriteX) - fixed_mul(cam->dirX, spriteY));
-    fixed_t transformY = fixed_mul(invDet, -fixed_mul(cam->planeY, spriteX) + fixed_mul(cam->planeX, spriteY));
+    fixed_t transformX = Fixed_Mul(invDet, Fixed_Mul(cam->dirY, spriteX) - Fixed_Mul(cam->dirX, spriteY));
+    fixed_t transformY = Fixed_Mul(invDet, -Fixed_Mul(cam->planeY, spriteX) + Fixed_Mul(cam->planeX, spriteY));
 
     // Ignore if behind camera
     if (transformY <= 6554) return;
 
     // Project sprite to screen
-    fixed_t ratio = fixed_div(transformX, transformY);
+    fixed_t ratio = Fixed_Div(transformX, transformY);
     int spriteScreenX = (HALF_SCREEN_WIDTH) * (FIXED_ONE + ratio) >> FIXED_SHIFT;
 
     // Calculate sprite dimensions
@@ -154,7 +154,7 @@ void Sprites_RenderAll(int side) {
             fixed_t dx = cam->posX - FLOAT_TO_FIXED(Sprites_Array[i].x);
             fixed_t dy = cam->posY - FLOAT_TO_FIXED(Sprites_Array[i].y);
             // Distance squared (no need for sqrt, just for sorting)
-            spriteOrder[activeCount].distance = fixed_mul(dx, dx) + fixed_mul(dy, dy);
+            spriteOrder[activeCount].distance = Fixed_Mul(dx, dx) + Fixed_Mul(dy, dy);
             activeCount++;
         }
     }

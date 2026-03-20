@@ -208,10 +208,11 @@ Fixed-Point Math (Q16.16)</h2>
 <h2><a class="anchor" id="autotoc_md13"></a>
 Rotation Drift Prevention</h2>
 <p>Repeated fixed-point multiplications can cause precision loss, leading to the direction vector drifting from unit length over time. This manifests as walls appearing to move closer or farther without player movement.</p>
-<p><b>Solution</b>: After each rotation, the direction vector is re-normalized: </p><div class="fragment"><div class="line">fixed_t lenSq = fixed_mul(dirX, dirX) + fixed_mul(dirY, dirY);</div>
-<div class="line">fixed_t len = fixed_sqrt(lenSq);</div>
+<p><b>Solution</b>: After each rotation, the direction vector is re-normalized: </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a> lenSq = fixed_mul(dirX, dirX) + fixed_mul(dirY, dirY);</div>
+<div class="line"><a class="code hl_typedef" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a> len = fixed_sqrt(lenSq);</div>
 <div class="line">dirX = fixed_div(dirX, len);</div>
 <div class="line">dirY = fixed_div(dirY, len);</div>
+<div class="ttc" id="agroup__Fixed_html_gaa256feea306343fcd95f03f389a0cd59"><div class="ttname"><a href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a></div><div class="ttdeci">int32_t fixed_t</div><div class="ttdoc">Signed Q16.16 fixed-point type.</div><div class="ttdef"><b>Definition</b> fixed.h:28</div></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md14"></a>
 Drift Verification (Tested)</h2>
 <p>The drift fix was verified using a debug display that tracks the direction vector magnitude across rotations:</p>

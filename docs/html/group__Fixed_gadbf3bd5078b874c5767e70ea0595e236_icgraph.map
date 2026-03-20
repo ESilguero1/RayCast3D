@@ -1,0 +1,7 @@
+<map id="Fixed_Sqrt" name="Fixed_Sqrt">
+<area shape="rect" id="Node000001" title="Fixed&#45;point square root (Newton&#45;Raphson)." alt="" coords="213,31,303,56"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga4f784aa8781859da4b7ecf955abe5fe3" title="Rotate camera by a specified angle." alt="" coords="24,5,147,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,38,147,30,148,24,201,32"/>
+<area shape="rect" id="Node000003" href="$group__Camera.html#ga4b4a4839c51b15119d1f5893279c09ad" title="Set camera facing direction." alt="" coords="5,55,165,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,54,166,59,165,54,199,49"/>
+</map>

@@ -1,10 +1,10 @@
 <map id="Sprites_RenderAll" name="Sprites_RenderAll">
 <area shape="rect" id="Node000001" title="Render all active sprites for a screen quarter (internal)." alt="" coords="5,29,143,55"/>
-<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="400,5,503,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,35,386,19,387,25,143,40"/>
+<area shape="rect" id="Node000002" href="$group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1" title="Get read&#45;only access to the full camera state." alt="" coords="401,5,504,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,35,387,19,388,25,143,40"/>
 <area shape="rect" id="Node000003" href="$group__Sprites.html#ga6a127e2b21b20bc31da3a600cfaa79c9" title="Render a single sprite to the current screen quarter (internal)." alt="" coords="191,55,337,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,49,177,53,176,58,143,54"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="312,52,388,32,390,37,314,57"/>
-<area shape="rect" id="Node000004" href="$group__fixed__recip.html#ga67e333b9721083396ee11e2af336d254" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="385,55,517,80"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="313,52,389,32,391,37,314,57"/>
+<area shape="rect" id="Node000004" href="$group__Fixed.html#gae47cef8924b6401088d127e0bc119ab6" title="Fast reciprocal for larger values (up to ~32)." alt="" coords="385,55,520,80"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="338,65,371,65,371,70,338,70"/>
 </map>

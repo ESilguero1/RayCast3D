@@ -45,7 +45,7 @@ static void initRowDistanceLUT(void) {
     if (floorLUTInitialized) return;
     rowDistanceLUT[0] = FIXED_LARGE;
     for (int p = 1; p <= HALF_SCREEN_HEIGHT; p++) {
-        rowDistanceLUT[p] = fixed_div(INT_TO_FIXED(HALF_SCREEN_HEIGHT), INT_TO_FIXED(p));
+        rowDistanceLUT[p] = Fixed_Div(INT_TO_FIXED(HALF_SCREEN_HEIGHT), INT_TO_FIXED(p));
     }
     floorLUTInitialized = 1;
 }
@@ -126,8 +126,8 @@ void CastRays(int side) {
         // Calculate ray position and direction (all fixed-point)
         fixed_t cameraX = (x * cameraX_step) - FIXED_ONE;  // Range: -1 to +1
 
-        fixed_t rayDirX = cam->dirX + fixed_mul(cam->planeX, cameraX);
-        fixed_t rayDirY = cam->dirY + fixed_mul(cam->planeY, cameraX);
+        fixed_t rayDirX = cam->dirX + Fixed_Mul(cam->planeX, cameraX);
+        fixed_t rayDirY = cam->dirY + Fixed_Mul(cam->planeY, cameraX);
 
         // Which box of the map we're in
         int mapX = FIXED_TO_INT(cam->posX);
@@ -139,8 +139,8 @@ void CastRays(int side) {
 
         // Length of ray from one x or y-side to next x or y-side
         // deltaDistX = |1 / rayDirX|, deltaDistY = |1 / rayDirY|
-        fixed_t deltaDistX = (rayDirX == 0) ? FIXED_LARGE : fixed_abs(fixed_recip_large(rayDirX));
-        fixed_t deltaDistY = (rayDirY == 0) ? FIXED_LARGE : fixed_abs(fixed_recip_large(rayDirY));
+        fixed_t deltaDistX = (rayDirX == 0) ? FIXED_LARGE : Fixed_Abs(Fixed_RecipLarge(rayDirX));
+        fixed_t deltaDistY = (rayDirY == 0) ? FIXED_LARGE : Fixed_Abs(Fixed_RecipLarge(rayDirY));
         fixed_t perpWallDist;
 
         // What direction to step in x or y direction
@@ -157,17 +157,17 @@ void CastRays(int side) {
 
         if (rayDirX < 0) {
             stepX = -1;
-            sideDistX = fixed_mul(posXfrac, deltaDistX);
+            sideDistX = Fixed_Mul(posXfrac, deltaDistX);
         } else {
             stepX = 1;
-            sideDistX = fixed_mul(FIXED_ONE - posXfrac, deltaDistX);
+            sideDistX = Fixed_Mul(FIXED_ONE - posXfrac, deltaDistX);
         }
         if (rayDirY < 0) {
             stepY = -1;
-            sideDistY = fixed_mul(posYfrac, deltaDistY);
+            sideDistY = Fixed_Mul(posYfrac, deltaDistY);
         } else {
             stepY = 1;
-            sideDistY = fixed_mul(FIXED_ONE - posYfrac, deltaDistY);
+            sideDistY = Fixed_Mul(FIXED_ONE - posYfrac, deltaDistY);
         }
 
         // Perform DDA with bounds checking
@@ -237,9 +237,9 @@ void CastRays(int side) {
         // Calculate where exactly the wall was hit (fixed-point)
         fixed_t wallX;
         if (sideHit == 0)
-            wallX = cam->posY + fixed_mul(perpWallDist, rayDirY);
+            wallX = cam->posY + Fixed_Mul(perpWallDist, rayDirY);
         else
-            wallX = cam->posX + fixed_mul(perpWallDist, rayDirX);
+            wallX = cam->posX + Fixed_Mul(perpWallDist, rayDirX);
         wallX = FIXED_FRAC(wallX);  // Get fractional part
 
         // Convert to texture X coordinate
@@ -255,7 +255,7 @@ void CastRays(int side) {
         if (lineHeight > 0) {
             // texStep = (texRes << 16) / lineHeight
             // Rewritten as: texRes * (65536 / lineHeight) = texRes * recip(lineHeight)
-            fixed_t recipLineHeight = fixed_recip_large(lineHeight << FIXED_SHIFT);
+            fixed_t recipLineHeight = Fixed_RecipLarge(lineHeight << FIXED_SHIFT);
             texStep = (fixed_t)texRes * recipLineHeight;
         } else {
             texStep = 0;
@@ -311,11 +311,11 @@ void CastFloors(int side) {
             int p = HALF_SCREEN_HEIGHT - y;
             fixed_t rowDist = rowDistanceLUT[p];
 
-            fixed_t floorStepX = fixed_mul(rowDist, scaledPlaneX);
-            fixed_t floorStepY = fixed_mul(rowDist, scaledPlaneY);
+            fixed_t floorStepX = Fixed_Mul(rowDist, scaledPlaneX);
+            fixed_t floorStepY = Fixed_Mul(rowDist, scaledPlaneY);
 
-            fixed_t floorX = cam->posX + fixed_mul(rowDist, rayDirX0) + floorStepX * startX;
-            fixed_t floorY = cam->posY + fixed_mul(rowDist, rayDirY0) + floorStepY * startX;
+            fixed_t floorX = cam->posX + Fixed_Mul(rowDist, rayDirX0) + floorStepX * startX;
+            fixed_t floorY = cam->posY + Fixed_Mul(rowDist, rayDirY0) + floorStepY * startX;
 
             if (y < minDrawStart) {
                 // Fast path: all columns visible, no per-pixel check
@@ -350,11 +350,11 @@ void CastFloors(int side) {
             int p = y - HALF_SCREEN_HEIGHT + 1;
             fixed_t rowDist = rowDistanceLUT[p];
 
-            fixed_t ceilStepX = fixed_mul(rowDist, scaledPlaneX);
-            fixed_t ceilStepY = fixed_mul(rowDist, scaledPlaneY);
+            fixed_t ceilStepX = Fixed_Mul(rowDist, scaledPlaneX);
+            fixed_t ceilStepY = Fixed_Mul(rowDist, scaledPlaneY);
 
-            fixed_t ceilX = cam->posX + fixed_mul(rowDist, rayDirX0) + ceilStepX * startX;
-            fixed_t ceilY = cam->posY + fixed_mul(rowDist, rayDirY0) + ceilStepY * startX;
+            fixed_t ceilX = cam->posX + Fixed_Mul(rowDist, rayDirX0) + ceilStepX * startX;
+            fixed_t ceilY = cam->posY + Fixed_Mul(rowDist, rayDirY0) + ceilStepY * startX;
 
             if (y >= maxDrawEnd) {
                 // Fast path: all columns visible, no per-pixel check
