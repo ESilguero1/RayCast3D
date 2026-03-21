@@ -7,6 +7,8 @@ Automatically saves project state and exports to assets folder.
 import subprocess
 import sys
 import os
+import platform
+import shutil
 
 # Auto-install missing dependencies
 def _ensure_dependencies():
@@ -44,6 +46,70 @@ else:
 
 ASSETS_DIR = os.path.join(SCRIPT_DIR, "../assets")
 PROJECT_FILE = os.path.join(SCRIPT_DIR, "studio_project.json")
+
+# Track last-used directory for file dialogs
+_last_file_dir = SCRIPT_DIR
+
+
+def _native_open_file_dialog(title="Select File", filetypes=None):
+    """Open a native file dialog, using zenity/kdialog on Linux for a better UX.
+    Falls back to tkinter's built-in dialog if neither is available."""
+    global _last_file_dir
+
+    if platform.system() == "Linux":
+        # Build a zenity/kdialog file filter string from tkinter-style filetypes
+        # filetypes example: [("Image files", "*.png *.jpg"), ("All files", "*.*")]
+        extensions = []
+        if filetypes:
+            for desc, patterns in filetypes:
+                if patterns != "*.*":
+                    for p in patterns.split():
+                        extensions.append(p)
+
+        # Try zenity first (GNOME/GTK desktops)
+        if shutil.which("zenity"):
+            cmd = ["zenity", "--file-selection", "--title", title]
+            if extensions:
+                # Zenity uses --file-filter="Description | *.png *.jpg"
+                filter_str = "Image files | " + " ".join(extensions)
+                cmd += ["--file-filter", filter_str, "--file-filter", "All files | *"]
+            if _last_file_dir and os.path.isdir(_last_file_dir):
+                cmd += ["--filename", _last_file_dir + "/"]
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.returncode == 0 and result.stdout.strip():
+                    path = result.stdout.strip()
+                    _last_file_dir = os.path.dirname(path)
+                    return path
+                return ""  # User cancelled
+            except Exception:
+                pass  # Fall through to tkinter
+
+        # Try kdialog (KDE desktops)
+        if shutil.which("kdialog"):
+            filter_str = ""
+            if extensions:
+                filter_str = " ".join(extensions) + " | Image files"
+            cmd = ["kdialog", "--getopenfilename", _last_file_dir or ".", filter_str, "--title", title]
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.returncode == 0 and result.stdout.strip():
+                    path = result.stdout.strip()
+                    _last_file_dir = os.path.dirname(path)
+                    return path
+                return ""  # User cancelled
+            except Exception:
+                pass  # Fall through to tkinter
+
+    # Fallback: tkinter's built-in dialog (always used on Windows/macOS, or if zenity/kdialog unavailable)
+    path = filedialog.askopenfilename(
+        title=title,
+        filetypes=filetypes or [("All files", "*.*")],
+        initialdir=_last_file_dir
+    )
+    if path:
+        _last_file_dir = os.path.dirname(path)
+    return path
 
 
 def resize_and_letterbox(img, width, height, bg_color=(0, 0, 0)):
@@ -124,17 +190,21 @@ class Sprite:
         self.c_array = c_array or []
         self.transparent = transparent  # Auto-detected transparent color (BGR565)
         self.preview = None
+        self.crop_bounds = None  # (x1, y1, x2, y2) in original source image pixels, or None
 
     def memory_bytes(self):
         return self.resolution * self.resolution * 2
 
     def to_dict(self):
-        return {
+        d = {
             'name': self.name,
             'image_path': self.image_path,
             'resolution': self.resolution,
             'transparent': self.transparent
         }
+        if self.crop_bounds is not None:
+            d['crop_bounds'] = list(self.crop_bounds)
+        return d
 
     @staticmethod
     def from_dict(d):
@@ -145,8 +215,11 @@ class Sprite:
             resolution = d['width']  # Use width as resolution for old projects
         else:
             resolution = 32  # Default
-        return Sprite(d['name'], d['image_path'], resolution,
-                      transparent=d.get('transparent', 0x0000))
+        sprite = Sprite(d['name'], d['image_path'], resolution,
+                        transparent=d.get('transparent', 0x0000))
+        if 'crop_bounds' in d:
+            sprite.crop_bounds = tuple(d['crop_bounds'])
+        return sprite
 
 
 class Color:
@@ -698,10 +771,10 @@ class RayCast3DStudio:
         self.sprite_preview_info = ttk.Label(preview_inner, text="", font=('Consolas', 9), justify='left')
         self.sprite_preview_info.pack(side='left', padx=10)
 
-        # Edit Transparency button
-        self.edit_transparency_btn = ttk.Button(preview_inner, text="Edit Transparency", 
+        # Edit Sprite button
+        self.edit_sprite_btn = ttk.Button(preview_inner, text="Edit Sprite",
                                                  command=self._edit_sprite_transparency, state='disabled')
-        self.edit_transparency_btn.pack(side='left', padx=10)
+        self.edit_sprite_btn.pack(side='left', padx=10)
 
     def _build_color_tab(self):
         """Build the color manager tab."""
@@ -1421,7 +1494,7 @@ class RayCast3DStudio:
 
     def _add_texture(self):
         """Add a new texture."""
-        file_path = filedialog.askopenfilename(
+        file_path = _native_open_file_dialog(
             title="Select Texture Image",
             filetypes=[("Image files", "*.png *.PNG *.bmp *.BMP *.jpg *.JPG *.jpeg *.JPEG"), ("All files", "*.*")]
         )
@@ -1438,18 +1511,35 @@ class RayCast3DStudio:
         # Clean name for C variable
         name = ''.join(c if c.isalnum() or c == '_' else '_' for c in name)
 
+        # Check for duplicate name and ask to overwrite
+        existing_idx = None
+        for i, t in enumerate(self.textures):
+            if t.name == name:
+                existing_idx = i
+                break
+        if existing_idx is not None:
+            if not messagebox.askyesno("Duplicate Texture",
+                    f"A texture named \"{name}\" already exists. Overwrite it?"):
+                return
+
         try:
             resolution = int(self.tex_res_var.get())
             img = Image.open(file_path)
             c_array = image_to_bgr565_array(img, resolution)
 
             tex = Texture(name, file_path, resolution, c_array)
-            tex.index = len(self.textures) + 1
+
+            if existing_idx is not None:
+                # Overwrite in place, preserving index
+                tex.index = self.textures[existing_idx].index
+                self.textures[existing_idx] = tex
+            else:
+                tex.index = len(self.textures) + 1
+                self.textures.append(tex)
 
             # Create previews (pixelated)
             self._create_texture_previews(tex)
 
-            self.textures.append(tex)
             self._refresh_texture_list()
             self._update_texture_palette()
             self._draw_map_grid()
@@ -1457,8 +1547,9 @@ class RayCast3DStudio:
             self._auto_export()
             self._save_project()
 
-            # Select the new texture
-            self._select_texture_row(len(self.textures) - 1)
+            # Select the texture
+            select_idx = existing_idx if existing_idx is not None else len(self.textures) - 1
+            self._select_texture_row(select_idx)
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load texture: {e}")
@@ -1686,7 +1777,7 @@ class RayCast3DStudio:
                 self.sprite_preview_info.config(text=f"{count} sprites selected\n\n"
                                                      f"Showing: {sprite.name}\n"
                                                      f"Resolution: {sprite.resolution}x{sprite.resolution}")
-                self.edit_transparency_btn.config(state='disabled')
+                self.edit_sprite_btn.config(state='disabled')
             else:
                 self.sprite_preview_info.config(text=f"Resolution: {sprite.resolution}x{sprite.resolution}\n"
                                                      f"Memory: {sprite.memory_bytes()} bytes\n"
@@ -1694,11 +1785,11 @@ class RayCast3DStudio:
                                                      f"Preview shows sprite at\n"
                                                      f"simulated in-game scale\n"
                                                      f"with transparency.")
-                self.edit_transparency_btn.config(state='normal')
+                self.edit_sprite_btn.config(state='normal')
         elif not self.selected_sprite_rows:
             self.sprite_preview_label.config(image='')
             self.sprite_preview_info.config(text='Select a sprite to see preview')
-            self.edit_transparency_btn.config(state='disabled')
+            self.edit_sprite_btn.config(state='disabled')
 
     def _on_sprite_resolution_change(self, idx, var):
         """Handle sprite resolution dropdown change."""
@@ -1710,6 +1801,13 @@ class RayCast3DStudio:
             sprite = self.sprites[idx]
 
             if new_res != sprite.resolution:
+                if not os.path.exists(sprite.image_path):
+                    if not messagebox.askyesno("Missing Source Image",
+                            f"The original image file could not be found:\n{sprite.image_path}\n\n"
+                            "The sprite will be resampled from its current low-resolution data, "
+                            "which may result in a loss of quality. Continue?"):
+                        var.set(str(sprite.resolution))  # Revert dropdown
+                        return
                 self._update_sprite_resolution(sprite, new_res)
                 self._refresh_sprite_list()
                 # Reselect the row
@@ -1718,14 +1816,38 @@ class RayCast3DStudio:
             pass
 
     def _update_sprite_resolution(self, sprite, new_res):
-        """Update a sprite's resolution."""
-        if not os.path.exists(sprite.image_path):
-            messagebox.showerror("Error", f"Image file not found: {sprite.image_path}")
-            return
-
+        """Update a sprite's resolution. Reloads from original file, re-applying crop if set.
+        Falls back to resampling from c_array if the source file is missing."""
+        old_res = sprite.resolution
         try:
-            img = Image.open(sprite.image_path)
-            transparent, img_rgb = self._detect_transparent_color(img, new_res, new_res)
+            if os.path.exists(sprite.image_path):
+                img = Image.open(sprite.image_path)
+
+                # Re-apply saved crop bounds if present
+                if sprite.crop_bounds is not None:
+                    x1, y1, x2, y2 = sprite.crop_bounds
+                    img = img.crop((x1, y1, x2, y2))
+
+                transparent, img_rgb = self._detect_transparent_color(img, new_res, new_res)
+            elif sprite.c_array and len(sprite.c_array) == old_res * old_res:
+                # Fallback: resample from current pixel data
+                current_img = Image.new("RGB", (old_res, old_res))
+                px = current_img.load()
+                for i, hex_val in enumerate(sprite.c_array):
+                    bgr565 = int(hex_val, 16)
+                    blue5 = (bgr565 >> 11) & 0x1F
+                    green6 = (bgr565 >> 5) & 0x3F
+                    red5 = bgr565 & 0x1F
+                    r = (red5 << 3) | (red5 >> 2)
+                    g = (green6 << 2) | (green6 >> 4)
+                    b = (blue5 << 3) | (blue5 >> 2)
+                    px[i % old_res, i // old_res] = (r, g, b)
+                img_rgb = resize_and_letterbox(current_img, new_res, new_res)
+                transparent = sprite.transparent
+            else:
+                messagebox.showerror("Error", f"Image file not found and no pixel data available.")
+                return
+
             pixels = img_rgb.load()
 
             c_vals = []
@@ -1751,7 +1873,7 @@ class RayCast3DStudio:
 
     def _add_sprite(self):
         """Add a new sprite."""
-        file_path = filedialog.askopenfilename(
+        file_path = _native_open_file_dialog(
             title="Select Sprite Image",
             filetypes=[("Image files", "*.png *.PNG *.bmp *.BMP *.jpg *.JPG *.jpeg *.JPEG"), ("All files", "*.*")]
         )
@@ -1767,6 +1889,17 @@ class RayCast3DStudio:
 
         # Clean name for C variable
         name = ''.join(c if c.isalnum() or c == '_' else '_' for c in name)
+
+        # Check for duplicate name and ask to overwrite
+        existing_idx = None
+        for i, s in enumerate(self.sprites):
+            if s.name == name:
+                existing_idx = i
+                break
+        if existing_idx is not None:
+            if not messagebox.askyesno("Duplicate Sprite",
+                    f"A sprite named \"{name}\" already exists. Overwrite it?"):
+                return
 
         try:
             resolution = int(self.sprite_res_var.get())
@@ -1793,14 +1926,19 @@ class RayCast3DStudio:
             # Create transparency-aware preview with checkerboard background
             sprite.preview = self._create_sprite_preview(img_rgb, resolution, resolution, transparent)
 
-            self.sprites.append(sprite)
+            if existing_idx is not None:
+                self.sprites[existing_idx] = sprite
+            else:
+                self.sprites.append(sprite)
+
             self._refresh_sprite_list()
             self._update_memory_display()
             self._auto_export()
             self._save_project()
 
-            # Select the new sprite
-            self._select_sprite_row(len(self.sprites) - 1)
+            # Select the sprite
+            select_idx = existing_idx if existing_idx is not None else len(self.sprites) - 1
+            self._select_sprite_row(select_idx)
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load sprite: {e}")
@@ -1911,8 +2049,8 @@ class RayCast3DStudio:
 
         # Create dialog window
         dialog = tk.Toplevel(self.root)
-        dialog.title(f"Edit Transparency - {sprite.name}")
-        dialog.geometry("950x700")
+        dialog.title(f"Edit Sprite - {sprite.name}")
+        dialog.geometry("960x720")
         dialog.transient(self.root)
         dialog.grab_set()
 
@@ -1922,7 +2060,7 @@ class RayCast3DStudio:
 
         # Instructions
         instr_label = ttk.Label(main_frame,
-                                text="Click on the left preview to pick a color as the transparent color.",
+                                text="Use the edit modes below to pick transparency, erase/restore pixels, or crop the sprite.",
                                 font=('Arial', 10))
         instr_label.pack(pady=(0, 10))
 
@@ -1977,10 +2115,40 @@ class RayCast3DStudio:
                                        highlightthickness=2, highlightbackground='black', cursor='crosshair')
         transparent_canvas.pack(padx=10, pady=10)
 
-        # Mode tracking: 'pick', 'erase', 'de_erase'
+        # Mode tracking: 'pick', 'erase', 'de_erase', 'crop'
         edit_mode = 'pick'
         is_drawing_on_transparent = False
         brush_size = 1  # Brush radius in pixels
+
+        # Crop state (coordinates in crop_source_img pixel space)
+        crop_x1 = 0
+        crop_y1 = 0
+        crop_x2 = 0
+        crop_y2 = 0
+        crop_rect_id = None    # Canvas rectangle ID for the selection overlay
+        crop_handle_ids = []   # Canvas IDs for the 8 drag handles
+        crop_active = False    # True once a crop region has been drawn
+        crop_drag_mode = None  # None, 'new', or handle name ('nw','n','ne','e','se','s','sw','w','move')
+        crop_drag_anchor = None  # (x, y) for move/drag reference
+        crop_square = False    # Constrain to square
+
+        # The image displayed on the left canvas during crop mode, and its display params
+        crop_source_img = None   # PIL Image (full-res original or img_rgb fallback)
+        crop_source_w = 0
+        crop_source_h = 0
+        crop_display_scale = 1.0   # canvas pixels per source pixel (may be < 1)
+        crop_display_size_x = 0
+        crop_display_size_y = 0
+        crop_display_offset_x = 0
+        crop_display_offset_y = 0
+
+        # Load original source image for high-quality cropping (if available)
+        original_source_img = None
+        if sprite.image_path and os.path.exists(sprite.image_path):
+            try:
+                original_source_img = Image.open(sprite.image_path).convert("RGB")
+            except Exception:
+                original_source_img = None
 
         def update_both_previews():
             """Update both the original and transparent previews."""
@@ -2006,43 +2174,294 @@ class RayCast3DStudio:
         # Initial transparent preview
         update_transparent_preview()
 
-        # Click handler for original canvas
-        def on_original_click(event):
-            # Convert canvas coordinates to sprite coordinates
+        # Helper: convert canvas event to sprite pixel coordinates
+        def canvas_to_sprite(event):
             canvas_x = event.x - offset_x
             canvas_y = event.y - offset_y
-            
             if 0 <= canvas_x < display_size and 0 <= canvas_y < display_size:
-                # Get pixel from original sprite image
-                sprite_x = canvas_x // scale
-                sprite_y = canvas_y // scale
-                
-                if 0 <= sprite_x < sprite.resolution and 0 <= sprite_y < sprite.resolution:
+                sx = max(0, min(sprite.resolution - 1, canvas_x // scale))
+                sy = max(0, min(sprite.resolution - 1, canvas_y // scale))
+                return sx, sy
+            return None
+
+        # --- Crop drawing and interaction ---
+        HANDLE_SIZE = 6  # Half-size of drag handles in canvas pixels
+
+        def _setup_crop_display():
+            """Configure crop display params and show source image on left canvas."""
+            nonlocal crop_source_img, crop_source_w, crop_source_h
+            nonlocal crop_display_scale, crop_display_size_x, crop_display_size_y
+            nonlocal crop_display_offset_x, crop_display_offset_y
+
+            # Use full-res original if available, otherwise fall back to img_rgb
+            if original_source_img is not None:
+                crop_source_img = original_source_img
+            else:
+                crop_source_img = img_rgb
+
+            crop_source_w, crop_source_h = crop_source_img.size
+
+            # Compute scale to fit the source image in preview_size, preserving aspect ratio
+            scale_x = preview_size / crop_source_w
+            scale_y = preview_size / crop_source_h
+            crop_display_scale = min(scale_x, scale_y)
+            crop_display_size_x = int(crop_source_w * crop_display_scale)
+            crop_display_size_y = int(crop_source_h * crop_display_scale)
+            crop_display_offset_x = (preview_size - crop_display_size_x) // 2
+            crop_display_offset_y = (preview_size - crop_display_size_y) // 2
+
+            # Render source image on the left canvas
+            display_img = crop_source_img.resize(
+                (crop_display_size_x, crop_display_size_y), Image.LANCZOS)
+            canvas_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
+            canvas_img.paste(display_img, (crop_display_offset_x, crop_display_offset_y))
+            photo = ImageTk.PhotoImage(canvas_img)
+            original_canvas.delete('all')
+            original_canvas.create_image(0, 0, anchor='nw', image=photo)
+            original_canvas.image = photo
+
+        def _crop_canvas_coords():
+            """Return (cx1, cy1, cx2, cy2) canvas pixel coords for the current crop rect."""
+            s = crop_display_scale
+            ox, oy = crop_display_offset_x, crop_display_offset_y
+            cx1 = crop_x1 * s + ox
+            cy1 = crop_y1 * s + oy
+            cx2 = (crop_x2 + 1) * s + ox
+            cy2 = (crop_y2 + 1) * s + oy
+            return cx1, cy1, cx2, cy2
+
+        def canvas_to_crop(event):
+            """Convert canvas event coords to source image pixel coords."""
+            cx = event.x - crop_display_offset_x
+            cy = event.y - crop_display_offset_y
+            if 0 <= cx < crop_display_size_x and 0 <= cy < crop_display_size_y:
+                px = max(0, min(crop_source_w - 1, int(cx / crop_display_scale)))
+                py = max(0, min(crop_source_h - 1, int(cy / crop_display_scale)))
+                return px, py
+            return None
+
+        def draw_crop_rect():
+            """Draw/update the crop rectangle and its 8 resize handles on the original canvas."""
+            nonlocal crop_rect_id, crop_handle_ids
+            # Remove old drawings
+            if crop_rect_id is not None:
+                original_canvas.delete(crop_rect_id)
+                crop_rect_id = None
+            for hid in crop_handle_ids:
+                original_canvas.delete(hid)
+            crop_handle_ids = []
+
+            if not crop_active:
+                return
+
+            cx1, cy1, cx2, cy2 = _crop_canvas_coords()
+            crop_rect_id = original_canvas.create_rectangle(
+                cx1, cy1, cx2, cy2, outline='yellow', width=2, dash=(4, 4))
+
+            # Draw 8 handles: corners + edge midpoints
+            mx, my = (cx1 + cx2) / 2, (cy1 + cy2) / 2
+            handle_positions = [
+                (cx1, cy1), (mx, cy1), (cx2, cy1),   # nw, n, ne
+                (cx1, my),              (cx2, my),     # w, e
+                (cx1, cy2), (mx, cy2), (cx2, cy2),    # sw, s, se
+            ]
+            hs = HANDLE_SIZE
+            for hx, hy in handle_positions:
+                hid = original_canvas.create_rectangle(
+                    hx - hs, hy - hs, hx + hs, hy + hs,
+                    fill='yellow', outline='black', width=1)
+                crop_handle_ids.append(hid)
+
+        def _hit_test_handle(event):
+            """Check if event hits a resize handle. Returns handle name or None."""
+            if not crop_active:
+                return None
+            cx1, cy1, cx2, cy2 = _crop_canvas_coords()
+            mx, my = (cx1 + cx2) / 2, (cy1 + cy2) / 2
+            ex, ey = event.x, event.y
+            hs = HANDLE_SIZE + 3  # Generous hit area
+
+            handles = [
+                ('nw', cx1, cy1), ('n', mx, cy1), ('ne', cx2, cy1),
+                ('w', cx1, my),                    ('e', cx2, my),
+                ('sw', cx1, cy2), ('s', mx, cy2), ('se', cx2, cy2),
+            ]
+            for name, hx, hy in handles:
+                if abs(ex - hx) <= hs and abs(ey - hy) <= hs:
+                    return name
+
+            # Check if inside the rectangle (for move)
+            if cx1 <= ex <= cx2 and cy1 <= ey <= cy2:
+                return 'move'
+            return None
+
+        def _constrain_square(ax, ay, bx, by):
+            """Constrain bx,by so the rectangle from (ax,ay) to (bx,by) is square."""
+            dx = bx - ax
+            dy = by - ay
+            side = max(abs(dx), abs(dy))
+            bx = ax + (side if dx >= 0 else -side)
+            by = ay + (side if dy >= 0 else -side)
+            return bx, by
+
+        def _clamp_crop():
+            """Clamp crop coordinates to valid source image range and enforce ordering."""
+            nonlocal crop_x1, crop_y1, crop_x2, crop_y2
+            crop_x1 = max(0, min(crop_source_w - 1, crop_x1))
+            crop_y1 = max(0, min(crop_source_h - 1, crop_y1))
+            crop_x2 = max(0, min(crop_source_w - 1, crop_x2))
+            crop_y2 = max(0, min(crop_source_h - 1, crop_y2))
+            if crop_x1 > crop_x2:
+                crop_x1, crop_x2 = crop_x2, crop_x1
+            if crop_y1 > crop_y2:
+                crop_y1, crop_y2 = crop_y2, crop_y1
+
+        # Click handler for original canvas (mode-aware)
+        def on_original_press(event):
+            nonlocal crop_x1, crop_y1, crop_x2, crop_y2
+            nonlocal crop_active, crop_drag_mode, crop_drag_anchor
+            if edit_mode == 'crop':
+                # Check if clicking on an existing handle first
+                if crop_active:
+                    handle = _hit_test_handle(event)
+                    if handle:
+                        crop_drag_mode = handle
+                        crop_drag_anchor = canvas_to_crop(event)
+                        return
+
+                # Start a new crop rectangle
+                coords = canvas_to_crop(event)
+                if coords:
+                    crop_x1, crop_y1 = coords
+                    crop_x2, crop_y2 = coords
+                    crop_active = True
+                    crop_drag_mode = 'new'
+                    crop_drag_anchor = coords
+                    draw_crop_rect()
+                    update_crop_preview()
+            else:
+                # Color pick mode
+                coords = canvas_to_sprite(event)
+                if coords:
+                    sprite_x, sprite_y = coords
                     pixels = img_rgb.load()
                     r, g, b = pixels[sprite_x, sprite_y]
-                    
-                    # Convert to BGR565
+
                     blue5 = b >> 3
                     green6 = g >> 2
                     red5 = r >> 3
                     new_transparent = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
-                    
-                    # Update sprite
+
                     sprite.transparent = new_transparent
-                    
-                    # Update transparent preview
                     update_transparent_preview()
-                    
-                    # Update status
                     status_label.config(text=f"Transparent color set to 0x{new_transparent:04X} (RGB: {r}, {g}, {b})",
                                        foreground='green')
 
-        original_canvas.bind('<Button-1>', on_original_click)
+        def on_original_drag(event):
+            nonlocal crop_x1, crop_y1, crop_x2, crop_y2, crop_drag_anchor
+            if edit_mode != 'crop' or crop_drag_mode is None:
+                return
+            coords = canvas_to_crop(event)
+            if not coords:
+                return
+            sx, sy = coords
+            max_w = crop_source_w - 1
+            max_h = crop_source_h - 1
+
+            if crop_drag_mode == 'new':
+                ax, ay = crop_drag_anchor
+                bx, by = sx, sy
+                if crop_square:
+                    bx, by = _constrain_square(ax, ay, bx, by)
+                crop_x1, crop_y1 = min(ax, bx), min(ay, by)
+                crop_x2, crop_y2 = max(ax, bx), max(ay, by)
+
+            elif crop_drag_mode == 'move':
+                if crop_drag_anchor:
+                    dx = sx - crop_drag_anchor[0]
+                    dy = sy - crop_drag_anchor[1]
+                    w = crop_x2 - crop_x1
+                    h = crop_y2 - crop_y1
+                    nx1 = crop_x1 + dx
+                    ny1 = crop_y1 + dy
+                    nx1 = max(0, min(max_w - w, nx1))
+                    ny1 = max(0, min(max_h - h, ny1))
+                    crop_x1, crop_y1 = nx1, ny1
+                    crop_x2, crop_y2 = nx1 + w, ny1 + h
+                    crop_drag_anchor = (sx, sy)
+
+            else:
+                mode = crop_drag_mode
+                nx1, ny1, nx2, ny2 = crop_x1, crop_y1, crop_x2, crop_y2
+
+                if 'w' in mode:
+                    nx1 = sx
+                if 'e' in mode:
+                    nx2 = sx
+                if 'n' in mode:
+                    ny1 = sy
+                if 's' in mode:
+                    ny2 = sy
+
+                if crop_square:
+                    if mode == 'nw':
+                        nx1, ny1 = _constrain_square(nx2, ny2, nx1, ny1)
+                    elif mode == 'ne':
+                        nx2, ny1 = _constrain_square(nx1, ny2, nx2, ny1)
+                    elif mode == 'sw':
+                        nx1, ny2 = _constrain_square(nx2, ny1, nx1, ny2)
+                    elif mode == 'se':
+                        nx2, ny2 = _constrain_square(nx1, ny1, nx2, ny2)
+                    elif mode in ('n', 's'):
+                        h = abs(ny2 - ny1)
+                        mid = (nx1 + nx2) / 2
+                        nx1 = int(mid - h / 2)
+                        nx2 = int(mid + h / 2)
+                    elif mode in ('e', 'w'):
+                        w = abs(nx2 - nx1)
+                        mid = (ny1 + ny2) / 2
+                        ny1 = int(mid - w / 2)
+                        ny2 = int(mid + w / 2)
+
+                crop_x1, crop_y1 = min(nx1, nx2), min(ny1, ny2)
+                crop_x2, crop_y2 = max(nx1, nx2), max(ny1, ny2)
+
+            _clamp_crop()
+            draw_crop_rect()
+            update_crop_preview()
+
+        def on_original_release(event):
+            nonlocal crop_drag_mode, crop_drag_anchor
+            if edit_mode == 'crop':
+                crop_drag_mode = None
+                crop_drag_anchor = None
+
+        original_canvas.bind('<Button-1>', on_original_press)
+        original_canvas.bind('<B1-Motion>', on_original_drag)
+        original_canvas.bind('<ButtonRelease-1>', on_original_release)
+
+        # Crop preview: show what the cropped region looks like at full sprite resolution
+        def update_crop_preview():
+            if not crop_active:
+                return
+            w = crop_x2 - crop_x1 + 1
+            h = crop_y2 - crop_y1 + 1
+            if w < 1 or h < 1:
+                return
+
+            # Crop directly from the source image (full-res or img_rgb fallback)
+            cropped = crop_source_img.crop((crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1))
+            cropped_resized = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
+            crop_display = cropped_resized.resize((preview_size, preview_size), Image.NEAREST)
+            crop_photo = ImageTk.PhotoImage(crop_display)
+            transparent_canvas.delete('all')
+            transparent_canvas.create_image(0, 0, anchor='nw', image=crop_photo)
+            transparent_canvas.image = crop_photo
 
         # Click handler for transparent canvas (right side) - for erase/de-erase
         def on_transparent_click(event):
             """Handle clicks on the transparent preview for erase/de-erase."""
-            if edit_mode == 'pick':
+            if edit_mode not in ('erase', 'de_erase'):
                 return  # Only works in erase or de-erase mode
             
             # Convert canvas coordinates to sprite coordinates
@@ -2144,32 +2563,111 @@ class RayCast3DStudio:
         mode_frame = ttk.Frame(main_frame)
         mode_frame.pack(pady=5)
 
+        def clear_crop():
+            """Clear crop selection overlay and state."""
+            nonlocal crop_rect_id, crop_handle_ids, crop_active, crop_drag_mode, crop_drag_anchor
+            if crop_rect_id is not None:
+                original_canvas.delete(crop_rect_id)
+                crop_rect_id = None
+            for hid in crop_handle_ids:
+                original_canvas.delete(hid)
+            crop_handle_ids = []
+            crop_active = False
+            crop_drag_mode = None
+            crop_drag_anchor = None
+
+        def _restore_sprite_view():
+            """Restore the left canvas to show img_rgb at sprite resolution."""
+            clear_crop()
+            update_original_preview()
+
         def set_erase_mode():
             nonlocal edit_mode
+            if edit_mode == 'crop':
+                _restore_sprite_view()
             edit_mode = 'erase'
-            status_label.config(text=f"Mode: Erase - Click on right preview to set pixels to transparent",
+            status_label.config(text="Mode: Erase - Click on right preview to set pixels to transparent",
                                foreground='red')
             erase_btn.config(state='pressed' if hasattr(erase_btn, 'state') else 'active')
             de_erase_btn.config(state='normal')
             brush_frame.pack(pady=5)  # Show brush slider
+            crop_frame.pack_forget()  # Hide crop controls
+            update_transparent_preview()
 
         def set_de_erase_mode():
             nonlocal edit_mode
+            if edit_mode == 'crop':
+                _restore_sprite_view()
             edit_mode = 'de_erase'
-            status_label.config(text=f"Mode: De-Erase - Click on right preview to make pixels visible (off by 1)",
+            status_label.config(text="Mode: De-Erase - Click on right preview to make pixels visible (off by 1)",
                                foreground='orange')
             de_erase_btn.config(state='pressed' if hasattr(de_erase_btn, 'state') else 'active')
             erase_btn.config(state='normal')
             brush_frame.pack(pady=5)  # Show brush slider
+            crop_frame.pack_forget()  # Hide crop controls
+            update_transparent_preview()
 
         def set_pick_mode():
             nonlocal edit_mode
+            if edit_mode == 'crop':
+                _restore_sprite_view()
             edit_mode = 'pick'
             status_label.config(text=f"Current transparent: 0x{sprite.transparent:04X}\nClick on the left preview to pick a new transparent color.",
                                foreground='black')
             erase_btn.config(state='normal')
             de_erase_btn.config(state='normal')
             brush_frame.pack_forget()  # Hide brush slider
+            crop_frame.pack_forget()  # Hide crop controls
+            update_transparent_preview()
+
+        def set_crop_mode():
+            nonlocal edit_mode, crop_x1, crop_y1, crop_x2, crop_y2, crop_active
+            edit_mode = 'crop'
+            clear_crop()
+            _setup_crop_display()  # Show full-res source image on left canvas
+
+            # Restore previous crop bounds if they exist (so user can adjust)
+            if sprite.crop_bounds is not None and original_source_img is not None:
+                bx1, by1, bx2, by2 = sprite.crop_bounds
+                crop_x1, crop_y1 = bx1, by1
+                crop_x2, crop_y2 = bx2 - 1, by2 - 1  # Convert back from exclusive to inclusive
+                crop_active = True
+                draw_crop_rect()
+                update_crop_preview()
+
+            status_label.config(text="Mode: Crop - Click and drag on the left preview to select a region.",
+                               foreground='blue')
+            erase_btn.config(state='normal')
+            de_erase_btn.config(state='normal')
+            brush_frame.pack_forget()  # Hide brush slider
+            crop_frame.pack(pady=5)   # Show crop controls
+
+        def apply_crop():
+            """Apply the crop: replace img_rgb with cropped and resized region."""
+            nonlocal img_rgb
+            if not crop_active:
+                return
+            w = crop_x2 - crop_x1 + 1
+            h = crop_y2 - crop_y1 + 1
+            if w < 1 or h < 1:
+                return
+
+            # Crop directly from the source image (coordinates are already in its pixel space)
+            cropped = crop_source_img.crop((crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1))
+            img_rgb = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
+
+            # Save crop bounds so resolution changes can re-crop from the original
+            # If cropping from the original source, store the absolute pixel bounds.
+            # If cropping from img_rgb fallback, store None (can't meaningfully re-apply).
+            if original_source_img is not None:
+                sprite.crop_bounds = (crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1)
+            else:
+                sprite.crop_bounds = None
+
+            # set_pick_mode restores the sprite-resolution view and clears crop state
+            set_pick_mode()
+            update_both_previews()
+            status_label.config(text="Crop applied.", foreground='green')
 
         ttk.Label(mode_frame, text="Edit Modes:", font=('Arial', 9, 'bold')).pack(side='left', padx=5)
         erase_btn = ttk.Button(mode_frame, text="Erase", command=set_erase_mode)
@@ -2177,10 +2675,11 @@ class RayCast3DStudio:
         de_erase_btn = ttk.Button(mode_frame, text="De-Erase", command=set_de_erase_mode)
         de_erase_btn.pack(side='left', padx=5)
         ttk.Button(mode_frame, text="Pick Color", command=set_pick_mode).pack(side='left', padx=5)
+        ttk.Button(mode_frame, text="Crop", command=set_crop_mode).pack(side='left', padx=5)
 
         # Brush size slider (only visible in erase/de-erase modes)
         brush_frame = ttk.Frame(main_frame)
-        
+
         brush_size_var = tk.IntVar(value=1)
         brush_size_label = ttk.Label(brush_frame, text="Brush Size: 1", font=('Arial', 9))
         brush_size_label.pack(side='left', padx=5)
@@ -2188,17 +2687,27 @@ class RayCast3DStudio:
             nonlocal brush_size
             brush_size = int(float(val))
             brush_size_label.config(text=f"Brush Size: {brush_size}")
-        
-        brush_size_slider = ttk.Scale(brush_frame, from_=1, to=10, orient='horizontal', 
+
+        brush_size_slider = ttk.Scale(brush_frame, from_=1, to=10, orient='horizontal',
                                       variable=brush_size_var, length=150,
                                       command=update_brush_size)
         brush_size_slider.pack(side='left', padx=5)
-        
-        # Initially hide brush slider (only show in erase/de-erase modes)
+
+        # Initially hide brush slider
         brush_frame.pack_forget()
-        
-        # Initially hide brush slider (only show in erase/de-erase modes)
-        brush_frame.pack_forget()
+
+        # Crop controls (only visible in crop mode)
+        crop_frame = ttk.Frame(main_frame)
+        ttk.Button(crop_frame, text="Apply Crop", command=apply_crop).pack(side='left', padx=5)
+        crop_square_var = tk.BooleanVar(value=False)
+        def on_square_toggle():
+            nonlocal crop_square
+            crop_square = crop_square_var.get()
+        ttk.Checkbutton(crop_frame, text="Square", variable=crop_square_var,
+                        command=on_square_toggle).pack(side='left', padx=5)
+        ttk.Label(crop_frame, text="Drag to select, then adjust handles. Click Apply Crop when done.",
+                  font=('Arial', 9)).pack(side='left', padx=5)
+        crop_frame.pack_forget()
 
         # Buttons
         button_frame = ttk.Frame(main_frame)
@@ -2233,8 +2742,10 @@ class RayCast3DStudio:
             dialog.destroy()
 
         def cancel_changes():
-            """Cancel and restore original transparent color."""
+            """Cancel and restore original transparent color and data."""
             sprite.transparent = original_transparent
+            if original_c_array is not None:
+                sprite.c_array = original_c_array
             dialog.destroy()
 
         ttk.Button(button_frame, text="Apply", command=apply_changes).pack(side='left', padx=5)
