@@ -1544,6 +1544,7 @@ class RayCast3DStudio:
 
         texture.name = new_name
         self._refresh_texture_list()
+        self._update_texture_palette()
         self._auto_export()
         self._save_project()
 
