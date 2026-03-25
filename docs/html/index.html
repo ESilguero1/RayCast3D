@@ -79,9 +79,21 @@ Overview</h1>
 <p>RayCast3D is designed for ECE 319K students working with the MSPM0 microcontroller. It provides a simple interface for rendering pseudo-3D environments on the ST7735R LCD display using raycasting algorithms.</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Quick Start</h1>
+<h2><a class="anchor" id="autotoc_md3"></a>
+1. Get the library</h2>
+<p><b>Option A — Download ZIP:</b></p><ol type="1">
+<li>Download the latest release ZIP from the repository</li>
+<li>Extract the contents into a folder called <code>RayCast3D</code> inside your CCS project directory for Lab 9 (e.g., <code>Lab9/RayCast3D/</code>)</li>
+</ol>
+<p><b>Option B — Git clone:</b> </p><div class="fragment"><div class="line">cd &lt;your-Lab9-project-folder&gt;</div>
+<div class="line">git clone https://github.com/esilguero1/RayCast3D.git</div>
+<div class="line">rm -rf RayCast3D/.git</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md4"></a>
+2. Include the header and start rendering</h2>
+<p>Add a single include to your <code>main.c</code> to get the full API:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;RayCast3D/raycast3d.h&quot;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">void</span>) {</div>
+</div><!-- fragment --><p>Then initialize and render:</p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">void</span>) {</div>
 <div class="line">    LaunchPad_Init();</div>
 <div class="line"> </div>
 <div class="line">    <span class="comment">// Initialize engine (clock, display, DMA)</span></div>
@@ -99,19 +111,20 @@ Quick Start</h1>
 <div class="line">        <span class="comment">// ... handle input, update camera, etc.</span></div>
 <div class="line">    }</div>
 <div class="line">}</div>
-<div class="ttc" id="agroup__Camera_html_gac6c9e108dd87edf1d4db01a433eeaeca"><div class="ttname"><a href="group__Camera.html#gac6c9e108dd87edf1d4db01a433eeaeca">Camera_SetPosition</a></div><div class="ttdeci">void Camera_SetPosition(double x, double y)</div><div class="ttdoc">Set camera world position.</div><div class="ttdef"><b>Definition</b> camera.c:44</div></div>
+<div class="ttc" id="agroup__Camera_html_gac6c9e108dd87edf1d4db01a433eeaeca"><div class="ttname"><a href="group__Camera.html#gac6c9e108dd87edf1d4db01a433eeaeca">Camera_SetPosition</a></div><div class="ttdeci">void Camera_SetPosition(double x, double y)</div><div class="ttdoc">Set camera world position.</div><div class="ttdef"><b>Definition</b> camera.c:45</div></div>
 <div class="ttc" id="agroup__EngineCore_html_ga67949045a83c7ccaff619a9ab05819b3"><div class="ttname"><a href="group__EngineCore.html#ga67949045a83c7ccaff619a9ab05819b3">RayCast3D_Render</a></div><div class="ttdeci">void RayCast3D_Render(void)</div><div class="ttdoc">Render one complete frame to the display.</div><div class="ttdef"><b>Definition</b> raycast3d.c:38</div></div>
 <div class="ttc" id="agroup__EngineCore_html_gac4904fc9bf4a1126b9daa1d095e99e16"><div class="ttname"><a href="group__EngineCore.html#gac4904fc9bf4a1126b9daa1d095e99e16">RayCast3D_Init</a></div><div class="ttdeci">void RayCast3D_Init(void)</div><div class="ttdoc">Initialize the raycasting engine.</div><div class="ttdef"><b>Definition</b> raycast3d.c:34</div></div>
-<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:389</div></div>
-<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:393</div></div>
+<div class="ttc" id="agroup__Graphics_html_ga5bcface68984dd0368dc11d393257d19"><div class="ttname"><a href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19">Graphics_SetFloorColor</a></div><div class="ttdeci">void Graphics_SetFloorColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn below the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:417</div></div>
+<div class="ttc" id="agroup__Graphics_html_gab5ab82a607b33728150e1eab754faa88"><div class="ttname"><a href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88">Graphics_SetSkyColor</a></div><div class="ttdeci">void Graphics_SetSkyColor(uint16_t color)</div><div class="ttdoc">Set the solid color drawn above the horizon.</div><div class="ttdef"><b>Definition</b> graphics.c:421</div></div>
 <div class="ttc" id="agroup__Map_html_ga8025c2f6a7c1f9ec73a4f34bb940420a"><div class="ttname"><a href="group__Map.html#ga8025c2f6a7c1f9ec73a4f34bb940420a">Map_Load</a></div><div class="ttdeci">void Map_Load(const MapInfo *map)</div><div class="ttdoc">Load a map from a Studio-exported MapInfo descriptor.</div><div class="ttdef"><b>Definition</b> map.c:25</div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md3"></a>
+</div><!-- fragment --><p>See the <b>RayCast3D_Demo</b> project in ValvanoWare for a complete working example and reference.</p>
+<h1><a class="anchor" id="autotoc_md5"></a>
 Hardware Requirements</h1>
 <ul>
 <li>MSPM0 MCU</li>
 <li>ST7735R LCD Display</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Dependencies</h1>
 <p>This library requires the following external Valvanoware files:</p>
 <ul>
@@ -122,10 +135,10 @@ Dependencies</h1>
 </ul>
 <p>These files are provided in the ECE 319K Valvanoware distribution and should be in the <code>inc/</code> directory.</p>
 <p><b>Note:</b> The library includes its own DMA-accelerated display driver (<code>ST7735_DMA.c</code>, <code>SPI_DMA.c</code>) for high-performance rendering. The external ST7735/SPI files are only needed for initialization.</p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 RayCast3D Studio</h1>
 <p>A GUI application for creating and managing game assets. Requires Python 3 to be installed.</p>
-<h2><a class="anchor" id="autotoc_md6"></a>
+<h2><a class="anchor" id="autotoc_md8"></a>
 Running the Studio</h2>
 <ol type="1">
 <li>In CCS Project Explorer, right-click <code>RayCast3D_Studio.py</code> and select <b>Open Containing Folder</b></li>
@@ -137,7 +150,7 @@ Running the Studio</h2>
 </li>
 </ol>
 <p>Dependencies (Pillow) are installed automatically on first launch.</p>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Features</h2>
 <ul>
 <li><b>Map Editor</b> — 24×24 grid editor with click-and-drag wall placement. Supports multiple maps with add/rename/delete. Perimeter walls are enforced automatically.</li>
@@ -145,7 +158,7 @@ Features</h2>
 <li><b><a class="el" href="structSprite.html" title="World sprite descriptor.">Sprite</a> Manager</b> — Import sprite images with automatic transparent color detection. Supports alpha channel transparency or top-left pixel as transparent key. Preview shows simulated in-game appearance.</li>
 <li><b>Color Picker</b> — Define named colors with a visual color picker. Colors are exported as BGR565 constants for use with <code><a class="el" href="group__Graphics.html#ga5bcface68984dd0368dc11d393257d19" title="Set the solid color drawn below the horizon.">Graphics_SetFloorColor()</a></code>, <code><a class="el" href="group__Graphics.html#gab5ab82a607b33728150e1eab754faa88" title="Set the solid color drawn above the horizon.">Graphics_SetSkyColor()</a></code>, etc.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md10"></a>
 Auto-Export</h2>
 <p>The Studio automatically exports to the <code>assets/</code> folder:</p>
 <table class="markdownTable">
@@ -160,7 +173,7 @@ Auto-Export</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code><a class="el" href="colors_8h_source.html">colors.h</a></code>   </td><td class="markdownTableBodyNone">Named color constants in BGR565 format   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md9"></a>
+<h2><a class="anchor" id="autotoc_md11"></a>
 Keyboard Shortcuts</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -180,7 +193,7 @@ Keyboard Shortcuts</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>Escape</code>   </td><td class="markdownTableBodyNone">Deselect   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 API Modules</h1>
 <ul>
 <li><b>Engine Core</b> — initialization and rendering</li>
@@ -191,9 +204,9 @@ API Modules</h1>
 <li><b>Fixed Point</b> — math that doesn't need an FPU</li>
 </ul>
 <p>For full API details, see the <a href="https://esilguero1.github.io/RayCast3D/">documentation</a>.</p>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Performance Optimizations</h1>
-<h2><a class="anchor" id="autotoc_md12"></a>
+<h2><a class="anchor" id="autotoc_md14"></a>
 Fixed-Point Math (Q16.16)</h2>
 <p>All raycasting math uses Q16.16 fixed-point arithmetic for optimal performance on the MSPM0 (which lacks an FPU). This provides:</p>
 <ul>
@@ -205,7 +218,7 @@ Fixed-Point Math (Q16.16)</h2>
 <li>Reciprocal lookup tables to minimize division operations</li>
 <li>Precomputed constants (<code>SCREEN_HEIGHT_SHIFTED</code>, texture masks)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md13"></a>
+<h2><a class="anchor" id="autotoc_md15"></a>
 Rotation Drift Prevention</h2>
 <p>Repeated fixed-point multiplications can cause precision loss, leading to the direction vector drifting from unit length over time. This manifests as walls appearing to move closer or farther without player movement.</p>
 <p><b>Solution</b>: After each rotation, the direction vector is re-normalized: </p><div class="fragment"><div class="line"><a class="code hl_typedef" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a> lenSq = fixed_mul(dirX, dirX) + fixed_mul(dirY, dirY);</div>
@@ -213,7 +226,7 @@ Rotation Drift Prevention</h2>
 <div class="line">dirX = fixed_div(dirX, len);</div>
 <div class="line">dirY = fixed_div(dirY, len);</div>
 <div class="ttc" id="agroup__Fixed_html_gaa256feea306343fcd95f03f389a0cd59"><div class="ttname"><a href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a></div><div class="ttdeci">int32_t fixed_t</div><div class="ttdoc">Signed Q16.16 fixed-point type.</div><div class="ttdef"><b>Definition</b> fixed.h:28</div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md14"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
 Drift Verification (Tested)</h2>
 <p>The drift fix was verified using a debug display that tracks the direction vector magnitude across rotations:</p>
 <ul>
@@ -221,7 +234,7 @@ Drift Verification (Tested)</h2>
 <li><code>r</code> — total rotation count</li>
 </ul>
 <p><b>Test results</b>: After hundreds of rotations, <code>|dir|</code> remained stable at 65536, confirming the re-normalization successfully prevents drift.</p>
-<h2><a class="anchor" id="autotoc_md15"></a>
+<h2><a class="anchor" id="autotoc_md17"></a>
 DMA-Accelerated Display Transfer</h2>
 <p>The library uses DMA (Direct Memory Access) to transfer pixel data to the ST7735 display, allowing the CPU to render the next frame segment while the previous one is being transmitted over SPI.</p>
 <p><b>Quarter-screen double-buffering:</b></p><ul>
@@ -240,7 +253,7 @@ DMA-Accelerated Display Transfer</h2>
 <li>**~100% SPI utilization**: CPU and DMA run in parallel with minimal idle time</li>
 </ul>
 <p><b>Hardware resource:</b> DMA Channel 0 is reserved for display transfers and is not available for other uses.</p>
-<h1><a class="anchor" id="autotoc_md16"></a>
+<h1><a class="anchor" id="autotoc_md18"></a>
 License</h1>
 <p>For educational use in ECE 319K. </p>
 </div></div><!-- PageDoc -->

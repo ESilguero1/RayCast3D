@@ -51,6 +51,7 @@
 typedef struct {
     fixed_t posX;    /**< World X position (column, in tile coordinates) */
     fixed_t posY;    /**< World Y position (row, in tile coordinates) */
+    fixed_t posZ;    /**< Vertical position in world units, Q16.16 (0.5 = eye level, 0 = floor, 1 = ceiling) */
     fixed_t dirX;    /**< Direction vector X component (unit length) */
     fixed_t dirY;    /**< Direction vector Y component (unit length) */
     fixed_t planeX;  /**< Camera plane X (perpendicular to direction, controls FOV) */
@@ -119,6 +120,34 @@ void Camera_Move(double forward, double strafe);
  * @param degrees  Rotation angle in degrees (positive = clockwise)
  */
 void Camera_Rotate(double degrees);
+
+/**
+ * @brief Set camera vertical elevation (Z position).
+ *
+ * Controls the camera's height in the world. The default elevation
+ * of 0.5 places the viewpoint at eye level (midway between floor and
+ * ceiling). Increasing it simulates jumping; decreasing it simulates
+ * crouching. The lower bound is clamped to 0.02 to prevent floor
+ * distance math from collapsing to zero.
+ *
+ * When the camera elevation changes, walls shift vertically on screen
+ * in a perspective-correct way (nearby walls shift more than distant
+ * ones). Floor and ceiling distances are also adjusted so textured
+ * surfaces remain consistent.
+ *
+ * Values above 1.0 are allowed and work correctly when no ceiling
+ * texture is active (solid sky color). If a ceiling texture is
+ * enabled, keep posZ below 1.0 to avoid rendering artifacts.
+ *
+ * @param z  Height in world units (0.0 = floor, 0.5 = eye level, 1.0 = ceiling)
+ */
+void Camera_SetElevation(double z);
+
+/**
+ * @brief Get the current camera elevation.
+ * @return Current Z position as a double (0.5 = default eye level)
+ */
+double Camera_GetElevation(void);
 
 /**
  * @brief Get read-only access to the full camera state.

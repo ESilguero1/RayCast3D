@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['license_0',['License',['../index.html#autotoc_md16',1,'']]]
+  ['keyboard_20shortcuts_0',['Keyboard Shortcuts',['../index.html#autotoc_md11',1,'']]]
 ];

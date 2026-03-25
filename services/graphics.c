@@ -139,8 +139,18 @@ void CastRays(int side) {
 
         // Length of ray from one x or y-side to next x or y-side
         // deltaDistX = |1 / rayDirX|, deltaDistY = |1 / rayDirY|
-        fixed_t deltaDistX = (rayDirX == 0) ? FIXED_LARGE : Fixed_Abs(Fixed_RecipLarge(rayDirX));
-        fixed_t deltaDistY = (rayDirY == 0) ? FIXED_LARGE : Fixed_Abs(Fixed_RecipLarge(rayDirY));
+        //
+        // DDA_DELTA_MAX caps near-parallel ray deltas to prevent int32 overflow
+        // in the DDA accumulator. Without this, sideDistX/Y overflows after a
+        // few steps, corrupting the comparison and producing phantom wall stripes.
+        // Value of ~512 world units is far larger than the map diagonal (~34),
+        // so it never affects valid ray traversal.
+        #define DDA_DELTA_MAX ((fixed_t)(FIXED_LARGE >> 6))
+
+        fixed_t deltaDistX = (rayDirX == 0) ? DDA_DELTA_MAX : Fixed_Abs(Fixed_RecipLarge(rayDirX));
+        fixed_t deltaDistY = (rayDirY == 0) ? DDA_DELTA_MAX : Fixed_Abs(Fixed_RecipLarge(rayDirY));
+        if (deltaDistX > DDA_DELTA_MAX) deltaDistX = DDA_DELTA_MAX;
+        if (deltaDistY > DDA_DELTA_MAX) deltaDistY = DDA_DELTA_MAX;
         fixed_t perpWallDist;
 
         // What direction to step in x or y direction
@@ -216,9 +226,16 @@ void CastRays(int side) {
 
         // Calculate lowest and highest pixel to fill (use precomputed half-height)
         int halfLineHeight = lineHeight >> 1;  // Faster than / 2
-        int drawStart = HALF_SCREEN_HEIGHT - halfLineHeight;
+
+        // Camera elevation: shift wall column vertically (perspective-correct)
+        // posZ = 0.5 = eye level (no shift), >0.5 = higher (walls shift toward floor)
+        int posZShift = (int)(((int64_t)(cam->posZ - FIXED_HALF) * lineHeight) >> FIXED_SHIFT);
+
+        int drawStart = HALF_SCREEN_HEIGHT - halfLineHeight - posZShift;
         if (drawStart < 0) drawStart = 0;
-        int drawEnd = HALF_SCREEN_HEIGHT + halfLineHeight;
+        if (drawStart > SCREEN_HEIGHT) drawStart = SCREEN_HEIGHT;
+        int drawEnd = HALF_SCREEN_HEIGHT + halfLineHeight - posZShift;
+        if (drawEnd < 0) drawEnd = 0;
         if (drawEnd > SCREEN_HEIGHT) drawEnd = SCREEN_HEIGHT;
 
         // Store wall coverage for CastFloors visibility culling
@@ -262,8 +279,10 @@ void CastRays(int side) {
         }
 
         // Starting texture coordinate (use cached halfLineHeight)
-        // texPos = (drawStart - HALF_SCREEN_HEIGHT + halfLineHeight) * step
-        fixed_t texPos = ((drawStart - HALF_SCREEN_HEIGHT + halfLineHeight) * texStep);
+        // Account for posZShift so texture aligns with the shifted wall column
+        // texPos = (drawStart - unclamped_wall_top) * step
+        //        = (drawStart - (HALF_SCREEN_HEIGHT - halfLineHeight - posZShift)) * step
+        fixed_t texPos = ((drawStart - HALF_SCREEN_HEIGHT + halfLineHeight + posZShift) * texStep);
 
         // Cache texture data pointer for this wall's texture
         const uint16_t* texData = textures[texNum].data;
@@ -302,14 +321,22 @@ void CastFloors(int side) {
     fixed_t scaledPlaneX = (cam->planeX * 2) / SCREEN_WIDTH;
     fixed_t scaledPlaneY = (cam->planeY * 2) / SCREEN_WIDTH;
 
+    // Camera elevation scaling for floor/ceiling row distances:
+    // Standard formula: rowDist = cameraHeight * SCREEN_HEIGHT / p
+    // LUT stores: HALF_SCREEN_HEIGHT / p (assumes cameraHeight = 0.5)
+    // So: rowDist = (cameraHeight / 0.5) * LUT[p] = 2 * posZ * LUT[p]
+    fixed_t posZScale  = cam->posZ << 1;                 // 2 * posZ (floor)
+    fixed_t ceilZScale = (FIXED_ONE - cam->posZ) << 1;   // 2 * (1 - posZ) (ceiling)
+
     // Floor: y = 0 (screen bottom) to maxDrawStart-1 (no floor visible above this)
     // Two paths: branchless for rows fully visible, per-pixel check near wall edges
-    if (floorTexIndex >= 0 && floorTexData) {
+    // Skip if posZ <= 0 (camera at floor level — scale would be zero/negative)
+    if (floorTexIndex >= 0 && floorTexData && posZScale > 0) {
         int floorEnd = maxDrawStart < HALF_SCREEN_HEIGHT ? maxDrawStart : HALF_SCREEN_HEIGHT;
 
         for (int y = 0; y < floorEnd; y++) {
             int p = HALF_SCREEN_HEIGHT - y;
-            fixed_t rowDist = rowDistanceLUT[p];
+            fixed_t rowDist = Fixed_Mul(posZScale, rowDistanceLUT[p]);
 
             fixed_t floorStepX = Fixed_Mul(rowDist, scaledPlaneX);
             fixed_t floorStepY = Fixed_Mul(rowDist, scaledPlaneY);
@@ -343,12 +370,13 @@ void CastFloors(int side) {
 
     // Ceiling: y = minDrawEnd (no ceiling visible below this) to SCREEN_HEIGHT-1
     // Two paths: per-pixel check near wall edges, branchless for rows fully visible
-    if (ceilTexIndex >= 0 && ceilTexData) {
+    // Skip if posZ >= 1.0 (camera at/above ceiling — scale would be zero/negative)
+    if (ceilTexIndex >= 0 && ceilTexData && ceilZScale > 0) {
         int ceilStart = minDrawEnd > HALF_SCREEN_HEIGHT ? minDrawEnd : HALF_SCREEN_HEIGHT;
 
         for (int y = ceilStart; y < SCREEN_HEIGHT; y++) {
             int p = y - HALF_SCREEN_HEIGHT + 1;
-            fixed_t rowDist = rowDistanceLUT[p];
+            fixed_t rowDist = Fixed_Mul(ceilZScale, rowDistanceLUT[p]);
 
             fixed_t ceilStepX = Fixed_Mul(rowDist, scaledPlaneX);
             fixed_t ceilStepY = Fixed_Mul(rowDist, scaledPlaneY);

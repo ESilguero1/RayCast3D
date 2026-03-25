@@ -35,6 +35,7 @@
 static Camera CameraState = {
     .posX = 12 << 16,      /* 12.0 - center of default map */
     .posY = 12 << 16,      /* 12.0 */
+    .posZ = FIXED_HALF,    /* 0.5  - eye level (midway between floor and ceiling) */
     .dirX = 0,             /* 0.0 */
     .dirY = -(1 << 16),    /* -1.0 (facing UP toward row 0) */
     .planeX = 43253,       /* 0.66 (perpendicular to direction) */
@@ -120,6 +121,19 @@ void Camera_Rotate(double degrees) {
     // This matches the initial camera state: dir=(0,-1) → plane=(0.66, 0)
     CameraState.planeX = -Fixed_Mul(CameraState.dirY, CAMERA_FOV_RATIO_FIXED);
     CameraState.planeY = Fixed_Mul(CameraState.dirX, CAMERA_FOV_RATIO_FIXED);
+}
+
+void Camera_SetElevation(double z) {
+    /* Floor clamp only: posZ must be > 0 or floor row distances go to zero.
+     * No upper clamp — values above 1.0 work fine as long as no ceiling
+     * texture is active (solid sky color only). CastFloors guards against
+     * negative ceiling scale internally. */
+    if (z < 0.02) z = 0.02;
+    CameraState.posZ = FLOAT_TO_FIXED(z);
+}
+
+double Camera_GetElevation(void) {
+    return FIXED_TO_FLOAT(CameraState.posZ);
 }
 
 const Camera* Camera_Get(void) {

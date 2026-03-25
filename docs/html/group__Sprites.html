@@ -90,7 +90,7 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga19d5d14b4dfd4106f0de2035e853a790" id="r_ga19d5d14b4dfd4106f0de2035e853a790"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga19d5d14b4dfd4106f0de2035e853a790">SPRITES_MAX_COUNT</a>&#160;&#160;&#160;16</td></tr>
+<tr class="memitem:ga19d5d14b4dfd4106f0de2035e853a790" id="r_ga19d5d14b4dfd4106f0de2035e853a790"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Sprites.html#ga19d5d14b4dfd4106f0de2035e853a790">SPRITES_MAX_COUNT</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:ga19d5d14b4dfd4106f0de2035e853a790"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -171,7 +171,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define SPRITES_MAX_COUNT&#160;&#160;&#160;16</td>
+          <td class="memname">#define SPRITES_MAX_COUNT&#160;&#160;&#160;32</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -461,7 +461,7 @@ Variables</h2></td></tr>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> item = AddSprite(5, 5, coin_img, 3);</div>
 <div class="line"><a class="code hl_function" href="group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47">Sprite_SetElevation</a>(item, 0.3);  <span class="comment">// float above floor</span></div>
-<div class="ttc" id="agroup__Sprites_html_ga8bebf899a71e6ec0edd8d3b9ea787b47"><div class="ttname"><a href="group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47">Sprite_SetElevation</a></div><div class="ttdeci">void Sprite_SetElevation(int index, double elevation)</div><div class="ttdoc">Set a sprite's vertical elevation above the floor.</div><div class="ttdef"><b>Definition</b> sprites.c:235</div></div>
+<div class="ttc" id="agroup__Sprites_html_ga8bebf899a71e6ec0edd8d3b9ea787b47"><div class="ttname"><a href="group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47">Sprite_SetElevation</a></div><div class="ttdeci">void Sprite_SetElevation(int index, double elevation)</div><div class="ttdoc">Set a sprite's vertical elevation above the floor.</div><div class="ttdef"><b>Definition</b> sprites.c:239</div></div>
 </div><!-- fragment --></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -507,7 +507,7 @@ Variables</h2></td></tr>
 <dl class="section user"><dt>Example</dt><dd><div class="fragment"><div class="line"><span class="keywordtype">int</span> ghost = AddSprite(5, 5, ghost_img, 6);</div>
 <div class="line"><a class="code hl_function" href="group__Sprites.html#gac9dc081788dc5616f54e744481fb2e96">Sprite_SetTranslucent</a>(ghost, 1);   <span class="comment">// 50% see-through</span></div>
 <div class="line"><a class="code hl_function" href="group__Sprites.html#ga8bebf899a71e6ec0edd8d3b9ea787b47">Sprite_SetElevation</a>(ghost, 0.3);   <span class="comment">// floating ghost</span></div>
-<div class="ttc" id="agroup__Sprites_html_gac9dc081788dc5616f54e744481fb2e96"><div class="ttname"><a href="group__Sprites.html#gac9dc081788dc5616f54e744481fb2e96">Sprite_SetTranslucent</a></div><div class="ttdeci">void Sprite_SetTranslucent(int index, int enabled)</div><div class="ttdoc">Enable or disable 50% translucency for a sprite.</div><div class="ttdef"><b>Definition</b> sprites.c:241</div></div>
+<div class="ttc" id="agroup__Sprites_html_gac9dc081788dc5616f54e744481fb2e96"><div class="ttname"><a href="group__Sprites.html#gac9dc081788dc5616f54e744481fb2e96">Sprite_SetTranslucent</a></div><div class="ttdeci">void Sprite_SetTranslucent(int index, int enabled)</div><div class="ttdoc">Enable or disable 50% translucency for a sprite.</div><div class="ttdef"><b>Definition</b> sprites.c:245</div></div>
 </div><!-- fragment --></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">

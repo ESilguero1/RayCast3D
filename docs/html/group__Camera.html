@@ -104,6 +104,12 @@ Functions</h2></td></tr>
 <tr class="memitem:ga4f784aa8781859da4b7ecf955abe5fe3" id="r_ga4f784aa8781859da4b7ecf955abe5fe3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga4f784aa8781859da4b7ecf955abe5fe3">Camera_Rotate</a> (double degrees)</td></tr>
 <tr class="memdesc:ga4f784aa8781859da4b7ecf955abe5fe3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rotate camera by a specified angle.  <br /></td></tr>
 <tr class="separator:ga4f784aa8781859da4b7ecf955abe5fe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93e6a1a5dfb654c47b1a9c921afa8997" id="r_ga93e6a1a5dfb654c47b1a9c921afa8997"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga93e6a1a5dfb654c47b1a9c921afa8997">Camera_SetElevation</a> (double z)</td></tr>
+<tr class="memdesc:ga93e6a1a5dfb654c47b1a9c921afa8997"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set camera vertical elevation (Z position).  <br /></td></tr>
+<tr class="separator:ga93e6a1a5dfb654c47b1a9c921afa8997"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga248d12c72d26b6ebbee6f60ac2921275" id="r_ga248d12c72d26b6ebbee6f60ac2921275"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga248d12c72d26b6ebbee6f60ac2921275">Camera_GetElevation</a> (void)</td></tr>
+<tr class="memdesc:ga248d12c72d26b6ebbee6f60ac2921275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current camera elevation.  <br /></td></tr>
+<tr class="separator:ga248d12c72d26b6ebbee6f60ac2921275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2ae7bc93725c396486753dd9f5f2daa1" id="r_ga2ae7bc93725c396486753dd9f5f2daa1"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structCamera.html">Camera</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga2ae7bc93725c396486753dd9f5f2daa1">Camera_Get</a> (void)</td></tr>
 <tr class="memdesc:ga2ae7bc93725c396486753dd9f5f2daa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get read-only access to the full camera state.  <br /></td></tr>
 <tr class="separator:ga2ae7bc93725c396486753dd9f5f2daa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,6 +120,8 @@ Variables</h2></td></tr>
 <tr class="separator:ga398498f4bbe5606016d64256eb672128"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6283fabec74e5f3f67185e7458e08e7b" id="r_ga6283fabec74e5f3f67185e7458e08e7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga6283fabec74e5f3f67185e7458e08e7b">Camera::posY</a></td></tr>
 <tr class="separator:ga6283fabec74e5f3f67185e7458e08e7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9b0b51a21ba53c233ea0fe3853cf8fd6" id="r_ga9b0b51a21ba53c233ea0fe3853cf8fd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga9b0b51a21ba53c233ea0fe3853cf8fd6">Camera::posZ</a></td></tr>
+<tr class="separator:ga9b0b51a21ba53c233ea0fe3853cf8fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga68c5b742e4bddb8b589d6b043ec3c99a" id="r_ga68c5b742e4bddb8b589d6b043ec3c99a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga68c5b742e4bddb8b589d6b043ec3c99a">Camera::dirX</a></td></tr>
 <tr class="separator:ga68c5b742e4bddb8b589d6b043ec3c99a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3e2398505fc41d4a831aad99fa886659" id="r_ga3e2398505fc41d4a831aad99fa886659"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Camera.html#ga3e2398505fc41d4a831aad99fa886659">Camera::dirY</a></td></tr>
@@ -210,6 +218,29 @@ Here is the caller graph for this function:</div>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ga248d12c72d26b6ebbee6f60ac2921275" name="ga248d12c72d26b6ebbee6f60ac2921275"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga248d12c72d26b6ebbee6f60ac2921275">&#9670;&#160;</a></span>Camera_GetElevation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Camera_GetElevation </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/camera.h&gt;</code></p>
+
+<p>Get the current camera elevation. </p>
+<dl class="section return"><dt>Returns</dt><dd>Current Z position as a double (0.5 = default eye level) </dd></dl>
 
 </div>
 </div>
@@ -347,6 +378,37 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ga93e6a1a5dfb654c47b1a9c921afa8997" name="ga93e6a1a5dfb654c47b1a9c921afa8997"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga93e6a1a5dfb654c47b1a9c921afa8997">&#9670;&#160;</a></span>Camera_SetElevation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Camera_SetElevation </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>z</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><code>#include &lt;services/camera.h&gt;</code></p>
+
+<p>Set camera vertical elevation (Z position). </p>
+<p>Controls the camera's height in the world. The default elevation of 0.5 places the viewpoint at eye level (midway between floor and ceiling). Increasing it simulates jumping; decreasing it simulates crouching. The lower bound is clamped to 0.02 to prevent floor distance math from collapsing to zero.</p>
+<p>When the camera elevation changes, walls shift vertically on screen in a perspective-correct way (nearby walls shift more than distant ones). Floor and ceiling distances are also adjusted so textured surfaces remain consistent.</p>
+<p>Values above 1.0 are allowed and work correctly when no ceiling texture is active (solid sky color). If a ceiling texture is enabled, keep posZ below 1.0 to avoid rendering artifacts.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">z</td><td>Height in world units (0.0 = floor, 0.5 = eye level, 1.0 = ceiling) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="gac6c9e108dd87edf1d4db01a433eeaeca" name="gac6c9e108dd87edf1d4db01a433eeaeca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gac6c9e108dd87edf1d4db01a433eeaeca">&#9670;&#160;</a></span>Camera_SetPosition()</h2>
 
@@ -475,6 +537,21 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>World Y position (row, in tile coordinates) </p>
+
+</div>
+</div>
+<a id="ga9b0b51a21ba53c233ea0fe3853cf8fd6" name="ga9b0b51a21ba53c233ea0fe3853cf8fd6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9b0b51a21ba53c233ea0fe3853cf8fd6">&#9670;&#160;</a></span>posZ</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__Fixed.html#gaa256feea306343fcd95f03f389a0cd59">fixed_t</a> Camera::posZ</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Vertical position in world units, Q16.16 (0.5 = eye level, 0 = floor, 1 = ceiling) </p>
 
 </div>
 </div>

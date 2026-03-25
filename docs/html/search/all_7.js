@@ -1,5 +1,16 @@
 var searchData=
 [
-  ['hardware_20requirements_0',['Hardware Requirements',['../index.html#autotoc_md3',1,'']]],
-  ['height_1',['height',['../group__Sprites.html#ga1f07c8f2080c193759aec0e13503d7ab',1,'Sprite']]]
+  ['get_20the_20library_0',['1. Get the library',['../index.html#autotoc_md3',1,'']]],
+  ['graphics_1',['Graphics',['../group__Graphics.html',1,'']]],
+  ['graphics_5fdisablefps_2',['graphics_disablefps',['../group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8',1,'Graphics_DisableFPS(void):&#160;graphics.c'],['../group__Graphics.html#gafb4886d58f7483ab282bc9c1e5e15aa8',1,'Graphics_DisableFPS(void):&#160;graphics.c']]],
+  ['graphics_5fdisplayfps_3',['graphics_displayfps',['../group__Graphics.html#gad808eaf90668b417224ea2a84c05d384',1,'Graphics_DisplayFPS(int x, int y, uint16_t color):&#160;graphics.c'],['../group__Graphics.html#gad808eaf90668b417224ea2a84c05d384',1,'Graphics_DisplayFPS(int x, int y, uint16_t color):&#160;graphics.c']]],
+  ['graphics_5fforegroundsprite_4',['graphics_foregroundsprite',['../group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33',1,'Graphics_ForegroundSprite(const uint16_t *image, int x, int y, int width, int height, int scale, uint16_t transparent):&#160;graphics.c'],['../group__Graphics.html#ga2ca977fa31c84e31c93a8a765e0d3a33',1,'Graphics_ForegroundSprite(const uint16_t *image, int x, int y, int width, int height, int scale, uint16_t transparent):&#160;graphics.c']]],
+  ['graphics_5finit_5',['graphics_init',['../group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444',1,'Graphics_Init(void):&#160;graphics.c'],['../group__Graphics.html#gaec45a917f7bb034a25836f3c43e1d444',1,'Graphics_Init(void):&#160;graphics.c']]],
+  ['graphics_5fsetceilingtexture_6',['graphics_setceilingtexture',['../group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c',1,'Graphics_SetCeilingTexture(int texIndex):&#160;graphics.c'],['../group__Graphics.html#ga8b5d5497e10d198d1498f226c90c910c',1,'Graphics_SetCeilingTexture(int texIndex):&#160;graphics.c']]],
+  ['graphics_5fsetfloorcolor_7',['graphics_setfloorcolor',['../group__Graphics.html#ga5bcface68984dd0368dc11d393257d19',1,'Graphics_SetFloorColor(uint16_t color):&#160;graphics.c'],['../group__Graphics.html#ga5bcface68984dd0368dc11d393257d19',1,'Graphics_SetFloorColor(uint16_t color):&#160;graphics.c']]],
+  ['graphics_5fsetfloorgradient_8',['graphics_setfloorgradient',['../group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198',1,'Graphics_SetFloorGradient(double intensity):&#160;graphics.c'],['../group__Graphics.html#gaf0c9b917a4f2b484c1bb57ebd63dd198',1,'Graphics_SetFloorGradient(double intensity):&#160;graphics.c']]],
+  ['graphics_5fsetfloortexture_9',['graphics_setfloortexture',['../group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be',1,'Graphics_SetFloorTexture(int texIndex):&#160;graphics.c'],['../group__Graphics.html#ga030a7f74aae9182018f74ce9ed6156be',1,'Graphics_SetFloorTexture(int texIndex):&#160;graphics.c']]],
+  ['graphics_5fsetskycolor_10',['graphics_setskycolor',['../group__Graphics.html#gab5ab82a607b33728150e1eab754faa88',1,'Graphics_SetSkyColor(uint16_t color):&#160;graphics.c'],['../group__Graphics.html#gab5ab82a607b33728150e1eab754faa88',1,'Graphics_SetSkyColor(uint16_t color):&#160;graphics.c']]],
+  ['graphics_5ftext_11',['graphics_text',['../group__Graphics.html#gab83899386ec976913b43dc534dd897cf',1,'Graphics_Text(const char *text, int x, int y, uint16_t color):&#160;graphics.c'],['../group__Graphics.html#gab83899386ec976913b43dc534dd897cf',1,'Graphics_Text(const char *text, int x, int y, uint16_t color):&#160;graphics.c']]],
+  ['grid_12',['grid',['../group__Map.html#ga0fdbd0d87dd8eb4675e97e7b4255ad14',1,'MapInfo']]]
 ];

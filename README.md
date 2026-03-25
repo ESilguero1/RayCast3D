@@ -8,9 +8,30 @@ RayCast3D is designed for ECE 319K students working with the MSPM0 microcontroll
 
 ## Quick Start
 
+### 1. Get the library
+
+**Option A — Download ZIP:**
+1. Download the latest release ZIP from the repository
+2. Extract the contents into a folder called `RayCast3D` inside your CCS project directory for Lab 9 (e.g., `Lab9/RayCast3D/`)
+
+**Option B — Git clone:**
+```bash
+cd <your-Lab9-project-folder>
+git clone https://github.com/esilguero1/RayCast3D.git
+rm -rf RayCast3D/.git
+```
+
+### 2. Include the header and start rendering
+
+Add a single include to your `main.c` to get the full API:
+
 ```c
 #include "RayCast3D/raycast3d.h"
+```
 
+Then initialize and render:
+
+```c
 int main(void) {
     LaunchPad_Init();
 
@@ -30,6 +51,8 @@ int main(void) {
     }
 }
 ```
+
+See the **RayCast3D_Demo** project in ValvanoWare for a complete working example and reference.
 
 ## Hardware Requirements
 

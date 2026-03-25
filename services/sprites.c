@@ -89,9 +89,13 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
     // Project elevation into screen space (world units → screen pixels at this depth)
     int vMoveScreen = FIXED_TO_INT(sprite.elevation * originalSpriteHeight);
 
+    // Camera elevation shift: higher camera → sprites shift toward floor (lower y)
+    // Same perspective-correct formula as wall columns
+    int camZShift = (int)(((int64_t)(cam->posZ - FIXED_HALF) * originalSpriteHeight) >> FIXED_SHIFT);
+
     // Calculate drawing boundaries (elevation moves sprite up in y-up coords)
-    int drawStartY = HALF_SCREEN_HEIGHT - (spriteHeight >> 1) - pushdown + vMoveScreen;
-    int drawEndY = HALF_SCREEN_HEIGHT + (spriteHeight >> 1) - pushdown + vMoveScreen;
+    int drawStartY = HALF_SCREEN_HEIGHT - (spriteHeight >> 1) - pushdown + vMoveScreen - camZShift;
+    int drawEndY = HALF_SCREEN_HEIGHT + (spriteHeight >> 1) - pushdown + vMoveScreen - camZShift;
     int drawStartX = spriteScreenX - (spriteWidth >> 1);
     int drawEndX = spriteScreenX + ((spriteWidth + 1) >> 1);
 
