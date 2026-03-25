@@ -329,6 +329,42 @@ class RayCast3DStudio:
         # Escape to deselect
         self.root.bind('<Escape>', self._on_escape_key)
 
+    def _bind_mousewheel(self, canvas, inner_frame):
+        def _on_mousewheel(event):
+            if platform.system() == 'Windows':
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            elif platform.system() == 'Darwin':
+                canvas.yview_scroll(int(-1 * event.delta), "units")
+
+        def _on_button4(event):  # Linux up
+            canvas.yview_scroll(-1, "units")
+
+        def _on_button5(event):  # Linux down
+            canvas.yview_scroll(1, "units")
+
+        def _bind_to_all_children(widget):
+            widget.bind("<MouseWheel>", _on_mousewheel)
+            widget.bind("<Button-4>", _on_button4)
+            widget.bind("<Button-5>", _on_button5)
+            for child in widget.winfo_children():
+                _bind_to_all_children(child)
+
+        def _unbind_from_all_children(widget):
+            widget.unbind("<MouseWheel>")
+            widget.unbind("<Button-4>")
+            widget.unbind("<Button-5>")
+            for child in widget.winfo_children():
+                _unbind_from_all_children(child)
+
+        def _enter(e):
+            _bind_to_all_children(inner_frame)
+
+        def _leave(e):
+            _unbind_from_all_children(inner_frame)
+
+        inner_frame.bind("<Enter>", _enter)
+        inner_frame.bind("<Leave>", _leave)
+
     def _save_and_export(self):
         """Manual save and export."""
         self._save_project()
@@ -669,6 +705,7 @@ class RayCast3DStudio:
         self.texture_canvas = tk.Canvas(list_container, highlightthickness=0)
         texture_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.texture_canvas.yview)
         self.texture_list_frame = ttk.Frame(self.texture_canvas)
+        self._bind_mousewheel(self.texture_canvas, self.texture_list_frame)
 
         # Configure grid columns on list frame to match header
         self.texture_list_frame.columnconfigure(0, minsize=self.tex_col_widths[0])
@@ -682,9 +719,6 @@ class RayCast3DStudio:
 
         self.texture_list_frame.bind('<Configure>', lambda e: self.texture_canvas.configure(scrollregion=self.texture_canvas.bbox('all')))
         self.texture_canvas.bind('<Configure>', lambda e: self.texture_canvas.itemconfig(self.texture_canvas_window, width=e.width))
-
-        # Mouse wheel scrolling
-        self.texture_canvas.bind('<MouseWheel>', lambda e: self.texture_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
         # Preview area
         preview_frame = ttk.LabelFrame(main_frame, text="Preview (Simulated In-Game Wall View)")
@@ -741,6 +775,7 @@ class RayCast3DStudio:
         self.sprite_canvas = tk.Canvas(list_container, highlightthickness=0)
         sprite_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.sprite_canvas.yview)
         self.sprite_list_frame = ttk.Frame(self.sprite_canvas)
+        self._bind_mousewheel(self.sprite_canvas, self.sprite_list_frame)
 
         # Configure grid columns on list frame to match header
         self.sprite_list_frame.columnconfigure(0, minsize=self.sprite_col_widths[0])
@@ -754,9 +789,6 @@ class RayCast3DStudio:
 
         self.sprite_list_frame.bind('<Configure>', lambda e: self.sprite_canvas.configure(scrollregion=self.sprite_canvas.bbox('all')))
         self.sprite_canvas.bind('<Configure>', lambda e: self.sprite_canvas.itemconfig(self.sprite_canvas_window, width=e.width))
-
-        # Mouse wheel scrolling
-        self.sprite_canvas.bind('<MouseWheel>', lambda e: self.sprite_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
         # Preview area
         preview_frame = ttk.LabelFrame(main_frame, text="Preview (Simulated In-Game Sprite)")
@@ -819,6 +851,7 @@ class RayCast3DStudio:
         self.color_canvas = tk.Canvas(list_container, highlightthickness=0)
         color_scrollbar = ttk.Scrollbar(list_container, orient='vertical', command=self.color_canvas.yview)
         self.color_list_frame = ttk.Frame(self.color_canvas)
+        self._bind_mousewheel(self.color_canvas, self.color_list_frame)
 
         # Configure grid columns on list frame to match header
         self.color_list_frame.columnconfigure(0, minsize=self.color_col_widths[0])
@@ -833,9 +866,6 @@ class RayCast3DStudio:
 
         self.color_list_frame.bind('<Configure>', lambda e: self.color_canvas.configure(scrollregion=self.color_canvas.bbox('all')))
         self.color_canvas.bind('<Configure>', lambda e: self.color_canvas.itemconfig(self.color_canvas_window, width=e.width))
-
-        # Mouse wheel scrolling
-        self.color_canvas.bind('<MouseWheel>', lambda e: self.color_canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
         # Color rows tracking
         self.color_rows = []
