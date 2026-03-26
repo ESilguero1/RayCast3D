@@ -23,7 +23,7 @@ _ensure_dependencies()
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog, colorchooser
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageFont, ImageDraw
 import json
 
 # Constants
@@ -275,6 +275,10 @@ class RayCast3DStudio:
         self.auto_export_enabled = True  # Auto-export on changes
         self.map_undo_stack = []  # List of (map_idx, data_copy) for undo
 
+        # Font data: 255 characters, each 5 bytes (column-encoded 5x8 bitmap)
+        self.font_data = None  # Will be loaded from font.h or initialized to default
+        self.font_path = None  # Path to imported TTF/OTF font file
+
         # UI references for list items
         self.texture_rows = []  # List of (frame, combo_var) tuples
         self.sprite_rows = []
@@ -322,6 +326,7 @@ class RayCast3DStudio:
         self.root.bind('<Control-Key-2>', lambda e: self.notebook.select(1))  # Textures tab
         self.root.bind('<Control-Key-3>', lambda e: self.notebook.select(2))  # Sprites tab
         self.root.bind('<Control-Key-4>', lambda e: self.notebook.select(3))  # Colors tab
+        self.root.bind('<Control-Key-5>', lambda e: self.notebook.select(4))  # Font tab
 
         # Undo
         self.root.bind('<Control-z>', lambda e: self._undo())
@@ -470,24 +475,26 @@ class RayCast3DStudio:
 
     def _build_ui(self):
         """Build the main UI."""
-        # Top memory display
-        memory_frame = ttk.Frame(self.root)
-        memory_frame.pack(fill='x', padx=10, pady=5)
+        # Top row: memory total + status
+        top_row = ttk.Frame(self.root)
+        top_row.pack(fill='x', padx=10, pady=(5, 0))
 
-        self.memory_label = ttk.Label(memory_frame, text="Memory Usage: 0 bytes", font=('Consolas', 12, 'bold'))
+        self.memory_label = ttk.Label(top_row, text="Memory Usage: 0 bytes", font=('Consolas', 12, 'bold'))
         self.memory_label.pack(side='left')
 
-        self.memory_detail = ttk.Label(memory_frame, text="", font=('Consolas', 10))
-        self.memory_detail.pack(side='left', padx=20)
-
-        # Auto-save indicator
-        self.status_label = ttk.Label(memory_frame, text="Auto-saving to assets/", font=('Consolas', 9), foreground='green')
+        self.status_label = ttk.Label(top_row, text="Auto-saving to assets/", font=('Consolas', 9), foreground='green')
         self.status_label.pack(side='right')
 
-        # Keyboard shortcuts hint
-        shortcuts_label = ttk.Label(memory_frame, text="Ctrl+T/P: Add | Del: Remove | ↑↓: Navigate | Esc: Deselect | Ctrl+1/2/3: Tabs",
+        # Second row: memory breakdown + shortcuts
+        detail_row = ttk.Frame(self.root)
+        detail_row.pack(fill='x', padx=10, pady=(0, 5))
+
+        self.memory_detail = ttk.Label(detail_row, text="", font=('Consolas', 9))
+        self.memory_detail.pack(side='left')
+
+        shortcuts_label = ttk.Label(detail_row, text="Ctrl+T/P: Add | Del: Remove | Ctrl+1-5: Tabs",
                                     font=('Consolas', 8), foreground='gray')
-        shortcuts_label.pack(side='right', padx=20)
+        shortcuts_label.pack(side='right')
 
         # Notebook for tabs
         self.notebook = ttk.Notebook(self.root)
@@ -512,6 +519,11 @@ class RayCast3DStudio:
         self.color_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.color_tab, text='Colors (Ctrl+4)')
         self._build_color_tab()
+
+        # Tab 5: Font Manager
+        self.font_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.font_tab, text='Font (Ctrl+5)')
+        self._build_font_tab()
 
     def _build_map_tab(self):
         """Build the map editor tab."""
@@ -884,6 +896,607 @@ class RayCast3DStudio:
                                                "Use them in your code like: Graphics_SetFloorColor(COLOR_SKY);",
                               font=('Consolas', 9), justify='left')
         info_text.pack(padx=10, pady=10)
+
+    def _build_font_tab(self):
+        """Build the font manager tab."""
+        main_frame = ttk.Frame(self.font_tab)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Controls
+        ctrl_frame = ttk.Frame(main_frame)
+        ctrl_frame.pack(fill='x', pady=(0, 10))
+
+        ttk.Button(ctrl_frame, text="Import Font (TTF/OTF)", command=self._import_font).pack(side='left', padx=5)
+        ttk.Button(ctrl_frame, text="Reset to Default", command=self._reset_font_to_default).pack(side='left', padx=5)
+
+        # Font info label
+        self.font_info_label = ttk.Label(ctrl_frame, text="Font: default (5x8)", font=('Consolas', 9))
+        self.font_info_label.pack(side='left', padx=15)
+
+        # Content area: character grid on the left, editor on the right
+        content_frame = ttk.Frame(main_frame)
+        content_frame.pack(fill='both', expand=True)
+
+        # LEFT: Character grid preview
+        grid_outer = ttk.LabelFrame(content_frame, text="Character Map (click to edit)")
+        grid_outer.pack(side='left', fill='both', expand=True, padx=(0, 5))
+
+        # Scrollable canvas for the character grid
+        grid_scroll_frame = ttk.Frame(grid_outer)
+        grid_scroll_frame.pack(fill='both', expand=True)
+
+        grid_vscroll = ttk.Scrollbar(grid_scroll_frame, orient='vertical')
+        self.font_grid_canvas = tk.Canvas(grid_scroll_frame, highlightthickness=0,
+                                          yscrollcommand=grid_vscroll.set)
+        grid_vscroll.config(command=self.font_grid_canvas.yview)
+        grid_vscroll.pack(side='right', fill='y')
+        self.font_grid_canvas.pack(side='left', fill='both', expand=True)
+        self._bind_mousewheel(self.font_grid_canvas, grid_scroll_frame)
+
+        self.font_grid_canvas.bind('<Button-1>', self._on_font_grid_click)
+
+        # RIGHT: Pixel editor for selected character
+        editor_outer = ttk.LabelFrame(content_frame, text="Character Editor")
+        editor_outer.pack(side='right', fill='y', padx=(5, 0))
+
+        self.font_char_label = ttk.Label(editor_outer, text="Select a character", font=('Consolas', 10))
+        self.font_char_label.pack(pady=5)
+
+        # Pixel editing canvas (5 cols x 8 rows, each pixel drawn as a large square)
+        FONT_PIXEL = 28  # Size of each pixel in the editor
+        editor_w = 5 * FONT_PIXEL
+        editor_h = 8 * FONT_PIXEL
+        self.font_editor_canvas = tk.Canvas(editor_outer, width=editor_w, height=editor_h,
+                                            bg='white', highlightthickness=1, highlightbackground='gray')
+        self.font_editor_canvas.pack(padx=10, pady=5)
+        self.font_editor_canvas.bind('<Button-1>', self._on_font_pixel_click)
+        self.font_editor_canvas.bind('<B1-Motion>', self._on_font_pixel_drag)
+        self.font_editor_pixel_size = FONT_PIXEL
+        self.font_selected_char = None
+        self.font_draw_value = 1  # 1 = draw, 0 = erase (set on press)
+
+        # Navigation buttons
+        nav_frame = ttk.Frame(editor_outer)
+        nav_frame.pack(pady=5)
+        ttk.Button(nav_frame, text="< Prev", command=self._font_prev_char).pack(side='left', padx=5)
+        ttk.Button(nav_frame, text="Next >", command=self._font_next_char).pack(side='left', padx=5)
+        ttk.Button(nav_frame, text="Clear", command=self._font_clear_char).pack(side='left', padx=5)
+        ttk.Button(nav_frame, text="Invert", command=self._font_invert_char).pack(side='left', padx=5)
+
+        # Character preview at actual size
+        ttk.Label(editor_outer, text="Preview (actual size):", font=('Arial', 9)).pack(pady=(10, 2))
+        self.font_preview_canvas = tk.Canvas(editor_outer, width=60, height=48, bg='black',
+                                             highlightthickness=1, highlightbackground='gray')
+        self.font_preview_canvas.pack(padx=10, pady=5)
+
+        # Info
+        info_frame = ttk.LabelFrame(main_frame, text="Info")
+        info_frame.pack(fill='x', pady=(10, 0))
+        ttk.Label(info_frame,
+                  text="Font is exported to assets/font.h as a 5x8 column-encoded bitmap array (5 bytes per character).\n"
+                       "Import a TTF/OTF file to auto-generate all glyphs, then fine-tune individual characters in the editor.",
+                  font=('Consolas', 9), justify='left').pack(padx=10, pady=10)
+
+    def _load_font_from_h(self):
+        """Parse the existing font.h and load font_data from it."""
+        font_h_path = os.path.join(ASSETS_DIR, "font.h")
+        if not os.path.exists(font_h_path):
+            return False
+
+        try:
+            import re
+            with open(font_h_path, 'r') as f:
+                content = f.read()
+
+            # Find the Font[] array data (between { and };)
+            match = re.search(r'static\s+const\s+uint8_t\s+Font\[\]\s*=\s*\{(.*?)\};', content, re.DOTALL)
+            if not match:
+                return False
+
+            array_body = match.group(1)
+
+            # Extract all byte values (hex like 0xFF or decimal like 127)
+            # Each line has 5 values + a comment
+            byte_values = []
+            for line in array_body.split('\n'):
+                # Strip comments
+                line = line.split('//')[0].strip()
+                if not line:
+                    continue
+                # Handle preprocessor directives - skip #if/#else/#endif but include data lines
+                if line.startswith('#'):
+                    continue
+                # Find all numeric values
+                for token in re.findall(r'0x[0-9A-Fa-f]+|\d+', line):
+                    if token.startswith('0x') or token.startswith('0X'):
+                        byte_values.append(int(token, 16))
+                    else:
+                        byte_values.append(int(token))
+
+            # Should be 255 * 5 = 1275 bytes (chars 0-254)
+            # Due to #if blocks, we may have extra data. Take exactly 255 chars worth.
+            if len(byte_values) < 255 * 5:
+                return False
+
+            self.font_data = []
+            for i in range(255):
+                offset = i * 5
+                self.font_data.append(list(byte_values[offset:offset + 5]))
+
+            return True
+        except Exception as e:
+            print(f"Error parsing font.h: {e}")
+            return False
+
+    def _get_default_font_data(self):
+        """Return the default ASCII 5x7 font data (255 chars x 5 bytes)."""
+        # Standard ASCII font from Adafruit glcdfont.c
+        default = [
+            [0x00,0x00,0x00,0x00,0x00],[0x3E,0x5B,0x4F,0x5B,0x3E],[0x3E,0x6B,0x4F,0x6B,0x3E],
+            [0x1C,0x3E,0x7C,0x3E,0x1C],[0x18,0x3C,0x7E,0x3C,0x18],[0x1C,0x57,0x7D,0x57,0x1C],
+            [0x1C,0x5E,0x7F,0x5E,0x1C],[0x00,0x18,0x3C,0x18,0x00],[0xFF,0xE7,0xC3,0xE7,0xFF],
+            [0x00,0x18,0x24,0x18,0x00],[0xFF,0xE7,0xDB,0xE7,0xFF],[0x30,0x48,0x3A,0x06,0x0E],
+            [0x26,0x29,0x79,0x29,0x26],[0x40,0x7F,0x05,0x05,0x07],[0x40,0x7F,0x05,0x25,0x3F],
+            [0x5A,0x3C,0xE7,0x3C,0x5A],[0x7F,0x3E,0x1C,0x1C,0x08],[0x08,0x1C,0x1C,0x3E,0x7F],
+            [0x14,0x22,0x7F,0x22,0x14],[0x5F,0x5F,0x00,0x5F,0x5F],[0x06,0x09,0x7F,0x01,0x7F],
+            [0x00,0x66,0x89,0x95,0x6A],[0x60,0x60,0x60,0x60,0x60],[0x94,0xA2,0xFF,0xA2,0x94],
+            [0x08,0x04,0x7E,0x04,0x08],[0x10,0x20,0x7E,0x20,0x10],[0x08,0x08,0x2A,0x1C,0x08],
+            [0x08,0x1C,0x2A,0x08,0x08],[0x1E,0x10,0x10,0x10,0x10],[0x0C,0x1E,0x0C,0x1E,0x0C],
+            [0x30,0x38,0x3E,0x38,0x30],[0x06,0x0E,0x3E,0x0E,0x06],
+            # 32-47: SP ! " # $ % & ' ( ) * + , - . /
+            [0x00,0x00,0x00,0x00,0x00],[0x00,0x00,0x5F,0x00,0x00],[0x00,0x07,0x00,0x07,0x00],
+            [0x14,0x7F,0x14,0x7F,0x14],[0x24,0x2A,0x7F,0x2A,0x12],[0x23,0x13,0x08,0x64,0x62],
+            [0x36,0x49,0x56,0x20,0x50],[0x00,0x08,0x07,0x03,0x00],[0x00,0x1C,0x22,0x41,0x00],
+            [0x00,0x41,0x22,0x1C,0x00],[0x2A,0x1C,0x7F,0x1C,0x2A],[0x08,0x08,0x3E,0x08,0x08],
+            [0x00,0x80,0x70,0x30,0x00],[0x08,0x08,0x08,0x08,0x08],[0x00,0x00,0x60,0x60,0x00],
+            [0x20,0x10,0x08,0x04,0x02],
+            # 48-63: 0-9 : ; < = > ?
+            [0x3E,0x51,0x49,0x45,0x3E],[0x00,0x42,0x7F,0x40,0x00],[0x72,0x49,0x49,0x49,0x46],
+            [0x21,0x41,0x49,0x4D,0x33],[0x18,0x14,0x12,0x7F,0x10],[0x27,0x45,0x45,0x45,0x39],
+            [0x3C,0x4A,0x49,0x49,0x31],[0x41,0x21,0x11,0x09,0x07],[0x36,0x49,0x49,0x49,0x36],
+            [0x46,0x49,0x49,0x29,0x1E],[0x00,0x00,0x14,0x00,0x00],[0x00,0x40,0x34,0x00,0x00],
+            [0x00,0x08,0x14,0x22,0x41],[0x14,0x14,0x14,0x14,0x14],[0x00,0x41,0x22,0x14,0x08],
+            [0x02,0x01,0x59,0x09,0x06],
+            # 64: @
+            [0x3E,0x41,0x5D,0x59,0x4E],
+            # 65-90: A-Z
+            [0x7C,0x12,0x11,0x12,0x7C],[0x7F,0x49,0x49,0x49,0x36],[0x3E,0x41,0x41,0x41,0x22],
+            [0x7F,0x41,0x41,0x41,0x3E],[0x7F,0x49,0x49,0x49,0x41],[0x7F,0x09,0x09,0x09,0x01],
+            [0x3E,0x41,0x41,0x51,0x73],[0x7F,0x08,0x08,0x08,0x7F],[0x00,0x41,0x7F,0x41,0x00],
+            [0x20,0x40,0x41,0x3F,0x01],[0x7F,0x08,0x14,0x22,0x41],[0x7F,0x40,0x40,0x40,0x40],
+            [0x7F,0x02,0x1C,0x02,0x7F],[0x7F,0x04,0x08,0x10,0x7F],[0x3E,0x41,0x41,0x41,0x3E],
+            [0x7F,0x09,0x09,0x09,0x06],[0x3E,0x41,0x51,0x21,0x5E],[0x7F,0x09,0x19,0x29,0x46],
+            [0x26,0x49,0x49,0x49,0x32],[0x03,0x01,0x7F,0x01,0x03],[0x3F,0x40,0x40,0x40,0x3F],
+            [0x1F,0x20,0x40,0x20,0x1F],[0x3F,0x40,0x38,0x40,0x3F],[0x63,0x14,0x08,0x14,0x63],
+            [0x03,0x04,0x78,0x04,0x03],[0x61,0x59,0x49,0x4D,0x43],
+            # 91-96: [ \ ] ^ _ `
+            [0x00,0x7F,0x41,0x41,0x41],[0x02,0x04,0x08,0x10,0x20],[0x00,0x41,0x41,0x41,0x7F],
+            [0x04,0x02,0x01,0x02,0x04],[0x40,0x40,0x40,0x40,0x40],[0x00,0x03,0x07,0x08,0x00],
+            # 97-122: a-z
+            [0x20,0x54,0x54,0x78,0x40],[0x7F,0x28,0x44,0x44,0x38],[0x38,0x44,0x44,0x44,0x28],
+            [0x38,0x44,0x44,0x28,0x7F],[0x38,0x54,0x54,0x54,0x18],[0x00,0x08,0x7E,0x09,0x02],
+            [0x18,0xA4,0xA4,0x9C,0x78],[0x7F,0x08,0x04,0x04,0x78],[0x00,0x44,0x7D,0x40,0x00],
+            [0x20,0x40,0x40,0x3D,0x00],[0x7F,0x10,0x28,0x44,0x00],[0x00,0x41,0x7F,0x40,0x00],
+            [0x7C,0x04,0x78,0x04,0x78],[0x7C,0x08,0x04,0x04,0x78],[0x38,0x44,0x44,0x44,0x38],
+            [0xFC,0x18,0x24,0x24,0x18],[0x18,0x24,0x24,0x18,0xFC],[0x7C,0x08,0x04,0x04,0x08],
+            [0x48,0x54,0x54,0x54,0x24],[0x04,0x04,0x3F,0x44,0x24],[0x3C,0x40,0x40,0x20,0x7C],
+            [0x1C,0x20,0x40,0x20,0x1C],[0x3C,0x40,0x30,0x40,0x3C],[0x44,0x28,0x10,0x28,0x44],
+            [0x4C,0x90,0x90,0x90,0x7C],[0x44,0x64,0x54,0x4C,0x44],
+            # 123-127: { | } ~ DEL
+            [0x00,0x08,0x36,0x41,0x00],[0x00,0x00,0x77,0x00,0x00],[0x00,0x41,0x36,0x08,0x00],
+            [0x02,0x01,0x02,0x04,0x02],[0x3C,0x26,0x23,0x26,0x3C],
+            # 128-254: extended ASCII
+            [0x1E,0xA1,0xA1,0x61,0x12],[0x3A,0x40,0x40,0x20,0x7A],[0x38,0x54,0x54,0x55,0x59],
+            [0x21,0x55,0x55,0x79,0x41],[0x21,0x54,0x54,0x78,0x41],[0x21,0x55,0x54,0x78,0x40],
+            [0x20,0x54,0x55,0x79,0x40],[0x0C,0x1E,0x52,0x72,0x12],[0x39,0x55,0x55,0x55,0x59],
+            [0x39,0x54,0x54,0x54,0x59],[0x39,0x55,0x54,0x54,0x58],[0x00,0x00,0x45,0x7C,0x41],
+            [0x00,0x02,0x45,0x7D,0x42],[0x00,0x01,0x45,0x7C,0x40],[0xF0,0x29,0x24,0x29,0xF0],
+            [0xF0,0x28,0x25,0x28,0xF0],[0x7C,0x54,0x55,0x45,0x00],[0x20,0x54,0x54,0x7C,0x54],
+            [0x7C,0x0A,0x09,0x7F,0x49],[0x32,0x49,0x49,0x49,0x32],[0x32,0x48,0x48,0x48,0x32],
+            [0x32,0x4A,0x48,0x48,0x30],[0x3A,0x41,0x41,0x21,0x7A],[0x3A,0x42,0x40,0x20,0x78],
+            [0x00,0x9D,0xA0,0xA0,0x7D],[0x39,0x44,0x44,0x44,0x39],[0x3D,0x40,0x40,0x40,0x3D],
+            [0x3C,0x24,0xFF,0x24,0x24],[0x48,0x7E,0x49,0x43,0x66],[0x2B,0x2F,0xFC,0x2F,0x2B],
+            [0xFF,0x09,0x29,0xF6,0x20],[0xC0,0x88,0x7E,0x09,0x03],[0x20,0x54,0x54,0x79,0x41],
+            [0x00,0x00,0x44,0x7D,0x41],[0x30,0x48,0x48,0x4A,0x32],[0x38,0x40,0x40,0x22,0x7A],
+            [0x00,0x7A,0x0A,0x0A,0x72],[0x7D,0x0D,0x19,0x31,0x7D],[0x26,0x29,0x29,0x2F,0x28],
+            [0x26,0x29,0x29,0x29,0x26],[0x30,0x48,0x4D,0x40,0x20],[0x38,0x08,0x08,0x08,0x08],
+            [0x08,0x08,0x08,0x08,0x38],[0x2F,0x10,0xC8,0xAC,0xBA],[0x2F,0x10,0x28,0x34,0xFA],
+            [0x00,0x00,0x7B,0x00,0x00],[0x08,0x14,0x2A,0x14,0x22],[0x22,0x14,0x2A,0x14,0x08],
+            [0xAA,0x00,0x55,0x00,0xAA],[0xAA,0x55,0xAA,0x55,0xAA],[0x00,0x00,0x00,0xFF,0x00],
+            [0x10,0x10,0x10,0xFF,0x00],[0x14,0x14,0x14,0xFF,0x00],[0x10,0x10,0xFF,0x00,0xFF],
+            [0x10,0x10,0xF0,0x10,0xF0],[0x14,0x14,0x14,0xFC,0x00],[0x14,0x14,0xF7,0x00,0xFF],
+            [0x00,0x00,0xFF,0x00,0xFF],[0x14,0x14,0xF4,0x04,0xFC],[0x14,0x14,0x17,0x10,0x1F],
+            [0x10,0x10,0x1F,0x10,0x1F],[0x14,0x14,0x14,0x1F,0x00],[0x10,0x10,0x10,0xF0,0x00],
+            [0x00,0x00,0x00,0x1F,0x10],[0x10,0x10,0x10,0x1F,0x10],[0x10,0x10,0x10,0xF0,0x10],
+            [0x00,0x00,0x00,0xFF,0x10],[0x10,0x10,0x10,0x10,0x10],[0x10,0x10,0x10,0xFF,0x10],
+            [0x00,0x00,0x00,0xFF,0x14],[0x00,0x00,0xFF,0x00,0xFF],[0x00,0x00,0x1F,0x10,0x17],
+            [0x00,0x00,0xFC,0x04,0xF4],[0x14,0x14,0x17,0x10,0x17],[0x14,0x14,0xF4,0x04,0xF4],
+            [0x00,0x00,0xFF,0x00,0xF7],[0x14,0x14,0x14,0x14,0x14],[0x14,0x14,0xF7,0x00,0xF7],
+            [0x14,0x14,0x14,0x17,0x14],[0x10,0x10,0x1F,0x10,0x1F],[0x14,0x14,0x14,0xF4,0x14],
+            [0x10,0x10,0xF0,0x10,0xF0],[0x00,0x00,0x1F,0x10,0x1F],[0x00,0x00,0x00,0x1F,0x14],
+            [0x00,0x00,0x00,0xFC,0x14],[0x00,0x00,0xF0,0x10,0xF0],[0x10,0x10,0xFF,0x10,0xFF],
+            [0x14,0x14,0x14,0xFF,0x14],[0x10,0x10,0x10,0x1F,0x00],[0x00,0x00,0x00,0xF0,0x10],
+            [0xFF,0xFF,0xFF,0xFF,0xFF],[0xF0,0xF0,0xF0,0xF0,0xF0],[0xFF,0xFF,0xFF,0x00,0x00],
+            [0x00,0x00,0x00,0xFF,0xFF],[0x0F,0x0F,0x0F,0x0F,0x0F],[0x38,0x44,0x44,0x38,0x44],
+            [0x7C,0x2A,0x2A,0x3E,0x14],[0x7E,0x02,0x02,0x06,0x06],[0x02,0x7E,0x02,0x7E,0x02],
+            [0x63,0x55,0x49,0x41,0x63],[0x38,0x44,0x44,0x3C,0x04],[0x40,0x7E,0x20,0x1E,0x20],
+            [0x06,0x02,0x7E,0x02,0x02],[0x99,0xA5,0xE7,0xA5,0x99],[0x1C,0x2A,0x49,0x2A,0x1C],
+            [0x4C,0x72,0x01,0x72,0x4C],[0x30,0x4A,0x4D,0x4D,0x30],[0x30,0x48,0x78,0x48,0x30],
+            [0xBC,0x62,0x5A,0x46,0x3D],[0x3E,0x49,0x49,0x49,0x00],[0x7E,0x01,0x01,0x01,0x7E],
+            [0x2A,0x2A,0x2A,0x2A,0x2A],[0x44,0x44,0x5F,0x44,0x44],[0x40,0x51,0x4A,0x44,0x40],
+            [0x40,0x44,0x4A,0x51,0x40],[0x00,0x00,0xFF,0x01,0x03],[0xE0,0x80,0xFF,0x00,0x00],
+            [0x08,0x08,0x6B,0x6B,0x08],[0x36,0x12,0x36,0x24,0x36],[0x06,0x0F,0x09,0x0F,0x06],
+            [0x00,0x00,0x18,0x18,0x00],[0x00,0x00,0x10,0x10,0x00],[0x30,0x40,0xFF,0x01,0x01],
+            [0x00,0x1F,0x01,0x01,0x1E],[0x00,0x19,0x1D,0x17,0x12],[0x00,0x3C,0x3C,0x3C,0x3C],
+            [0x00,0x00,0x00,0x00,0x00],
+        ]
+        return default
+
+    def _init_font_data(self):
+        """Initialize font data from font.h or defaults."""
+        if self.font_data is None:
+            if not self._load_font_from_h():
+                self.font_data = self._get_default_font_data()
+
+    def _refresh_font_grid(self):
+        """Redraw the character map grid on the font tab canvas."""
+        self._init_font_data()
+        canvas = self.font_grid_canvas
+        canvas.delete('all')
+
+        cols = 16  # Characters per row
+        rows = 16  # 256 / 16 (we show 0-254, char 255 slot is empty)
+        cell = 32  # Cell size in pixels for each character
+        pad = 2
+
+        # Draw column headers (hex digit)
+        for c in range(cols):
+            canvas.create_text(cell + c * cell + cell // 2, cell // 2,
+                               text=f"{c:X}", font=('Consolas', 9, 'bold'), fill='gray')
+        # Draw row headers
+        for r in range(rows):
+            canvas.create_text(cell // 2, cell + r * cell + cell // 2,
+                               text=f"{r:X}x", font=('Consolas', 9, 'bold'), fill='gray')
+
+        total_w = cell * (cols + 1)
+        total_h = cell * (rows + 1)
+
+        for char_idx in range(255):
+            r = char_idx // cols
+            c = char_idx % cols
+            x0 = cell + c * cell
+            y0 = cell + r * cell
+
+            # Draw cell background
+            bg = '#E0E8FF' if char_idx == self.font_selected_char else 'white'
+            canvas.create_rectangle(x0, y0, x0 + cell, y0 + cell, fill=bg, outline='#CCCCCC')
+
+            # Render the 5x8 character bitmap into the cell
+            char_bytes = self.font_data[char_idx]
+            pixel = 3  # Pixel size within cell
+            ox = x0 + (cell - 5 * pixel) // 2
+            oy = y0 + (cell - 8 * pixel) // 2
+            for col in range(5):
+                col_data = char_bytes[col]
+                for row in range(8):
+                    if (col_data >> row) & 1:
+                        px = ox + col * pixel
+                        py = oy + row * pixel
+                        canvas.create_rectangle(px, py, px + pixel, py + pixel,
+                                                fill='black', outline='')
+
+        canvas.configure(scrollregion=(0, 0, total_w, total_h))
+
+    def _on_font_grid_click(self, event):
+        """Handle click on the character grid to select a character for editing."""
+        cell = 32
+        col = (event.x - cell) // cell
+        row = (self.font_grid_canvas.canvasy(event.y) - cell) // cell
+
+        if 0 <= col < 16 and 0 <= row < 16:
+            char_idx = int(row) * 16 + int(col)
+            if 0 <= char_idx < 255:
+                self.font_selected_char = char_idx
+                self._refresh_font_grid()
+                self._refresh_font_editor()
+
+    def _refresh_font_editor(self):
+        """Redraw the pixel editor for the selected character."""
+        canvas = self.font_editor_canvas
+        canvas.delete('all')
+        ps = self.font_editor_pixel_size
+
+        if self.font_selected_char is None or self.font_data is None:
+            self.font_char_label.config(text="Select a character")
+            return
+
+        idx = self.font_selected_char
+        char_bytes = self.font_data[idx]
+
+        # Label
+        if 32 <= idx <= 126:
+            display = chr(idx)
+        else:
+            display = f"#{idx}"
+        self.font_char_label.config(text=f"Char {idx} ({display})  —  0x{idx:02X}")
+
+        # Draw grid with pixels
+        for col in range(5):
+            col_data = char_bytes[col]
+            for row in range(8):
+                x0 = col * ps
+                y0 = row * ps
+                on = (col_data >> row) & 1
+                fill = 'black' if on else 'white'
+                canvas.create_rectangle(x0, y0, x0 + ps, y0 + ps,
+                                        fill=fill, outline='#CCCCCC')
+
+        # Draw actual-size preview
+        self._refresh_font_preview()
+
+    def _refresh_font_preview(self):
+        """Draw actual-size preview of the selected character."""
+        canvas = self.font_preview_canvas
+        canvas.delete('all')
+
+        if self.font_selected_char is None or self.font_data is None:
+            return
+
+        char_bytes = self.font_data[self.font_selected_char]
+        # Draw at 6x scale for visibility (30x48 pixels to show in 60x48 canvas)
+        scale = 6
+        ox = (60 - 5 * scale) // 2
+        oy = (48 - 8 * scale) // 2
+        for col in range(5):
+            col_data = char_bytes[col]
+            for row in range(8):
+                if (col_data >> row) & 1:
+                    x = ox + col * scale
+                    y = oy + row * scale
+                    canvas.create_rectangle(x, y, x + scale, y + scale,
+                                            fill='white', outline='')
+
+    def _on_font_pixel_click(self, event):
+        """Toggle a pixel in the character editor."""
+        if self.font_selected_char is None or self.font_data is None:
+            return
+        ps = self.font_editor_pixel_size
+        col = event.x // ps
+        row = event.y // ps
+        if 0 <= col < 5 and 0 <= row < 8:
+            char_bytes = self.font_data[self.font_selected_char]
+            # Determine draw value based on current state (toggle)
+            on = (char_bytes[col] >> row) & 1
+            self.font_draw_value = 0 if on else 1
+            if self.font_draw_value:
+                char_bytes[col] |= (1 << row)
+            else:
+                char_bytes[col] &= ~(1 << row)
+            self._refresh_font_editor()
+            self._refresh_font_grid()
+            self._auto_export()
+            self._save_project()
+
+    def _on_font_pixel_drag(self, event):
+        """Handle drag in the character editor for continuous drawing."""
+        if self.font_selected_char is None or self.font_data is None:
+            return
+        ps = self.font_editor_pixel_size
+        col = event.x // ps
+        row = event.y // ps
+        if 0 <= col < 5 and 0 <= row < 8:
+            char_bytes = self.font_data[self.font_selected_char]
+            if self.font_draw_value:
+                char_bytes[col] |= (1 << row)
+            else:
+                char_bytes[col] &= ~(1 << row)
+            self._refresh_font_editor()
+            self._refresh_font_grid()
+
+    def _font_prev_char(self):
+        """Navigate to previous character."""
+        if self.font_selected_char is not None and self.font_selected_char > 0:
+            self.font_selected_char -= 1
+            self._refresh_font_grid()
+            self._refresh_font_editor()
+
+    def _font_next_char(self):
+        """Navigate to next character."""
+        if self.font_selected_char is not None and self.font_selected_char < 254:
+            self.font_selected_char += 1
+            self._refresh_font_grid()
+            self._refresh_font_editor()
+
+    def _font_clear_char(self):
+        """Clear the selected character (all pixels off)."""
+        if self.font_selected_char is not None and self.font_data is not None:
+            self.font_data[self.font_selected_char] = [0, 0, 0, 0, 0]
+            self._refresh_font_editor()
+            self._refresh_font_grid()
+            self._auto_export()
+            self._save_project()
+
+    def _font_invert_char(self):
+        """Invert the selected character."""
+        if self.font_selected_char is not None and self.font_data is not None:
+            char_bytes = self.font_data[self.font_selected_char]
+            for i in range(5):
+                char_bytes[i] = (~char_bytes[i]) & 0xFF
+            self._refresh_font_editor()
+            self._refresh_font_grid()
+            self._auto_export()
+            self._save_project()
+
+    def _import_font(self):
+        """Import a TTF/OTF font and render all characters to 5x8 bitmaps."""
+        file_path = filedialog.askopenfilename(
+            title="Select Font File",
+            filetypes=[("Font files", "*.ttf *.otf *.TTF *.OTF"), ("All files", "*.*")]
+        )
+        if not file_path:
+            return
+
+        try:
+            # Try different font sizes to find best fit for 5x8
+            best_size = 8
+            for try_size in range(6, 16):
+                font = ImageFont.truetype(file_path, try_size)
+                bbox = font.getbbox("M")
+                w = bbox[2] - bbox[0]
+                h = bbox[3] - bbox[1]
+                if w <= 5 and h <= 8:
+                    best_size = try_size
+                else:
+                    break
+
+            font = ImageFont.truetype(file_path, best_size)
+
+            self._init_font_data()
+            # Render printable ASCII characters (32-126)
+            for char_idx in range(32, 127):
+                char = chr(char_idx)
+                # Render character to a small image
+                img = Image.new('L', (12, 16), 0)
+                draw = ImageDraw.Draw(img)
+                draw.text((0, 0), char, fill=255, font=font)
+
+                # Find bounding box of the rendered character
+                bbox = img.getbbox()
+                if bbox is None:
+                    # Empty character (e.g., space)
+                    self.font_data[char_idx] = [0, 0, 0, 0, 0]
+                    continue
+
+                # Crop to content
+                cropped = img.crop(bbox)
+                cw, ch = cropped.size
+
+                # Scale/fit to 5x7 (leave bottom row for descenders)
+                if cw > 5 or ch > 7:
+                    # Scale down to fit
+                    scale = min(5 / max(cw, 1), 7 / max(ch, 1))
+                    new_w = max(1, int(cw * scale))
+                    new_h = max(1, int(ch * scale))
+                    cropped = cropped.resize((new_w, new_h), Image.LANCZOS)
+                    cw, ch = new_w, new_h
+
+                # Center horizontally in 5 columns, top-align in 8 rows
+                ox = (5 - cw) // 2
+                oy = 0  # Top-aligned (descenders will naturally extend)
+
+                # Convert to column-encoded bytes
+                new_bytes = [0, 0, 0, 0, 0]
+                pixels = cropped.load()
+                for c in range(cw):
+                    for r in range(ch):
+                        target_col = ox + c
+                        target_row = oy + r
+                        if 0 <= target_col < 5 and 0 <= target_row < 8:
+                            if pixels[c, r] > 127:  # Threshold
+                                new_bytes[target_col] |= (1 << target_row)
+
+                self.font_data[char_idx] = new_bytes
+
+            self.font_path = file_path
+            font_name = os.path.basename(file_path)
+            self.font_info_label.config(text=f"Font: {font_name} (5x8)")
+
+            self._refresh_font_grid()
+            if self.font_selected_char is not None:
+                self._refresh_font_editor()
+            self._auto_export()
+            self._save_project()
+
+        except Exception as e:
+            messagebox.showerror("Font Import Error", f"Failed to import font: {e}")
+
+    def _reset_font_to_default(self):
+        """Reset font data to the default ASCII font."""
+        self.font_data = self._get_default_font_data()
+        self.font_path = None
+        self.font_info_label.config(text="Font: default (5x8)")
+        self._refresh_font_grid()
+        if self.font_selected_char is not None:
+            self._refresh_font_editor()
+        self._auto_export()
+        self._save_project()
+
+    def _generate_font_h(self):
+        """Generate font.h content from font_data."""
+        self._init_font_data()
+
+        # Character name table for comments
+        char_names = {}
+        char_names[0] = 'NUL'
+        char_names[1] = 'SOH'
+        char_names[2] = 'STX'
+        char_names[3] = 'ETX'
+        char_names[4] = 'EOT'
+        char_names[5] = 'ENQ'
+        char_names[6] = 'ACK'
+        char_names[7] = 'BEL'
+        char_names[8] = 'BS'
+        char_names[9] = 'TAB'
+        char_names[10] = 'LF'
+        char_names[11] = 'VT'
+        char_names[12] = 'FF'
+        char_names[13] = 'CR'
+        char_names[14] = 'SO'
+        char_names[15] = 'SI'
+        char_names[16] = 'DLE'
+        char_names[17] = 'DC1'
+        char_names[18] = 'DC2'
+        char_names[19] = 'DC3'
+        char_names[20] = 'DC4'
+        char_names[21] = 'NAK'
+        char_names[22] = 'SYN'
+        char_names[23] = 'ETB'
+        char_names[24] = 'CAN'
+        char_names[25] = 'EM'
+        char_names[26] = 'SUB'
+        char_names[27] = 'ESC'
+        char_names[28] = 'FS'
+        char_names[29] = 'GS'
+        char_names[30] = 'RS'
+        char_names[31] = 'US'
+        char_names[32] = 'SP'
+        char_names[127] = 'DEL'
+
+        lines = [
+            "#ifndef _FONT_H_",
+            "#define _FONT_H_",
+            "",
+            "#include <stdint.h>",
+            "",
+            "#define FONT_WIDTH 5",
+            "#define FONT_HEIGHT 8",
+            "#define FONT_BYTES_PER_CHAR 5",
+            "#define FONT_SPACE 1 // Space between characters",
+            "",
+            "// 5x8 font - Generated by RayCast3D Studio",
+            "static const uint8_t Font[] = {",
+        ]
+
+        for i in range(255):
+            b = self.font_data[i]
+            hex_vals = ', '.join(f'0x{v:02X}' for v in b)
+
+            # Build comment
+            if i in char_names:
+                comment = f"{char_names[i]:3s} char = {i:3d}"
+            elif 33 <= i <= 126:
+                comment = f"{chr(i):3s} char = {i:3d}"
+            else:
+                comment = f"char = {i:3d}"
+
+            lines.append(f"  {hex_vals},  // {comment}")
+
+        lines.append("")
+        lines.append("};")
+        lines.append("")
+        lines.append("#endif")
+
+        return "\n".join(lines)
 
     def _refresh_color_list(self):
         """Refresh the color list display."""
@@ -2941,11 +3554,12 @@ class RayCast3DStudio:
         tex_memory = sum(t.memory_bytes() for t in self.textures)
         sprite_memory = sum(s.memory_bytes() for s in self.sprites)
         map_memory = MAP_SIZE * MAP_SIZE * len(self.maps)  # 1 byte per cell per map
-        total = tex_memory + sprite_memory + map_memory
+        font_memory = 255 * 5 if self.font_data else 0  # 5 bytes per character
+        total = tex_memory + sprite_memory + map_memory + font_memory
 
         self.memory_label.config(text=f"Memory Usage: {total:,} bytes")
         self.memory_detail.config(
-            text=f"(Textures: {tex_memory:,} | Sprites: {sprite_memory:,} | Maps: {map_memory} ({len(self.maps)} maps))"
+            text=f"Tex: {tex_memory:,}  |  Spr: {sprite_memory:,}  |  Maps: {map_memory}  |  Font: {font_memory}"
         )
 
     # ========== Project Save/Load ==========
@@ -2960,6 +3574,10 @@ class RayCast3DStudio:
                 'sprites': [s.to_dict() for s in self.sprites] + self._unloaded_sprites,
                 'colors': [c.to_dict() for c in self.colors]
             }
+            if self.font_data is not None:
+                project['font_data'] = self.font_data
+            if self.font_path:
+                project['font_path'] = self.font_path
             with open(PROJECT_FILE, 'w') as f:
                 json.dump(project, f, indent=2)
             print(f"Saved: {len(self.textures)} textures, {len(self.sprites)} sprites, {len(self.maps)} maps, {len(self.colors)} colors")
@@ -3251,11 +3869,19 @@ class RayCast3DStudio:
                     color = Color.from_dict(cd)
                     self.colors.append(color)
 
+            # Load font data
+            if 'font_data' in project:
+                self.font_data = project['font_data']
+                self.font_path = project.get('font_path')
+                if self.font_path:
+                    self.font_info_label.config(text=f"Font: {os.path.basename(self.font_path)} (5x8)")
+
             # Update UI
             self._refresh_texture_list()
             self._update_texture_palette()
             self._refresh_sprite_list()
             self._refresh_color_list()
+            self._refresh_font_grid()
             self._draw_map_grid()
 
             # Warn about missing files
@@ -3304,6 +3930,12 @@ class RayCast3DStudio:
             content = self._generate_colors_h()
             with open(os.path.join(ASSETS_DIR, "colors.h"), 'w') as f:
                 f.write(content)
+
+            # Export font.h (only if font data has been initialized)
+            if self.font_data is not None:
+                content = self._generate_font_h()
+                with open(os.path.join(ASSETS_DIR, "font.h"), 'w') as f:
+                    f.write(content)
 
             self.status_label.config(text="Auto-saved to assets/", foreground='green')
         except Exception as e:
