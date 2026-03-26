@@ -93,8 +93,8 @@ void Camera_Move(double forward, double strafe) {
 }
 
 void Camera_Rotate(double degrees) {
-    // Convert degrees to fixed-point radians (negate for correct screen-space rotation)
-    fixed_t radians = FLOAT_TO_FIXED(-degrees * FASTMATH_DEG_TO_RAD);
+    // Convert degrees to fixed-point radians
+    fixed_t radians = FLOAT_TO_FIXED(degrees * FASTMATH_DEG_TO_RAD);
 
     // Use fixed-point sin/cos lookup
     fixed_t cosA = Fixed_Cos(radians);
