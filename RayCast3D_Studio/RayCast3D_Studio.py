@@ -273,6 +273,7 @@ class RayCast3DStudio:
         self.is_erasing = False  # True when in temporary erase mode (clicked same texture)
         self.tile_images = {}  # Cache for tile PhotoImages on canvas
         self.auto_export_enabled = True  # Auto-export on changes
+        self.map_undo_stack = []  # List of (map_idx, data_copy) for undo
 
         # UI references for list items
         self.texture_rows = []  # List of (frame, combo_var) tuples
@@ -321,6 +322,10 @@ class RayCast3DStudio:
         self.root.bind('<Control-Key-2>', lambda e: self.notebook.select(1))  # Textures tab
         self.root.bind('<Control-Key-3>', lambda e: self.notebook.select(2))  # Sprites tab
         self.root.bind('<Control-Key-4>', lambda e: self.notebook.select(3))  # Colors tab
+
+        # Undo
+        self.root.bind('<Control-z>', lambda e: self._undo())
+        self.root.bind('<Control-Z>', lambda e: self._undo())
 
         # Arrow key navigation
         self.root.bind('<Up>', self._on_arrow_up)
@@ -1136,6 +1141,11 @@ class RayCast3DStudio:
         """Handle map click."""
         self.is_drawing = True
 
+        # Save current map state for undo before painting
+        self.map_undo_stack.append((self.current_map_idx, [row[:] for row in self.map_data]))
+        if len(self.map_undo_stack) > 50:
+            self.map_undo_stack.pop(0)
+
         # Check if clicking a cell with the same texture - if so, enter erase mode
         col = (event.x - LABEL_MARGIN) // CELL_SIZE
         row = (event.y - LABEL_MARGIN) // CELL_SIZE
@@ -1163,6 +1173,18 @@ class RayCast3DStudio:
         # Auto-export and save on release
         self._auto_export()
         self._save_project()
+
+    def _undo(self):
+        """Undo the last map paint operation."""
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 0:  # Map tab
+            if self.map_undo_stack:
+                map_idx, data = self.map_undo_stack.pop()
+                self.maps[map_idx]["data"] = data
+                if self.current_map_idx == map_idx:
+                    self._draw_map_grid()
+                self._auto_export()
+                self._save_project()
 
     def _on_map_selected(self, event=None):
         """Handle map selection from dropdown."""
@@ -2145,10 +2167,13 @@ class RayCast3DStudio:
                                        highlightthickness=2, highlightbackground='black', cursor='crosshair')
         transparent_canvas.pack(padx=10, pady=10)
 
-        # Mode tracking: 'pick', 'erase', 'de_erase', 'crop'
+        # Mode tracking: 'pick', 'erase', 'de_erase', 'crop', 'fill_transparent'
         edit_mode = 'pick'
         is_drawing_on_transparent = False
         brush_size = 1  # Brush radius in pixels
+
+        # Undo stack: list of (img_rgb_copy, transparent_color) snapshots
+        sprite_undo_stack = []
 
         # Crop state (coordinates in crop_source_img pixel space)
         crop_x1 = 0
@@ -2369,6 +2394,45 @@ class RayCast3DStudio:
                     crop_drag_anchor = coords
                     draw_crop_rect()
                     update_crop_preview()
+            elif edit_mode == 'fill_transparent':
+                coords = canvas_to_sprite(event)
+                if coords:
+                    sprite_x, sprite_y = coords
+                    pixels = img_rgb.load()
+                    r, g, b = pixels[sprite_x, sprite_y]
+
+                    # BGR565 of clicked pixel
+                    target_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
+
+                    if target_bgr565 == sprite.transparent:
+                        status_label.config(text="That color is already the transparent color.",
+                                           foreground='orange')
+                        return
+
+                    # Save undo snapshot before fill
+                    sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+                    if len(sprite_undo_stack) > 50:
+                        sprite_undo_stack.pop(0)
+
+                    # Convert transparent color to RGB
+                    trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
+                    trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
+                    trans_r = (sprite.transparent & 0x1F) << 3
+
+                    # Replace all matching pixels with the transparent color
+                    count = 0
+                    for py in range(sprite.resolution):
+                        for px in range(sprite.resolution):
+                            pr, pg, pb = pixels[px, py]
+                            pixel_bgr = ((pb >> 3) << 11) | ((pg >> 2) << 5) | (pr >> 3)
+                            if pixel_bgr == target_bgr565:
+                                pixels[px, py] = (trans_r, trans_g, trans_b)
+                                count += 1
+
+                    update_both_previews()
+                    status_label.config(
+                        text=f"Filled {count} pixels of 0x{target_bgr565:04X} with transparent color 0x{sprite.transparent:04X}",
+                        foreground='green')
             else:
                 # Color pick mode
                 coords = canvas_to_sprite(event)
@@ -2381,6 +2445,11 @@ class RayCast3DStudio:
                     green6 = g >> 2
                     red5 = r >> 3
                     new_transparent = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
+
+                    # Save undo snapshot before changing transparent color
+                    sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+                    if len(sprite_undo_stack) > 50:
+                        sprite_undo_stack.pop(0)
 
                     sprite.transparent = new_transparent
                     update_transparent_preview()
@@ -2571,6 +2640,10 @@ class RayCast3DStudio:
             """Handle mouse press on transparent preview."""
             nonlocal is_drawing_on_transparent
             if edit_mode in ('erase', 'de_erase'):
+                # Save undo snapshot before stroke begins
+                sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+                if len(sprite_undo_stack) > 50:
+                    sprite_undo_stack.pop(0)
                 is_drawing_on_transparent = True
                 on_transparent_click(event)
 
@@ -2582,6 +2655,19 @@ class RayCast3DStudio:
         transparent_canvas.bind('<Button-1>', on_transparent_press)
         transparent_canvas.bind('<B1-Motion>', on_transparent_drag)
         transparent_canvas.bind('<ButtonRelease-1>', on_transparent_release)
+
+        # Undo handler for sprite editor
+        def sprite_undo(event=None):
+            nonlocal img_rgb
+            if sprite_undo_stack:
+                img_rgb_copy, trans = sprite_undo_stack.pop()
+                img_rgb = img_rgb_copy
+                sprite.transparent = trans
+                update_both_previews()
+                status_label.config(text="Undo applied.", foreground='blue')
+
+        dialog.bind('<Control-z>', sprite_undo)
+        dialog.bind('<Control-Z>', sprite_undo)
 
         # Status label
         status_label = ttk.Label(main_frame, 
@@ -2650,6 +2736,20 @@ class RayCast3DStudio:
             crop_frame.pack_forget()  # Hide crop controls
             update_transparent_preview()
 
+        def set_fill_transparent_mode():
+            nonlocal edit_mode
+            if edit_mode == 'crop':
+                _restore_sprite_view()
+            edit_mode = 'fill_transparent'
+            status_label.config(
+                text="Mode: Fill Transparent - Click a color on the left preview to make all matching pixels transparent",
+                foreground='purple')
+            erase_btn.config(state='normal')
+            de_erase_btn.config(state='normal')
+            brush_frame.pack_forget()
+            crop_frame.pack_forget()
+            update_transparent_preview()
+
         def set_crop_mode():
             nonlocal edit_mode, crop_x1, crop_y1, crop_x2, crop_y2, crop_active
             edit_mode = 'crop'
@@ -2682,6 +2782,11 @@ class RayCast3DStudio:
             if w < 1 or h < 1:
                 return
 
+            # Save undo snapshot before crop
+            sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+            if len(sprite_undo_stack) > 50:
+                sprite_undo_stack.pop(0)
+
             # Crop directly from the source image (coordinates are already in its pixel space)
             cropped = crop_source_img.crop((crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1))
             img_rgb = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
@@ -2705,6 +2810,7 @@ class RayCast3DStudio:
         de_erase_btn = ttk.Button(mode_frame, text="De-Erase", command=set_de_erase_mode)
         de_erase_btn.pack(side='left', padx=5)
         ttk.Button(mode_frame, text="Pick Color", command=set_pick_mode).pack(side='left', padx=5)
+        ttk.Button(mode_frame, text="Fill Transparent", command=set_fill_transparent_mode).pack(side='left', padx=5)
         ttk.Button(mode_frame, text="Crop", command=set_crop_mode).pack(side='left', padx=5)
 
         # Brush size slider (only visible in erase/de-erase modes)
