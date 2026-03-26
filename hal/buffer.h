@@ -84,6 +84,13 @@ void Buffer_SetPixelFast(int x, int y, uint16_t color);
  *         color - 16-bit RGB565 color to blend */
 void Buffer_BlendPixel(int x, int y, uint16_t color);
 
+/* Variable-alpha blend a pixel with the existing buffer contents (bounds-checked)
+ * Blends the new color with the existing pixel using the given alpha.
+ * Inputs: x, y  - buffer-local coordinates (0 to BUFFER_WIDTH-1)
+ *         color  - 16-bit RGB565 color to blend
+ *         alpha  - opacity 0 (fully transparent) to 255 (fully opaque) */
+void Buffer_BlendPixelAlpha(int x, int y, uint16_t color, uint8_t alpha);
+
 /* Draw a foreground sprite to the buffer
  * Inputs: side - which quarter (0-3)
  *         sprite - sprite data to render */

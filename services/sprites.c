@@ -135,10 +135,10 @@ void Sprites_RenderOne(Sprite sprite, int side, int spriteIndex) {
 
             uint16_t pixelColor = imgData[texY * sprite.width + texX];
             if (pixelColor != transparent) {
-                if (sprite.translucent) {
-                    Buffer_BlendPixel(bufferX, y, pixelColor);
-                } else {
+                if (sprite.opacity == 255) {
                     Buffer_SetPixel(bufferX, y, pixelColor);
+                } else {
+                    Buffer_BlendPixelAlpha(bufferX, y, pixelColor, sprite.opacity);
                 }
             }
         }
@@ -184,7 +184,7 @@ uint8_t Sprite_Add(double x, double y, const uint16_t* image, int width, int hei
             Sprites_Array[i].scale = scale;
             Sprites_Array[i].transparent = transparent;
             Sprites_Array[i].elevation = 0;
-            Sprites_Array[i].translucent = 0;
+            Sprites_Array[i].opacity = 255;
             Sprites_Array[i].type = 0;
             Sprites_Array[i].active = 1;
             Sprites_Count++;
@@ -242,10 +242,12 @@ void Sprite_SetElevation(int index, double elevation) {
     Sprites_Array[index].elevation = FLOAT_TO_FIXED(elevation);
 }
 
-void Sprite_SetTranslucent(int index, int enabled) {
+void Sprite_SetOpacity(int index, double opacity) {
     if (index < 0 || index >= SPRITES_MAX_COUNT) return;
     if (!Sprites_Array[index].active) return;
-    Sprites_Array[index].translucent = enabled ? 1 : 0;
+    if (opacity < 0.0) opacity = 0.0;
+    if (opacity > 1.0) opacity = 1.0;
+    Sprites_Array[index].opacity = (uint8_t)(opacity * 255.0 + 0.5);
 }
 
 const Sprite* Sprite_Get(int index) {

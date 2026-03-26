@@ -194,6 +194,28 @@ void Buffer_BlendPixel(int x, int y, uint16_t color) {
     }
 }
 
+void Buffer_BlendPixelAlpha(int x, int y, uint16_t color, uint8_t alpha) {
+    if (x >= 0 && x < BUFFER_WIDTH && y >= 0 && y < BUFFER_HEIGHT) {
+        int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
+        uint16_t existing = SWAP16(Buffer_RenderBuffer[index]);
+        /* Extract RGB565 channels from foreground and background */
+        uint16_t fgR = color & 0x1F;
+        uint16_t fgG = (color >> 5) & 0x3F;
+        uint16_t fgB = (color >> 11) & 0x1F;
+        uint16_t bgR = existing & 0x1F;
+        uint16_t bgG = (existing >> 5) & 0x3F;
+        uint16_t bgB = (existing >> 11) & 0x1F;
+        /* Per-channel blend: out = (fg * alpha + bg * (255 - alpha)) / 255
+         * Approximate /255 with (x + 128) >> 8 for speed */
+        uint16_t invAlpha = 255 - alpha;
+        uint16_t rOut = (fgR * alpha + bgR * invAlpha + 128) >> 8;
+        uint16_t gOut = (fgG * alpha + bgG * invAlpha + 128) >> 8;
+        uint16_t bOut = (fgB * alpha + bgB * invAlpha + 128) >> 8;
+        uint16_t blended = (bOut << 11) | (gOut << 5) | rOut;
+        Buffer_RenderBuffer[index] = SWAP16(blended);
+    }
+}
+
 void Buffer_SetPixelFast(int x, int y, uint16_t color) {
     int index = (BUFFER_HEIGHT - 1 - y) * BUFFER_WIDTH + x;
     Buffer_RenderBuffer[index] = SWAP16(color);

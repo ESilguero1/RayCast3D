@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['scale_0',['scale',['../group__Sprites.html#ga8e5eae0ba00a77e6527f6a1374987efa',1,'Sprite']]],
-  ['sprites_5farray_1',['sprites_array',['../group__Sprites.html#ga3e4dd46e77cd0f0713f66171dfb43795',1,'Sprites_Array:&#160;sprites.c'],['../group__Sprites.html#ga3e4dd46e77cd0f0713f66171dfb43795',1,'Sprites_Array:&#160;sprites.c']]],
-  ['sprites_5fcount_2',['sprites_count',['../group__Sprites.html#gad56e1faf393c140cce5ab709f502978b',1,'Sprites_Count:&#160;sprites.c'],['../group__Sprites.html#gad56e1faf393c140cce5ab709f502978b',1,'Sprites_Count:&#160;sprites.c']]]
+  ['planex_0',['planeX',['../group__Camera.html#ga213cabfc8a7799cb7094d8f2eb2b19e4',1,'Camera']]],
+  ['planey_1',['planeY',['../group__Camera.html#gaed41d189429332f23039ad26552ef744',1,'Camera']]],
+  ['posx_2',['posX',['../group__Camera.html#ga398498f4bbe5606016d64256eb672128',1,'Camera']]],
+  ['posy_3',['posY',['../group__Camera.html#ga6283fabec74e5f3f67185e7458e08e7b',1,'Camera']]],
+  ['posz_4',['posZ',['../group__Camera.html#ga9b0b51a21ba53c233ea0fe3853cf8fd6',1,'Camera']]]
 ];

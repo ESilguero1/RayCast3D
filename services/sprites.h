@@ -72,7 +72,7 @@ typedef struct {
     int scale;              /**< Scale factor (8 = full screen height at distance 1.0) */
     int8_t type;            /**< User-defined tag for game logic (unused by engine) */
     int8_t active;          /**< Slot state: 0 = empty, 1 = in use */
-    uint8_t translucent;    /**< 0 = opaque (default), 1 = 50% translucent blend with background */
+    uint8_t opacity;        /**< Opacity 0-255: 0 = fully transparent, 255 = fully opaque (default) */
 } Sprite;
 
 /*---------------------------------------------------------------------------
@@ -196,26 +196,31 @@ void Sprite_Scale(int index, int scale);
 void Sprite_SetElevation(int index, double elevation);
 
 /**
- * @brief Enable or disable 50% translucency for a sprite.
+ * @brief Set a sprite's opacity (0.0 = invisible, 1.0 = fully opaque).
  *
- * When enabled, sprite pixels are blended 50/50 with the background
- * behind them (walls, floor, sky), creating a see-through effect.
- * Useful for ghosts, energy fields, or glass-like objects.
+ * Controls how much of the background shows through the sprite.
+ * At 1.0 the sprite is fully opaque (default). At 0.0 the sprite
+ * is completely invisible. Values in between produce a smooth
+ * alpha blend with whatever is behind the sprite (walls, floor, sky).
  *
- * @note Translucent sprites are slightly more expensive to render
- *       than opaque sprites (extra buffer read + blend per pixel).
+ * @note Partially transparent sprites (opacity < 1.0 and > 0.0) are
+ *       more expensive to render than opaque sprites (extra buffer
+ *       read + per-channel blend per pixel).
  *
  * @par Example
  * @code
  * int ghost = AddSprite(5, 5, ghost_img, 6);
- * Sprite_SetTranslucent(ghost, 1);   // 50% see-through
+ * Sprite_SetOpacity(ghost, 0.5);     // 50% see-through
  * Sprite_SetElevation(ghost, 0.3);   // floating ghost
+ *
+ * int fading = AddSprite(8, 8, orb_img, 4);
+ * Sprite_SetOpacity(fading, 0.25);   // barely visible wisp
  * @endcode
  *
  * @param index    Sprite index returned by Sprite_Add
- * @param enabled  1 = translucent, 0 = opaque (default)
+ * @param opacity  0.0 (invisible) to 1.0 (fully opaque, default)
  */
-void Sprite_SetTranslucent(int index, int enabled);
+void Sprite_SetOpacity(int index, double opacity);
 
 /**
  * @brief Get a read-only pointer to a sprite's data.
