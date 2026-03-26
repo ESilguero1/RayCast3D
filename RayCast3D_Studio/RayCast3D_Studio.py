@@ -2394,45 +2394,6 @@ class RayCast3DStudio:
                     crop_drag_anchor = coords
                     draw_crop_rect()
                     update_crop_preview()
-            elif edit_mode == 'fill_transparent':
-                coords = canvas_to_sprite(event)
-                if coords:
-                    sprite_x, sprite_y = coords
-                    pixels = img_rgb.load()
-                    r, g, b = pixels[sprite_x, sprite_y]
-
-                    # BGR565 of clicked pixel
-                    target_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
-
-                    if target_bgr565 == sprite.transparent:
-                        status_label.config(text="That color is already the transparent color.",
-                                           foreground='orange')
-                        return
-
-                    # Save undo snapshot before fill
-                    sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
-                    if len(sprite_undo_stack) > 50:
-                        sprite_undo_stack.pop(0)
-
-                    # Convert transparent color to RGB
-                    trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
-                    trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
-                    trans_r = (sprite.transparent & 0x1F) << 3
-
-                    # Replace all matching pixels with the transparent color
-                    count = 0
-                    for py in range(sprite.resolution):
-                        for px in range(sprite.resolution):
-                            pr, pg, pb = pixels[px, py]
-                            pixel_bgr = ((pb >> 3) << 11) | ((pg >> 2) << 5) | (pr >> 3)
-                            if pixel_bgr == target_bgr565:
-                                pixels[px, py] = (trans_r, trans_g, trans_b)
-                                count += 1
-
-                    update_both_previews()
-                    status_label.config(
-                        text=f"Filled {count} pixels of 0x{target_bgr565:04X} with transparent color 0x{sprite.transparent:04X}",
-                        foreground='green')
             else:
                 # Color pick mode
                 coords = canvas_to_sprite(event)
@@ -2559,10 +2520,10 @@ class RayCast3DStudio:
 
         # Click handler for transparent canvas (right side) - for erase/de-erase
         def on_transparent_click(event):
-            """Handle clicks on the transparent preview for erase/de-erase."""
-            if edit_mode not in ('erase', 'de_erase'):
-                return  # Only works in erase or de-erase mode
-            
+            """Handle clicks on the transparent preview for erase/de-erase/fill_transparent."""
+            if edit_mode not in ('erase', 'de_erase', 'fill_transparent'):
+                return
+
             # Convert canvas coordinates to sprite coordinates
             # The transparent preview is scaled to preview_size, so we need to scale back
             center_x = int((event.x / preview_size) * sprite.resolution)
@@ -2573,8 +2534,43 @@ class RayCast3DStudio:
             center_y = max(0, min(sprite.resolution - 1, center_y))
             
             pixels = img_rgb.load()
+
+            # Fill transparent mode: replace all pixels of clicked color with transparent
+            if edit_mode == 'fill_transparent':
+                r, g, b = pixels[center_x, center_y]
+                target_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
+
+                if target_bgr565 == sprite.transparent:
+                    status_label.config(text="That color is already the transparent color.",
+                                       foreground='orange')
+                    return
+
+                # Save undo snapshot before fill
+                sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+                if len(sprite_undo_stack) > 50:
+                    sprite_undo_stack.pop(0)
+
+                trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
+                trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
+                trans_r = (sprite.transparent & 0x1F) << 3
+
+                count = 0
+                for py in range(sprite.resolution):
+                    for px in range(sprite.resolution):
+                        pr, pg, pb = pixels[px, py]
+                        pixel_bgr = ((pb >> 3) << 11) | ((pg >> 2) << 5) | (pr >> 3)
+                        if pixel_bgr == target_bgr565:
+                            pixels[px, py] = (trans_r, trans_g, trans_b)
+                            count += 1
+
+                update_both_previews()
+                status_label.config(
+                    text=f"Filled {count} pixels of 0x{target_bgr565:04X} with transparent color 0x{sprite.transparent:04X}",
+                    foreground='green')
+                return
+
             radius = brush_size
-            
+
             # Paint all pixels within brush radius (circular brush)
             for dy in range(-radius, radius + 1):
                 for dx in range(-radius, radius + 1):
@@ -2639,7 +2635,10 @@ class RayCast3DStudio:
         def on_transparent_press(event):
             """Handle mouse press on transparent preview."""
             nonlocal is_drawing_on_transparent
-            if edit_mode in ('erase', 'de_erase'):
+            if edit_mode == 'fill_transparent':
+                # Fill is a single-click action (undo saved inside on_transparent_click)
+                on_transparent_click(event)
+            elif edit_mode in ('erase', 'de_erase'):
                 # Save undo snapshot before stroke begins
                 sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
                 if len(sprite_undo_stack) > 50:
