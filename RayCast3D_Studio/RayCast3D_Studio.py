@@ -2662,9 +2662,9 @@ class RayCast3DStudio:
         self._save_project()
 
     def _edit_sprite_transparency(self):
-        """Open dialog to edit sprite transparency by color picking from preview."""
+        """Open sprite editor dialog with sidebar tools and a single editing canvas."""
         if not self.selected_sprite_rows or self.last_sprite_click is None:
-            messagebox.showinfo("Info", "Please select a sprite to edit transparency.")
+            messagebox.showinfo("Info", "Please select a sprite to edit.")
             return
 
         idx = self.last_sprite_click
@@ -2673,144 +2673,84 @@ class RayCast3DStudio:
 
         sprite = self.sprites[idx]
 
-        # Store original transparent color and c_array for cancel
+        # Store original state for cancel/discard
         original_transparent = sprite.transparent
         original_c_array = sprite.c_array[:] if sprite.c_array else None
+        original_crop_bounds = sprite.crop_bounds
 
         # Load image from c_array if it exists (preserves previous edits), otherwise from file
         try:
             if sprite.c_array and len(sprite.c_array) == sprite.resolution * sprite.resolution:
-                # Reconstruct image from saved c_array data (preserves erase/de-erase edits)
                 img_rgb = Image.new("RGB", (sprite.resolution, sprite.resolution))
                 pixels = img_rgb.load()
-
                 for i, hex_val in enumerate(sprite.c_array):
                     bgr565 = int(hex_val, 16)
-                    # Convert BGR565 to RGB
                     blue5 = (bgr565 >> 11) & 0x1F
                     green6 = (bgr565 >> 5) & 0x3F
                     red5 = bgr565 & 0x1F
-
                     r = (red5 << 3) | (red5 >> 2)
                     g = (green6 << 2) | (green6 >> 4)
                     b = (blue5 << 3) | (blue5 >> 2)
-
                     x = i % sprite.resolution
                     y = i // sprite.resolution
                     pixels[x, y] = (r, g, b)
             else:
-                # No c_array yet - load from original image file
                 if not os.path.exists(sprite.image_path):
                     messagebox.showerror("Error", f"Image file not found: {sprite.image_path}")
                     return
-
                 img = Image.open(sprite.image_path)
-                # Process image to match sprite resolution
                 img_resized = resize_and_letterbox(img, sprite.resolution, sprite.resolution)
                 img_rgb = img_resized.convert("RGB")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load image: {e}")
             return
 
-        # Create dialog window
+        # --- Dialog window ---
         dialog = tk.Toplevel(self.root)
         dialog.title(f"Edit Sprite - {sprite.name}")
-        dialog.geometry("960x720")
+        dialog.geometry("860x680")
         dialog.transient(self.root)
         dialog.grab_set()
 
-        # Main frame
-        main_frame = ttk.Frame(dialog)
-        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        # --- Layout: outer_frame holds sidebar (left) and right_panel (canvas + bottom bar) ---
+        outer_frame = ttk.Frame(dialog)
+        outer_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
-        # Instructions
-        instr_label = ttk.Label(main_frame,
-                                text="Use the edit modes below to pick transparency, erase/restore pixels, or crop the sprite.",
-                                font=('Arial', 10))
-        instr_label.pack(pady=(0, 10))
+        # =====================================================================
+        # LEFT SIDEBAR
+        # =====================================================================
+        sidebar = ttk.Frame(outer_frame, width=200)
+        sidebar.pack(side='left', fill='y', padx=(0, 10))
+        sidebar.pack_propagate(False)
 
-        # Preview size (larger for easier pixel editing)
-        preview_size = 384
-        # Calculate scale to fit sprite in preview (at least 4x for visibility)
-        max_scale = preview_size // sprite.resolution
-        scale = max(4, min(max_scale, 16))  # Scale between 4x and 16x for easier editing
-        display_size = sprite.resolution * scale
-        offset_x = (preview_size - display_size) // 2
-        offset_y = (preview_size - display_size) // 2
+        # --- Tools section ---
+        ttk.Label(sidebar, text="Tools", font=('Arial', 10, 'bold')).pack(anchor='w', pady=(0, 5))
 
-        # Scale sprite for display (will be updated when pixels change)
-        sprite_scaled = img_rgb.resize((display_size, display_size), Image.NEAREST)
-        sprite_pixels = sprite_scaled.load()
-
-        # Preview container (side by side)
-        preview_container = ttk.Frame(main_frame)
-        preview_container.pack(pady=10)
-
-        # LEFT: Original sprite (no transparency) - clickable
-        left_frame = ttk.LabelFrame(preview_container, text="Original (Click to Pick)")
-        left_frame.pack(side='left', padx=10)
-
-        # Create original sprite preview (no transparency)
-        def update_original_preview():
-            """Update the left preview with current image."""
-            # Regenerate scaled sprite from current img_rgb
-            current_scaled = img_rgb.resize((display_size, display_size), Image.NEAREST)
-            original_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
-            original_img.paste(current_scaled, (offset_x, offset_y))
-            original_photo_new = ImageTk.PhotoImage(original_img)
-            original_canvas.delete('all')
-            original_canvas.create_image(0, 0, anchor='nw', image=original_photo_new)
-            original_canvas.image = original_photo_new  # Keep reference
-
-        original_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
-        original_img.paste(sprite_scaled, (offset_x, offset_y))
-        original_photo = ImageTk.PhotoImage(original_img)
-
-        original_canvas = tk.Canvas(left_frame, width=preview_size, height=preview_size, 
-                                   highlightthickness=2, highlightbackground='blue', cursor='crosshair')
-        original_canvas.pack(padx=10, pady=10)
-        original_canvas.create_image(0, 0, anchor='nw', image=original_photo)
-        original_canvas.image = original_photo  # Keep reference
-
-        # RIGHT: Transparent version (updates in real-time)
-        right_frame = ttk.LabelFrame(preview_container, text="With Transparency")
-        right_frame.pack(side='left', padx=10)
-
-        transparent_canvas = tk.Canvas(right_frame, width=preview_size, height=preview_size, 
-                                       highlightthickness=2, highlightbackground='black', cursor='crosshair')
-        transparent_canvas.pack(padx=10, pady=10)
-
-        # Mode tracking: 'pick', 'erase', 'de_erase', 'crop', 'fill_transparent'
+        # Mode tracking
         edit_mode = 'pick'
-        is_drawing_on_transparent = False
-        brush_size = 1  # Brush radius in pixels
+        is_drawing = False
+        brush_size = 1
 
-        # Undo stack: list of (img_rgb_copy, transparent_color) snapshots
+        # Undo stack
         sprite_undo_stack = []
 
-        # Crop state (coordinates in crop_source_img pixel space)
-        crop_x1 = 0
-        crop_y1 = 0
-        crop_x2 = 0
-        crop_y2 = 0
-        crop_rect_id = None    # Canvas rectangle ID for the selection overlay
-        crop_handle_ids = []   # Canvas IDs for the 8 drag handles
-        crop_active = False    # True once a crop region has been drawn
-        crop_drag_mode = None  # None, 'new', or handle name ('nw','n','ne','e','se','s','sw','w','move')
-        crop_drag_anchor = None  # (x, y) for move/drag reference
-        crop_square = False    # Constrain to square
+        # Crop state
+        crop_x1 = crop_y1 = crop_x2 = crop_y2 = 0
+        crop_rect_id = None
+        crop_handle_ids = []
+        crop_active = False
+        crop_drag_mode = None
+        crop_drag_anchor = None
+        crop_square = False
 
-        # The image displayed on the left canvas during crop mode, and its display params
-        crop_source_img = None   # PIL Image (full-res original or img_rgb fallback)
-        crop_source_w = 0
-        crop_source_h = 0
-        crop_display_scale = 1.0   # canvas pixels per source pixel (may be < 1)
-        crop_display_size_x = 0
-        crop_display_size_y = 0
-        crop_display_offset_x = 0
-        crop_display_offset_y = 0
+        # Crop display state
+        crop_source_img = None
+        crop_source_w = crop_source_h = 0
+        crop_display_scale = 1.0
+        crop_display_size_x = crop_display_size_y = 0
+        crop_display_offset_x = crop_display_offset_y = 0
 
-        # Load original source image for high-quality cropping (if available)
+        # Load original source image for high-quality cropping
         original_source_img = None
         if sprite.image_path and os.path.exists(sprite.image_path):
             try:
@@ -2818,50 +2758,311 @@ class RayCast3DStudio:
             except Exception:
                 original_source_img = None
 
-        def update_both_previews():
-            """Update both the original and transparent previews."""
-            # Update original preview (left side)
-            update_original_preview()
-            
-            # Update transparent preview (right side)
-            update_transparent_preview()
+        # Tool radio buttons
+        tool_var = tk.StringVar(value='pick')
+        tool_buttons = {}
 
-        def update_transparent_preview():
-            """Update the right preview with current transparent color - uses same function as actual preview."""
-            # Use the exact same function that creates the actual sprite preview (PIL Image version)
-            preview_pil_img = self._create_sprite_preview_image(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
-            
-            # Scale to fill the entire canvas (resize to fit preview_size)
-            preview_pil_img = preview_pil_img.resize((preview_size, preview_size), Image.NEAREST)
-            
-            preview_photo = ImageTk.PhotoImage(preview_pil_img)
-            transparent_canvas.delete('all')
-            transparent_canvas.create_image(0, 0, anchor='nw', image=preview_photo)
-            transparent_canvas.image = preview_photo  # Keep reference
+        def _get_tool_label(tool_name):
+            labels = {
+                'pick': 'Pick Color',
+                'fill_transparent': 'Fill Match',
+                'erase': 'Erase',
+                'de_erase': 'Restore',
+                'crop': 'Crop',
+            }
+            return labels.get(tool_name, tool_name)
 
-        # Initial transparent preview
-        update_transparent_preview()
+        def on_tool_change():
+            nonlocal edit_mode
+            new_mode = tool_var.get()
+            old_mode = edit_mode
+
+            # Leaving crop mode: restore sprite-resolution view
+            if old_mode == 'crop' and new_mode != 'crop':
+                clear_crop()
+                update_canvas()
+
+            edit_mode = new_mode
+
+            # Update sidebar control states
+            _update_sidebar_controls()
+
+            # Entering crop mode: show full-res source
+            if new_mode == 'crop':
+                _setup_crop_display()
+                if sprite.crop_bounds is not None and original_source_img is not None:
+                    nonlocal crop_x1, crop_y1, crop_x2, crop_y2, crop_active
+                    bx1, by1, bx2, by2 = sprite.crop_bounds
+                    crop_x1, crop_y1 = bx1, by1
+                    crop_x2, crop_y2 = bx2 - 1, by2 - 1
+                    crop_active = True
+                    draw_crop_rect()
+                _update_status()
+            else:
+                update_canvas()
+                _update_status()
+
+        tool_frame = ttk.Frame(sidebar)
+        tool_frame.pack(fill='x', pady=(0, 10))
+        for tool_name in ['pick', 'fill_transparent', 'erase', 'de_erase', 'crop']:
+            rb = ttk.Radiobutton(tool_frame, text=_get_tool_label(tool_name),
+                                 variable=tool_var, value=tool_name,
+                                 command=on_tool_change)
+            rb.pack(anchor='w', pady=1)
+            tool_buttons[tool_name] = rb
+
+        # --- Separator ---
+        ttk.Separator(sidebar, orient='horizontal').pack(fill='x', pady=8)
+
+        # --- Brush size (always visible, enabled for erase/restore) ---
+        ttk.Label(sidebar, text="Brush Size", font=('Arial', 9, 'bold')).pack(anchor='w')
+        brush_size_var = tk.IntVar(value=1)
+        brush_size_label = ttk.Label(sidebar, text="1", font=('Arial', 9))
+        brush_size_label.pack(anchor='w', padx=5)
+
+        def update_brush_size(val):
+            nonlocal brush_size
+            brush_size = int(float(val))
+            brush_size_label.config(text=str(brush_size))
+
+        brush_slider = ttk.Scale(sidebar, from_=1, to=10, orient='horizontal',
+                                 variable=brush_size_var, length=160,
+                                 command=update_brush_size)
+        brush_slider.pack(fill='x', padx=5, pady=(0, 5))
+
+        # --- Separator ---
+        ttk.Separator(sidebar, orient='horizontal').pack(fill='x', pady=8)
+
+        # --- Crop controls (always visible, enabled only in crop mode) ---
+        ttk.Label(sidebar, text="Crop", font=('Arial', 9, 'bold')).pack(anchor='w')
+        crop_square_var = tk.BooleanVar(value=False)
+        def on_square_toggle():
+            nonlocal crop_square
+            crop_square = crop_square_var.get()
+        crop_square_cb = ttk.Checkbutton(sidebar, text="Square", variable=crop_square_var,
+                                         command=on_square_toggle)
+        crop_square_cb.pack(anchor='w', padx=5)
+        confirm_crop_btn = ttk.Button(sidebar, text="Confirm Crop", command=lambda: apply_crop())
+        confirm_crop_btn.pack(fill='x', padx=5, pady=(3, 5))
+
+        # --- Separator ---
+        ttk.Separator(sidebar, orient='horizontal').pack(fill='x', pady=8)
+
+        # --- Transparency info ---
+        ttk.Label(sidebar, text="Transparent Color", font=('Arial', 9, 'bold')).pack(anchor='w')
+        trans_info_label = ttk.Label(sidebar, text=f"0x{sprite.transparent:04X}",
+                                     font=('Consolas', 10))
+        trans_info_label.pack(anchor='w', padx=5, pady=(0, 5))
+
+        # --- Separator ---
+        ttk.Separator(sidebar, orient='horizontal').pack(fill='x', pady=8)
+
+        # --- Source reference thumbnail ---
+        ttk.Label(sidebar, text="Source Reference", font=('Arial', 9, 'bold')).pack(anchor='w')
+        thumb_size = 160
+        thumb_label = ttk.Label(sidebar)
+        thumb_label.pack(padx=5, pady=5)
+
+        def update_source_thumbnail():
+            """Update the small source reference thumbnail (no transparency)."""
+            thumb_img = img_rgb.resize((thumb_size, thumb_size), Image.NEAREST)
+            padded = Image.new("RGB", (thumb_size, thumb_size), (200, 200, 200))
+            # Center sprite in thumbnail
+            actual_display = min(thumb_size, sprite.resolution * max(1, thumb_size // sprite.resolution))
+            thumb_img = img_rgb.resize((actual_display, actual_display), Image.NEAREST)
+            paste_x = (thumb_size - actual_display) // 2
+            paste_y = (thumb_size - actual_display) // 2
+            padded.paste(thumb_img, (paste_x, paste_y))
+            photo = ImageTk.PhotoImage(padded)
+            thumb_label.config(image=photo)
+            thumb_label.image = photo
+
+        update_source_thumbnail()
+
+        def _update_sidebar_controls():
+            """Enable/disable sidebar controls based on active tool."""
+            is_brush_tool = edit_mode in ('erase', 'de_erase')
+            is_crop_tool = edit_mode == 'crop'
+
+            brush_slider.state(['!disabled'] if is_brush_tool else ['disabled'])
+            brush_size_label.config(foreground='' if is_brush_tool else 'gray')
+
+            confirm_crop_btn.state(['!disabled'] if is_crop_tool else ['disabled'])
+            crop_square_cb.state(['!disabled'] if is_crop_tool else ['disabled'])
+
+        # Initialize control states
+        _update_sidebar_controls()
+
+        # =====================================================================
+        # RIGHT PANEL (canvas + bottom bar)
+        # =====================================================================
+        right_panel = ttk.Frame(outer_frame)
+        right_panel.pack(side='left', fill='both', expand=True)
+
+        # --- Main editing canvas (shows transparency as checkerboard) ---
+        canvas_size = 480
+
+        # Zoom state: scale = pixels per sprite pixel, pan = sprite-pixel offset of view center
+        default_scale = max(4, min(canvas_size // sprite.resolution, 16))
+        min_scale = max(1, canvas_size // (sprite.resolution * 2))  # Fit at least 2x
+        max_zoom_scale = max(32, default_scale * 4)
+        scale = default_scale
+        display_size = sprite.resolution * scale
+        offset_x = (canvas_size - display_size) // 2
+        offset_y = (canvas_size - display_size) // 2
+        # Pan center in sprite-pixel coordinates (starts centered)
+        pan_cx = sprite.resolution / 2.0
+        pan_cy = sprite.resolution / 2.0
+
+        canvas = tk.Canvas(right_panel, width=canvas_size, height=canvas_size,
+                           highlightthickness=2, highlightbackground='#555555',
+                           cursor='crosshair', bg='#C8C8C8')
+        canvas.pack(pady=(0, 8))
+
+        def _recalc_view():
+            """Recalculate display_size and offset from current scale and pan."""
+            nonlocal display_size, offset_x, offset_y
+            display_size = sprite.resolution * scale
+            # Offset so that pan_cx, pan_cy maps to canvas center
+            offset_x = int(canvas_size / 2 - pan_cx * scale)
+            offset_y = int(canvas_size / 2 - pan_cy * scale)
+
+        def update_canvas():
+            """Render the main canvas with transparency checkerboard."""
+            _recalc_view()
+            preview_img = self._create_sprite_preview_image(
+                img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+            preview_img = preview_img.resize((display_size, display_size), Image.NEAREST)
+            canvas_img = Image.new("RGB", (canvas_size, canvas_size), (200, 200, 200))
+            canvas_img.paste(preview_img, (offset_x, offset_y))
+            photo = ImageTk.PhotoImage(canvas_img)
+            canvas.delete('all')
+            canvas.create_image(0, 0, anchor='nw', image=photo)
+            canvas.image = photo
+
+        def on_scroll_zoom(event):
+            """Scroll to zoom, centered on the mouse cursor position."""
+            nonlocal scale, pan_cx, pan_cy
+
+            if edit_mode == 'crop':
+                return  # Crop mode always shows full source image
+
+            # Determine scroll direction (cross-platform)
+            if event.num == 4 or event.delta > 0:
+                direction = 1   # Zoom in
+            elif event.num == 5 or event.delta < 0:
+                direction = -1  # Zoom out
+            else:
+                return
+
+            # Sprite pixel under the cursor before zoom
+            sx = (event.x - offset_x) / scale
+            sy = (event.y - offset_y) / scale
+
+            old_scale = scale
+            # Adaptive step: small when zoomed out, bigger when zoomed in
+            step = max(1, scale // 4)
+            new_scale = scale + direction * step
+            new_scale = max(min_scale, min(max_zoom_scale, new_scale))
+            if new_scale == old_scale:
+                return
+
+            scale = new_scale
+
+            # Adjust pan so the sprite pixel under cursor stays under cursor
+            pan_cx = sx + (canvas_size / 2 - event.x) / scale
+            pan_cy = sy + (canvas_size / 2 - event.y) / scale
+
+            update_canvas()
+
+        # Bind scroll zoom (Linux uses Button-4/5, Windows/Mac uses MouseWheel)
+        canvas.bind('<Button-4>', on_scroll_zoom)
+        canvas.bind('<Button-5>', on_scroll_zoom)
+        canvas.bind('<MouseWheel>', on_scroll_zoom)
+
+        # Middle-click pan
+        _pan_drag_start = [None, None]  # [canvas_x, canvas_y] at drag start
+
+        def on_pan_start(event):
+            _pan_drag_start[0] = event.x
+            _pan_drag_start[1] = event.y
+
+        def on_pan_drag(event):
+            nonlocal pan_cx, pan_cy
+            if _pan_drag_start[0] is None or edit_mode == 'crop':
+                return
+            dx = event.x - _pan_drag_start[0]
+            dy = event.y - _pan_drag_start[1]
+            _pan_drag_start[0] = event.x
+            _pan_drag_start[1] = event.y
+            pan_cx -= dx / scale
+            pan_cy -= dy / scale
+            update_canvas()
+
+        def on_pan_end(event):
+            _pan_drag_start[0] = None
+            _pan_drag_start[1] = None
+
+        canvas.bind('<Button-2>', on_pan_start)
+        canvas.bind('<B2-Motion>', on_pan_drag)
+        canvas.bind('<ButtonRelease-2>', on_pan_end)
+
+        # Initial render
+        update_canvas()
+
+        # --- Status bar ---
+        status_frame = ttk.Frame(right_panel)
+        status_frame.pack(fill='x', pady=(0, 5))
+
+        status_label = ttk.Label(status_frame, text="", font=('Arial', 9), anchor='w')
+        status_label.pack(side='left', fill='x', expand=True)
+
+        info_label = ttk.Label(status_frame,
+                               text=f"{sprite.resolution}x{sprite.resolution}  |  {sprite.memory_bytes()} bytes",
+                               font=('Arial', 9), foreground='gray')
+        info_label.pack(side='right')
+
+        def _update_status():
+            """Update the status bar text based on current tool."""
+            zoom_hint = "  Scroll to zoom, middle-click to pan." if edit_mode != 'crop' else ""
+            msgs = {
+                'pick': "Click a pixel to set it as the transparent color.",
+                'fill_transparent': "Click a pixel color to make all matching pixels transparent.",
+                'erase': "Click and drag to erase pixels (make transparent).",
+                'de_erase': "Click and drag to restore erased pixels.",
+                'crop': "Drag to select a crop region, then click Confirm Crop.",
+            }
+            status_label.config(text=msgs.get(edit_mode, "") + zoom_hint, foreground='black')
+
+        _update_status()
+
+        # --- Bottom buttons ---
+        button_frame = ttk.Frame(right_panel)
+        button_frame.pack(pady=(5, 0))
+
+        # =====================================================================
+        # CANVAS INTERACTION LOGIC (single canvas, mode-routed)
+        # =====================================================================
 
         # Helper: convert canvas event to sprite pixel coordinates
         def canvas_to_sprite(event):
-            canvas_x = event.x - offset_x
-            canvas_y = event.y - offset_y
-            if 0 <= canvas_x < display_size and 0 <= canvas_y < display_size:
-                sx = max(0, min(sprite.resolution - 1, canvas_x // scale))
-                sy = max(0, min(sprite.resolution - 1, canvas_y // scale))
+            cx = event.x - offset_x
+            cy = event.y - offset_y
+            if 0 <= cx < display_size and 0 <= cy < display_size:
+                sx = max(0, min(sprite.resolution - 1, cx // scale))
+                sy = max(0, min(sprite.resolution - 1, cy // scale))
                 return sx, sy
             return None
 
         # --- Crop drawing and interaction ---
-        HANDLE_SIZE = 6  # Half-size of drag handles in canvas pixels
+        HANDLE_SIZE = 6
 
         def _setup_crop_display():
-            """Configure crop display params and show source image on left canvas."""
+            """Configure crop display params and show source image on main canvas."""
             nonlocal crop_source_img, crop_source_w, crop_source_h
             nonlocal crop_display_scale, crop_display_size_x, crop_display_size_y
             nonlocal crop_display_offset_x, crop_display_offset_y
 
-            # Use full-res original if available, otherwise fall back to img_rgb
             if original_source_img is not None:
                 crop_source_img = original_source_img
             else:
@@ -2869,27 +3070,24 @@ class RayCast3DStudio:
 
             crop_source_w, crop_source_h = crop_source_img.size
 
-            # Compute scale to fit the source image in preview_size, preserving aspect ratio
-            scale_x = preview_size / crop_source_w
-            scale_y = preview_size / crop_source_h
+            scale_x = canvas_size / crop_source_w
+            scale_y = canvas_size / crop_source_h
             crop_display_scale = min(scale_x, scale_y)
             crop_display_size_x = int(crop_source_w * crop_display_scale)
             crop_display_size_y = int(crop_source_h * crop_display_scale)
-            crop_display_offset_x = (preview_size - crop_display_size_x) // 2
-            crop_display_offset_y = (preview_size - crop_display_size_y) // 2
+            crop_display_offset_x = (canvas_size - crop_display_size_x) // 2
+            crop_display_offset_y = (canvas_size - crop_display_size_y) // 2
 
-            # Render source image on the left canvas
             display_img = crop_source_img.resize(
                 (crop_display_size_x, crop_display_size_y), Image.LANCZOS)
-            canvas_img = Image.new("RGB", (preview_size, preview_size), (200, 200, 200))
+            canvas_img = Image.new("RGB", (canvas_size, canvas_size), (200, 200, 200))
             canvas_img.paste(display_img, (crop_display_offset_x, crop_display_offset_y))
             photo = ImageTk.PhotoImage(canvas_img)
-            original_canvas.delete('all')
-            original_canvas.create_image(0, 0, anchor='nw', image=photo)
-            original_canvas.image = photo
+            canvas.delete('all')
+            canvas.create_image(0, 0, anchor='nw', image=photo)
+            canvas.image = photo
 
         def _crop_canvas_coords():
-            """Return (cx1, cy1, cx2, cy2) canvas pixel coords for the current crop rect."""
             s = crop_display_scale
             ox, oy = crop_display_offset_x, crop_display_offset_y
             cx1 = crop_x1 * s + ox
@@ -2899,7 +3097,6 @@ class RayCast3DStudio:
             return cx1, cy1, cx2, cy2
 
         def canvas_to_crop(event):
-            """Convert canvas event coords to source image pixel coords."""
             cx = event.x - crop_display_offset_x
             cy = event.y - crop_display_offset_y
             if 0 <= cx < crop_display_size_x and 0 <= cy < crop_display_size_y:
@@ -2909,45 +3106,41 @@ class RayCast3DStudio:
             return None
 
         def draw_crop_rect():
-            """Draw/update the crop rectangle and its 8 resize handles on the original canvas."""
             nonlocal crop_rect_id, crop_handle_ids
-            # Remove old drawings
             if crop_rect_id is not None:
-                original_canvas.delete(crop_rect_id)
+                canvas.delete(crop_rect_id)
                 crop_rect_id = None
             for hid in crop_handle_ids:
-                original_canvas.delete(hid)
+                canvas.delete(hid)
             crop_handle_ids = []
 
             if not crop_active:
                 return
 
             cx1, cy1, cx2, cy2 = _crop_canvas_coords()
-            crop_rect_id = original_canvas.create_rectangle(
+            crop_rect_id = canvas.create_rectangle(
                 cx1, cy1, cx2, cy2, outline='yellow', width=2, dash=(4, 4))
 
-            # Draw 8 handles: corners + edge midpoints
             mx, my = (cx1 + cx2) / 2, (cy1 + cy2) / 2
             handle_positions = [
-                (cx1, cy1), (mx, cy1), (cx2, cy1),   # nw, n, ne
-                (cx1, my),              (cx2, my),     # w, e
-                (cx1, cy2), (mx, cy2), (cx2, cy2),    # sw, s, se
+                (cx1, cy1), (mx, cy1), (cx2, cy1),
+                (cx1, my),              (cx2, my),
+                (cx1, cy2), (mx, cy2), (cx2, cy2),
             ]
             hs = HANDLE_SIZE
             for hx, hy in handle_positions:
-                hid = original_canvas.create_rectangle(
+                hid = canvas.create_rectangle(
                     hx - hs, hy - hs, hx + hs, hy + hs,
                     fill='yellow', outline='black', width=1)
                 crop_handle_ids.append(hid)
 
         def _hit_test_handle(event):
-            """Check if event hits a resize handle. Returns handle name or None."""
             if not crop_active:
                 return None
             cx1, cy1, cx2, cy2 = _crop_canvas_coords()
             mx, my = (cx1 + cx2) / 2, (cy1 + cy2) / 2
             ex, ey = event.x, event.y
-            hs = HANDLE_SIZE + 3  # Generous hit area
+            hs = HANDLE_SIZE + 3
 
             handles = [
                 ('nw', cx1, cy1), ('n', mx, cy1), ('ne', cx2, cy1),
@@ -2958,13 +3151,11 @@ class RayCast3DStudio:
                 if abs(ex - hx) <= hs and abs(ey - hy) <= hs:
                     return name
 
-            # Check if inside the rectangle (for move)
             if cx1 <= ex <= cx2 and cy1 <= ey <= cy2:
                 return 'move'
             return None
 
         def _constrain_square(ax, ay, bx, by):
-            """Constrain bx,by so the rectangle from (ax,ay) to (bx,by) is square."""
             dx = bx - ax
             dy = by - ay
             side = max(abs(dx), abs(dy))
@@ -2973,7 +3164,6 @@ class RayCast3DStudio:
             return bx, by
 
         def _clamp_crop():
-            """Clamp crop coordinates to valid source image range and enforce ordering."""
             nonlocal crop_x1, crop_y1, crop_x2, crop_y2
             crop_x1 = max(0, min(crop_source_w - 1, crop_x1))
             crop_y1 = max(0, min(crop_source_h - 1, crop_y1))
@@ -2984,12 +3174,27 @@ class RayCast3DStudio:
             if crop_y1 > crop_y2:
                 crop_y1, crop_y2 = crop_y2, crop_y1
 
-        # Click handler for original canvas (mode-aware)
-        def on_original_press(event):
+        def clear_crop():
+            nonlocal crop_rect_id, crop_handle_ids, crop_active, crop_drag_mode, crop_drag_anchor
+            if crop_rect_id is not None:
+                canvas.delete(crop_rect_id)
+                crop_rect_id = None
+            for hid in crop_handle_ids:
+                canvas.delete(hid)
+            crop_handle_ids = []
+            crop_active = False
+            crop_drag_mode = None
+            crop_drag_anchor = None
+
+        # --- Unified canvas event handlers ---
+
+        def on_canvas_press(event):
             nonlocal crop_x1, crop_y1, crop_x2, crop_y2
             nonlocal crop_active, crop_drag_mode, crop_drag_anchor
+            nonlocal is_drawing
+
             if edit_mode == 'crop':
-                # Check if clicking on an existing handle first
+                # Check for handle hit first
                 if crop_active:
                     handle = _hit_test_handle(event)
                     if handle:
@@ -2997,7 +3202,7 @@ class RayCast3DStudio:
                         crop_drag_anchor = canvas_to_crop(event)
                         return
 
-                # Start a new crop rectangle
+                # Start new crop rectangle
                 coords = canvas_to_crop(event)
                 if coords:
                     crop_x1, crop_y1 = coords
@@ -3006,464 +3211,232 @@ class RayCast3DStudio:
                     crop_drag_mode = 'new'
                     crop_drag_anchor = coords
                     draw_crop_rect()
-                    update_crop_preview()
-            else:
-                # Color pick mode
+
+            elif edit_mode == 'pick':
                 coords = canvas_to_sprite(event)
                 if coords:
                     sprite_x, sprite_y = coords
                     pixels = img_rgb.load()
                     r, g, b = pixels[sprite_x, sprite_y]
-
                     blue5 = b >> 3
                     green6 = g >> 2
                     red5 = r >> 3
                     new_transparent = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
 
-                    # Save undo snapshot before changing transparent color
                     sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
                     if len(sprite_undo_stack) > 50:
                         sprite_undo_stack.pop(0)
 
                     sprite.transparent = new_transparent
-                    update_transparent_preview()
-                    status_label.config(text=f"Transparent color set to 0x{new_transparent:04X} (RGB: {r}, {g}, {b})",
-                                       foreground='green')
+                    trans_info_label.config(text=f"0x{new_transparent:04X}")
+                    update_canvas()
+                    update_source_thumbnail()
+                    status_label.config(
+                        text=f"Transparent color: 0x{new_transparent:04X} (RGB: {r},{g},{b})",
+                        foreground='green')
 
-        def on_original_drag(event):
+            elif edit_mode == 'fill_transparent':
+                coords = canvas_to_sprite(event)
+                if coords:
+                    _do_fill_transparent(coords[0], coords[1])
+
+            elif edit_mode in ('erase', 'de_erase'):
+                sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+                if len(sprite_undo_stack) > 50:
+                    sprite_undo_stack.pop(0)
+                is_drawing = True
+                _do_brush(event)
+
+        def on_canvas_drag(event):
             nonlocal crop_x1, crop_y1, crop_x2, crop_y2, crop_drag_anchor
-            if edit_mode != 'crop' or crop_drag_mode is None:
-                return
-            coords = canvas_to_crop(event)
-            if not coords:
-                return
-            sx, sy = coords
-            max_w = crop_source_w - 1
-            max_h = crop_source_h - 1
 
-            if crop_drag_mode == 'new':
-                ax, ay = crop_drag_anchor
-                bx, by = sx, sy
-                if crop_square:
-                    bx, by = _constrain_square(ax, ay, bx, by)
-                crop_x1, crop_y1 = min(ax, bx), min(ay, by)
-                crop_x2, crop_y2 = max(ax, bx), max(ay, by)
+            if edit_mode == 'crop' and crop_drag_mode is not None:
+                coords = canvas_to_crop(event)
+                if not coords:
+                    return
+                sx, sy = coords
+                max_w = crop_source_w - 1
+                max_h = crop_source_h - 1
 
-            elif crop_drag_mode == 'move':
-                if crop_drag_anchor:
-                    dx = sx - crop_drag_anchor[0]
-                    dy = sy - crop_drag_anchor[1]
-                    w = crop_x2 - crop_x1
-                    h = crop_y2 - crop_y1
-                    nx1 = crop_x1 + dx
-                    ny1 = crop_y1 + dy
-                    nx1 = max(0, min(max_w - w, nx1))
-                    ny1 = max(0, min(max_h - h, ny1))
-                    crop_x1, crop_y1 = nx1, ny1
-                    crop_x2, crop_y2 = nx1 + w, ny1 + h
-                    crop_drag_anchor = (sx, sy)
+                if crop_drag_mode == 'new':
+                    ax, ay = crop_drag_anchor
+                    bx, by = sx, sy
+                    if crop_square:
+                        bx, by = _constrain_square(ax, ay, bx, by)
+                    crop_x1, crop_y1 = min(ax, bx), min(ay, by)
+                    crop_x2, crop_y2 = max(ax, bx), max(ay, by)
 
-            else:
-                mode = crop_drag_mode
-                nx1, ny1, nx2, ny2 = crop_x1, crop_y1, crop_x2, crop_y2
+                elif crop_drag_mode == 'move':
+                    if crop_drag_anchor:
+                        dx = sx - crop_drag_anchor[0]
+                        dy = sy - crop_drag_anchor[1]
+                        w = crop_x2 - crop_x1
+                        h = crop_y2 - crop_y1
+                        nx1 = max(0, min(max_w - w, crop_x1 + dx))
+                        ny1 = max(0, min(max_h - h, crop_y1 + dy))
+                        crop_x1, crop_y1 = nx1, ny1
+                        crop_x2, crop_y2 = nx1 + w, ny1 + h
+                        crop_drag_anchor = (sx, sy)
+                else:
+                    mode = crop_drag_mode
+                    nx1, ny1, nx2, ny2 = crop_x1, crop_y1, crop_x2, crop_y2
+                    if 'w' in mode: nx1 = sx
+                    if 'e' in mode: nx2 = sx
+                    if 'n' in mode: ny1 = sy
+                    if 's' in mode: ny2 = sy
+                    if crop_square:
+                        if mode == 'nw': nx1, ny1 = _constrain_square(nx2, ny2, nx1, ny1)
+                        elif mode == 'ne': nx2, ny1 = _constrain_square(nx1, ny2, nx2, ny1)
+                        elif mode == 'sw': nx1, ny2 = _constrain_square(nx2, ny1, nx1, ny2)
+                        elif mode == 'se': nx2, ny2 = _constrain_square(nx1, ny1, nx2, ny2)
+                        elif mode in ('n', 's'):
+                            h = abs(ny2 - ny1); mid = (nx1 + nx2) / 2
+                            nx1 = int(mid - h / 2); nx2 = int(mid + h / 2)
+                        elif mode in ('e', 'w'):
+                            w = abs(nx2 - nx1); mid = (ny1 + ny2) / 2
+                            ny1 = int(mid - w / 2); ny2 = int(mid + w / 2)
+                    crop_x1, crop_y1 = min(nx1, nx2), min(ny1, ny2)
+                    crop_x2, crop_y2 = max(nx1, nx2), max(ny1, ny2)
 
-                if 'w' in mode:
-                    nx1 = sx
-                if 'e' in mode:
-                    nx2 = sx
-                if 'n' in mode:
-                    ny1 = sy
-                if 's' in mode:
-                    ny2 = sy
+                _clamp_crop()
+                draw_crop_rect()
 
-                if crop_square:
-                    if mode == 'nw':
-                        nx1, ny1 = _constrain_square(nx2, ny2, nx1, ny1)
-                    elif mode == 'ne':
-                        nx2, ny1 = _constrain_square(nx1, ny2, nx2, ny1)
-                    elif mode == 'sw':
-                        nx1, ny2 = _constrain_square(nx2, ny1, nx1, ny2)
-                    elif mode == 'se':
-                        nx2, ny2 = _constrain_square(nx1, ny1, nx2, ny2)
-                    elif mode in ('n', 's'):
-                        h = abs(ny2 - ny1)
-                        mid = (nx1 + nx2) / 2
-                        nx1 = int(mid - h / 2)
-                        nx2 = int(mid + h / 2)
-                    elif mode in ('e', 'w'):
-                        w = abs(nx2 - nx1)
-                        mid = (ny1 + ny2) / 2
-                        ny1 = int(mid - w / 2)
-                        ny2 = int(mid + w / 2)
+            elif is_drawing and edit_mode in ('erase', 'de_erase'):
+                _do_brush(event)
 
-                crop_x1, crop_y1 = min(nx1, nx2), min(ny1, ny2)
-                crop_x2, crop_y2 = max(nx1, nx2), max(ny1, ny2)
-
-            _clamp_crop()
-            draw_crop_rect()
-            update_crop_preview()
-
-        def on_original_release(event):
-            nonlocal crop_drag_mode, crop_drag_anchor
+        def on_canvas_release(event):
+            nonlocal crop_drag_mode, crop_drag_anchor, is_drawing
             if edit_mode == 'crop':
                 crop_drag_mode = None
                 crop_drag_anchor = None
+            is_drawing = False
 
-        original_canvas.bind('<Button-1>', on_original_press)
-        original_canvas.bind('<B1-Motion>', on_original_drag)
-        original_canvas.bind('<ButtonRelease-1>', on_original_release)
+        def _do_brush(event):
+            """Apply erase/restore brush at the event location."""
+            coords = canvas_to_sprite(event)
+            if not coords:
+                return
+            center_x, center_y = coords
+            pixels = img_rgb.load()
+            radius = brush_size
 
-        # Crop preview: show what the cropped region looks like at full sprite resolution
-        def update_crop_preview():
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    if dx * dx + dy * dy <= radius * radius:
+                        sx = center_x + dx
+                        sy = center_y + dy
+                        if 0 <= sx < sprite.resolution and 0 <= sy < sprite.resolution:
+                            if edit_mode == 'erase':
+                                trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
+                                trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
+                                trans_r = (sprite.transparent & 0x1F) << 3
+                                pixels[sx, sy] = (trans_r, trans_g, trans_b)
+                            elif edit_mode == 'de_erase':
+                                cr, cg, cb = pixels[sx, sy]
+                                cur_bgr = ((cb >> 3) << 11) | ((cg >> 2) << 5) | (cr >> 3)
+                                if cur_bgr == sprite.transparent:
+                                    new_bgr = cur_bgr ^ 1
+                                    nb5 = (new_bgr >> 11) & 0x1F
+                                    ng6 = (new_bgr >> 5) & 0x3F
+                                    nr5 = new_bgr & 0x1F
+                                    pixels[sx, sy] = (
+                                        (nr5 << 3) | (nr5 >> 2),
+                                        (ng6 << 2) | (ng6 >> 4),
+                                        (nb5 << 3) | (nb5 >> 2))
+
+            update_canvas()
+            update_source_thumbnail()
+
+        def _do_fill_transparent(center_x, center_y):
+            """Fill all pixels matching the clicked color with the transparent color."""
+            pixels = img_rgb.load()
+            r, g, b = pixels[center_x, center_y]
+            target_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
+
+            if target_bgr565 == sprite.transparent:
+                status_label.config(text="That color is already the transparent color.",
+                                   foreground='orange')
+                return
+
+            sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+            if len(sprite_undo_stack) > 50:
+                sprite_undo_stack.pop(0)
+
+            trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
+            trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
+            trans_r = (sprite.transparent & 0x1F) << 3
+
+            count = 0
+            for py in range(sprite.resolution):
+                for px in range(sprite.resolution):
+                    pr, pg, pb = pixels[px, py]
+                    pixel_bgr = ((pb >> 3) << 11) | ((pg >> 2) << 5) | (pr >> 3)
+                    if pixel_bgr == target_bgr565:
+                        pixels[px, py] = (trans_r, trans_g, trans_b)
+                        count += 1
+
+            update_canvas()
+            update_source_thumbnail()
+            status_label.config(
+                text=f"Filled {count} pixels of 0x{target_bgr565:04X} with transparent color.",
+                foreground='green')
+
+        def apply_crop():
+            """Confirm the crop: replace img_rgb with cropped and resized region."""
+            nonlocal img_rgb
             if not crop_active:
+                status_label.config(text="No crop region selected.", foreground='orange')
                 return
             w = crop_x2 - crop_x1 + 1
             h = crop_y2 - crop_y1 + 1
             if w < 1 or h < 1:
                 return
 
-            # Crop directly from the source image (full-res or img_rgb fallback)
+            sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
+            if len(sprite_undo_stack) > 50:
+                sprite_undo_stack.pop(0)
+
             cropped = crop_source_img.crop((crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1))
-            cropped_resized = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
-            crop_display = cropped_resized.resize((preview_size, preview_size), Image.NEAREST)
-            crop_photo = ImageTk.PhotoImage(crop_display)
-            transparent_canvas.delete('all')
-            transparent_canvas.create_image(0, 0, anchor='nw', image=crop_photo)
-            transparent_canvas.image = crop_photo
+            img_rgb = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
 
-        # Click handler for transparent canvas (right side) - for erase/de-erase
-        def on_transparent_click(event):
-            """Handle clicks on the transparent preview for erase/de-erase/fill_transparent."""
-            if edit_mode not in ('erase', 'de_erase', 'fill_transparent'):
-                return
+            if original_source_img is not None:
+                sprite.crop_bounds = (crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1)
+            else:
+                sprite.crop_bounds = None
 
-            # Convert canvas coordinates to sprite coordinates
-            # The transparent preview is scaled to preview_size, so we need to scale back
-            center_x = int((event.x / preview_size) * sprite.resolution)
-            center_y = int((event.y / preview_size) * sprite.resolution)
-            
-            # Clamp center to valid range
-            center_x = max(0, min(sprite.resolution - 1, center_x))
-            center_y = max(0, min(sprite.resolution - 1, center_y))
-            
-            pixels = img_rgb.load()
+            # Switch to Pick Color tool after crop
+            clear_crop()
+            tool_var.set('pick')
+            on_tool_change()
+            update_canvas()
+            update_source_thumbnail()
+            status_label.config(text="Crop applied.", foreground='green')
 
-            # Fill transparent mode: replace all pixels of clicked color with transparent
-            if edit_mode == 'fill_transparent':
-                r, g, b = pixels[center_x, center_y]
-                target_bgr565 = ((b >> 3) << 11) | ((g >> 2) << 5) | (r >> 3)
+        canvas.bind('<Button-1>', on_canvas_press)
+        canvas.bind('<B1-Motion>', on_canvas_drag)
+        canvas.bind('<ButtonRelease-1>', on_canvas_release)
 
-                if target_bgr565 == sprite.transparent:
-                    status_label.config(text="That color is already the transparent color.",
-                                       foreground='orange')
-                    return
-
-                # Save undo snapshot before fill
-                sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
-                if len(sprite_undo_stack) > 50:
-                    sprite_undo_stack.pop(0)
-
-                trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
-                trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
-                trans_r = (sprite.transparent & 0x1F) << 3
-
-                count = 0
-                for py in range(sprite.resolution):
-                    for px in range(sprite.resolution):
-                        pr, pg, pb = pixels[px, py]
-                        pixel_bgr = ((pb >> 3) << 11) | ((pg >> 2) << 5) | (pr >> 3)
-                        if pixel_bgr == target_bgr565:
-                            pixels[px, py] = (trans_r, trans_g, trans_b)
-                            count += 1
-
-                update_both_previews()
-                status_label.config(
-                    text=f"Filled {count} pixels of 0x{target_bgr565:04X} with transparent color 0x{sprite.transparent:04X}",
-                    foreground='green')
-                return
-
-            radius = brush_size
-
-            # Paint all pixels within brush radius (circular brush)
-            for dy in range(-radius, radius + 1):
-                for dx in range(-radius, radius + 1):
-                    # Check if pixel is within circular brush
-                    if dx * dx + dy * dy <= radius * radius:
-                        sprite_x = center_x + dx
-                        sprite_y = center_y + dy
-                        
-                        # Clamp to valid range
-                        if 0 <= sprite_x < sprite.resolution and 0 <= sprite_y < sprite.resolution:
-                            if edit_mode == 'erase':
-                                # Set pixel to transparent color
-                                trans_b = ((sprite.transparent >> 11) & 0x1F) << 3
-                                trans_g = ((sprite.transparent >> 5) & 0x3F) << 2
-                                trans_r = (sprite.transparent & 0x1F) << 3
-                                pixels[sprite_x, sprite_y] = (trans_r, trans_g, trans_b)
-                                
-                            elif edit_mode == 'de_erase':
-                                # Only modify pixels that are currently transparent (exact BGR565 match)
-                                # Change LSB of BGR565 for minimal visual effect
-                                current_r, current_g, current_b = pixels[sprite_x, sprite_y]
-                                
-                                # Convert current pixel to BGR565
-                                current_bgr565 = ((current_b >> 3) << 11) | ((current_g >> 2) << 5) | (current_r >> 3)
-                                
-                                # Only proceed if pixel is exactly transparent
-                                if current_bgr565 == sprite.transparent:
-                                    # Flip LSB (bit 0) of BGR565 - this changes it by 1 (minimal change)
-                                    new_bgr565 = current_bgr565 ^ 1
-                                    
-                                    # Convert new BGR565 back to RGB
-                                    # Extract components
-                                    new_blue5 = (new_bgr565 >> 11) & 0x1F
-                                    new_green6 = (new_bgr565 >> 5) & 0x3F
-                                    new_red5 = new_bgr565 & 0x1F
-                                    
-                                    # Convert back to 8-bit RGB (reconstruct from 5/6 bit values)
-                                    # For 5-bit: multiply by 8 and add 4 for better approximation
-                                    # For 6-bit: multiply by 4 and add 2
-                                    new_r = (new_red5 << 3) | (new_red5 >> 2)
-                                    new_g = (new_green6 << 2) | (new_green6 >> 4)
-                                    new_b = (new_blue5 << 3) | (new_blue5 >> 2)
-                                    
-                                    # Clamp to valid range
-                                    new_r = max(0, min(255, new_r))
-                                    new_g = max(0, min(255, new_g))
-                                    new_b = max(0, min(255, new_b))
-                                    
-                                    # Set pixel to this "almost transparent" color
-                                    pixels[sprite_x, sprite_y] = (new_r, new_g, new_b)
-                                # If pixel is not transparent, do nothing (don't modify visible pixels)
-            
-            # Update both previews
-            update_both_previews()
-
-        def on_transparent_drag(event):
-            """Handle drag on transparent preview."""
-            nonlocal is_drawing_on_transparent
-            if is_drawing_on_transparent:
-                on_transparent_click(event)
-
-        def on_transparent_press(event):
-            """Handle mouse press on transparent preview."""
-            nonlocal is_drawing_on_transparent
-            if edit_mode == 'fill_transparent':
-                # Fill is a single-click action (undo saved inside on_transparent_click)
-                on_transparent_click(event)
-            elif edit_mode in ('erase', 'de_erase'):
-                # Save undo snapshot before stroke begins
-                sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
-                if len(sprite_undo_stack) > 50:
-                    sprite_undo_stack.pop(0)
-                is_drawing_on_transparent = True
-                on_transparent_click(event)
-
-        def on_transparent_release(event):
-            """Handle mouse release on transparent preview."""
-            nonlocal is_drawing_on_transparent
-            is_drawing_on_transparent = False
-
-        transparent_canvas.bind('<Button-1>', on_transparent_press)
-        transparent_canvas.bind('<B1-Motion>', on_transparent_drag)
-        transparent_canvas.bind('<ButtonRelease-1>', on_transparent_release)
-
-        # Undo handler for sprite editor
+        # Undo handler
         def sprite_undo(event=None):
             nonlocal img_rgb
             if sprite_undo_stack:
                 img_rgb_copy, trans = sprite_undo_stack.pop()
                 img_rgb = img_rgb_copy
                 sprite.transparent = trans
-                update_both_previews()
-                status_label.config(text="Undo applied.", foreground='blue')
+                trans_info_label.config(text=f"0x{sprite.transparent:04X}")
+                update_canvas()
+                update_source_thumbnail()
+                status_label.config(text="Undo.", foreground='blue')
 
         dialog.bind('<Control-z>', sprite_undo)
         dialog.bind('<Control-Z>', sprite_undo)
 
-        # Status label
-        status_label = ttk.Label(main_frame, 
-                                text=f"Current transparent: 0x{sprite.transparent:04X}\nClick on the left preview to pick a new transparent color.",
-                                font=('Consolas', 9), justify='center')
-        status_label.pack(pady=10)
+        # =====================================================================
+        # SAVE & CLOSE / DISCARD
+        # =====================================================================
 
-        # Mode buttons
-        mode_frame = ttk.Frame(main_frame)
-        mode_frame.pack(pady=5)
-
-        def clear_crop():
-            """Clear crop selection overlay and state."""
-            nonlocal crop_rect_id, crop_handle_ids, crop_active, crop_drag_mode, crop_drag_anchor
-            if crop_rect_id is not None:
-                original_canvas.delete(crop_rect_id)
-                crop_rect_id = None
-            for hid in crop_handle_ids:
-                original_canvas.delete(hid)
-            crop_handle_ids = []
-            crop_active = False
-            crop_drag_mode = None
-            crop_drag_anchor = None
-
-        def _restore_sprite_view():
-            """Restore the left canvas to show img_rgb at sprite resolution."""
-            clear_crop()
-            update_original_preview()
-
-        def set_erase_mode():
-            nonlocal edit_mode
-            if edit_mode == 'crop':
-                _restore_sprite_view()
-            edit_mode = 'erase'
-            status_label.config(text="Mode: Erase - Click on right preview to set pixels to transparent",
-                               foreground='red')
-            erase_btn.config(state='pressed' if hasattr(erase_btn, 'state') else 'active')
-            de_erase_btn.config(state='normal')
-            brush_frame.pack(pady=5)  # Show brush slider
-            crop_frame.pack_forget()  # Hide crop controls
-            update_transparent_preview()
-
-        def set_de_erase_mode():
-            nonlocal edit_mode
-            if edit_mode == 'crop':
-                _restore_sprite_view()
-            edit_mode = 'de_erase'
-            status_label.config(text="Mode: De-Erase - Click on right preview to make pixels visible (off by 1)",
-                               foreground='orange')
-            de_erase_btn.config(state='pressed' if hasattr(de_erase_btn, 'state') else 'active')
-            erase_btn.config(state='normal')
-            brush_frame.pack(pady=5)  # Show brush slider
-            crop_frame.pack_forget()  # Hide crop controls
-            update_transparent_preview()
-
-        def set_pick_mode():
-            nonlocal edit_mode
-            if edit_mode == 'crop':
-                _restore_sprite_view()
-            edit_mode = 'pick'
-            status_label.config(text=f"Current transparent: 0x{sprite.transparent:04X}\nClick on the left preview to pick a new transparent color.",
-                               foreground='black')
-            erase_btn.config(state='normal')
-            de_erase_btn.config(state='normal')
-            brush_frame.pack_forget()  # Hide brush slider
-            crop_frame.pack_forget()  # Hide crop controls
-            update_transparent_preview()
-
-        def set_fill_transparent_mode():
-            nonlocal edit_mode
-            if edit_mode == 'crop':
-                _restore_sprite_view()
-            edit_mode = 'fill_transparent'
-            status_label.config(
-                text="Mode: Fill Transparent - Click a color on the left preview to make all matching pixels transparent",
-                foreground='purple')
-            erase_btn.config(state='normal')
-            de_erase_btn.config(state='normal')
-            brush_frame.pack_forget()
-            crop_frame.pack_forget()
-            update_transparent_preview()
-
-        def set_crop_mode():
-            nonlocal edit_mode, crop_x1, crop_y1, crop_x2, crop_y2, crop_active
-            edit_mode = 'crop'
-            clear_crop()
-            _setup_crop_display()  # Show full-res source image on left canvas
-
-            # Restore previous crop bounds if they exist (so user can adjust)
-            if sprite.crop_bounds is not None and original_source_img is not None:
-                bx1, by1, bx2, by2 = sprite.crop_bounds
-                crop_x1, crop_y1 = bx1, by1
-                crop_x2, crop_y2 = bx2 - 1, by2 - 1  # Convert back from exclusive to inclusive
-                crop_active = True
-                draw_crop_rect()
-                update_crop_preview()
-
-            status_label.config(text="Mode: Crop - Click and drag on the left preview to select a region.",
-                               foreground='blue')
-            erase_btn.config(state='normal')
-            de_erase_btn.config(state='normal')
-            brush_frame.pack_forget()  # Hide brush slider
-            crop_frame.pack(pady=5)   # Show crop controls
-
-        def apply_crop():
-            """Apply the crop: replace img_rgb with cropped and resized region."""
-            nonlocal img_rgb
-            if not crop_active:
-                return
-            w = crop_x2 - crop_x1 + 1
-            h = crop_y2 - crop_y1 + 1
-            if w < 1 or h < 1:
-                return
-
-            # Save undo snapshot before crop
-            sprite_undo_stack.append((img_rgb.copy(), sprite.transparent))
-            if len(sprite_undo_stack) > 50:
-                sprite_undo_stack.pop(0)
-
-            # Crop directly from the source image (coordinates are already in its pixel space)
-            cropped = crop_source_img.crop((crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1))
-            img_rgb = resize_and_letterbox(cropped, sprite.resolution, sprite.resolution)
-
-            # Save crop bounds so resolution changes can re-crop from the original
-            # If cropping from the original source, store the absolute pixel bounds.
-            # If cropping from img_rgb fallback, store None (can't meaningfully re-apply).
-            if original_source_img is not None:
-                sprite.crop_bounds = (crop_x1, crop_y1, crop_x2 + 1, crop_y2 + 1)
-            else:
-                sprite.crop_bounds = None
-
-            # set_pick_mode restores the sprite-resolution view and clears crop state
-            set_pick_mode()
-            update_both_previews()
-            status_label.config(text="Crop applied.", foreground='green')
-
-        ttk.Label(mode_frame, text="Edit Modes:", font=('Arial', 9, 'bold')).pack(side='left', padx=5)
-        erase_btn = ttk.Button(mode_frame, text="Erase", command=set_erase_mode)
-        erase_btn.pack(side='left', padx=5)
-        de_erase_btn = ttk.Button(mode_frame, text="De-Erase", command=set_de_erase_mode)
-        de_erase_btn.pack(side='left', padx=5)
-        ttk.Button(mode_frame, text="Pick Color", command=set_pick_mode).pack(side='left', padx=5)
-        ttk.Button(mode_frame, text="Fill Transparent", command=set_fill_transparent_mode).pack(side='left', padx=5)
-        ttk.Button(mode_frame, text="Crop", command=set_crop_mode).pack(side='left', padx=5)
-
-        # Brush size slider (only visible in erase/de-erase modes)
-        brush_frame = ttk.Frame(main_frame)
-
-        brush_size_var = tk.IntVar(value=1)
-        brush_size_label = ttk.Label(brush_frame, text="Brush Size: 1", font=('Arial', 9))
-        brush_size_label.pack(side='left', padx=5)
-        def update_brush_size(val):
-            nonlocal brush_size
-            brush_size = int(float(val))
-            brush_size_label.config(text=f"Brush Size: {brush_size}")
-
-        brush_size_slider = ttk.Scale(brush_frame, from_=1, to=10, orient='horizontal',
-                                      variable=brush_size_var, length=150,
-                                      command=update_brush_size)
-        brush_size_slider.pack(side='left', padx=5)
-
-        # Initially hide brush slider
-        brush_frame.pack_forget()
-
-        # Crop controls (only visible in crop mode)
-        crop_frame = ttk.Frame(main_frame)
-        ttk.Button(crop_frame, text="Apply Crop", command=apply_crop).pack(side='left', padx=5)
-        crop_square_var = tk.BooleanVar(value=False)
-        def on_square_toggle():
-            nonlocal crop_square
-            crop_square = crop_square_var.get()
-        ttk.Checkbutton(crop_frame, text="Square", variable=crop_square_var,
-                        command=on_square_toggle).pack(side='left', padx=5)
-        ttk.Label(crop_frame, text="Drag to select, then adjust handles. Click Apply Crop when done.",
-                  font=('Arial', 9)).pack(side='left', padx=5)
-        crop_frame.pack_forget()
-
-        # Buttons
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(pady=10)
-
-        def apply_changes():
-            """Apply the transparency change and regenerate sprite data."""
-            # Regenerate C array with new transparent color
+        def save_and_close():
+            """Commit all edits and close."""
             pixels = img_rgb.load()
             c_vals = []
             for y in range(sprite.resolution):
@@ -3474,30 +3447,28 @@ class RayCast3DStudio:
                     red5 = r >> 3
                     color = ((blue5 & 0x1F) << 11) | ((green6 & 0x3F) << 5) | (red5 & 0x1F)
                     c_vals.append(f"0x{color:04X}")
-            
+
             sprite.c_array = c_vals
-            
-            # Regenerate preview
-            sprite.preview = self._create_sprite_preview(img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
-            
-            # Update UI
+            sprite.preview = self._create_sprite_preview(
+                img_rgb, sprite.resolution, sprite.resolution, sprite.transparent)
+
             self._refresh_sprite_list()
-            self._select_sprite_row(idx)  # Reselect to update preview
+            self._select_sprite_row(idx)
             self._update_memory_display()
             self._auto_export()
             self._save_project()
-            
             dialog.destroy()
 
-        def cancel_changes():
-            """Cancel and restore original transparent color and data."""
+        def discard_changes():
+            """Discard all edits and close."""
             sprite.transparent = original_transparent
+            sprite.crop_bounds = original_crop_bounds
             if original_c_array is not None:
                 sprite.c_array = original_c_array
             dialog.destroy()
 
-        ttk.Button(button_frame, text="Apply", command=apply_changes).pack(side='left', padx=5)
-        ttk.Button(button_frame, text="Cancel", command=cancel_changes).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="Save & Close", command=save_and_close).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="Discard", command=discard_changes).pack(side='left', padx=5)
 
     def _create_sprite_preview_image(self, img_rgb, width, height, transparent_bgr565):
         """

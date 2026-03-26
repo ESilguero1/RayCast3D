@@ -88,11 +88,19 @@ Dependencies (Pillow) are installed automatically on first launch.
 
 ### Features
 
-- **Map Editor** — 24×24 grid editor with click-and-drag wall placement. Supports multiple maps with add/rename/delete. Perimeter walls are enforced automatically.
+- **Map Editor** — 24x24 grid editor with click-and-drag wall placement. Supports multiple maps with add/rename/delete. Perimeter walls are enforced automatically. Per-map floor and ceiling texture assignment.
 
-- **Texture Manager** — Import textures from image files (PNG, JPG, etc.). Supports 16×16, 32×32, 64×64, and 128×128 resolutions. Each texture can have a different resolution for quality/memory trade-offs.
+- **Texture Manager** — Import textures from image files (PNG, JPG, etc.). Supports 16x16, 32x32, 64x64, and 128x128 resolutions. Each texture can have a different resolution for quality/memory trade-offs. Preview shows simulated in-game wall appearance.
 
-- **Sprite Manager** — Import sprite images with automatic transparent color detection. Supports alpha channel transparency or top-left pixel as transparent key. Preview shows simulated in-game appearance.
+- **Sprite Editor** — Import sprite images with automatic transparent color detection. The editor provides a single editing canvas with a sidebar tool panel:
+  - **Pick Color** — Click any pixel to set it as the transparent color
+  - **Fill Match** — Click a pixel to make all identically-colored pixels transparent
+  - **Erase** — Paint pixels to transparent with an adjustable circular brush
+  - **Restore** — Paint over erased areas to make them opaque again
+  - **Crop** — Select and resize a region from the original source image
+  - Scroll to zoom and middle-click to pan for precise pixel-level editing
+  - Source reference thumbnail for comparison alongside the live transparency preview
+  - Undo support (Ctrl+Z) for all editing operations
 
 - **Color Picker** — Define named colors with a visual color picker. Colors are exported as BGR565 constants for use with `Graphics_SetFloorColor()`, `Graphics_SetSkyColor()`, etc.
 
@@ -103,21 +111,9 @@ The Studio automatically exports to the `assets/` folder:
 | File | Contents |
 |------|----------|
 | `textures.h` | Wall textures with `TextureInfo` structs |
-| `map.h` | Map data arrays and `mapList[]` pointer array |
-| `images.h` | Sprite images with `SpriteImage` structs |
+| `maps.h` | Map data arrays and `mapList[]` pointer array |
+| `images.h` | Sprite images with `SpriteImage` structs and `AddSprite` macro |
 | `colors.h` | Named color constants in BGR565 format |
-
-### Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+1/2/3/4` | Switch tabs (Map/Textures/Sprites/Colors) |
-| `Ctrl+T` | Add texture |
-| `Ctrl+P` | Add sprite |
-| `Ctrl+S` | Save and export |
-| `Delete` | Remove selected item |
-| `↑/↓` | Navigate list items |
-| `Escape` | Deselect |
 
 ## API Modules
 
