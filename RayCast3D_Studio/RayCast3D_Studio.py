@@ -1277,7 +1277,7 @@ class RayCast3DStudio:
 
     def _import_font(self):
         """Import a TTF/OTF font and render all characters to 5x8 bitmaps."""
-        file_path = filedialog.askopenfilename(
+        file_path = _native_open_file_dialog(
             title="Select Font File",
             filetypes=[("Font files", "*.ttf *.otf *.TTF *.OTF"), ("All files", "*.*")]
         )
