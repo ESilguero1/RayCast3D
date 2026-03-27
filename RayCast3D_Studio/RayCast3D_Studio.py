@@ -977,57 +977,6 @@ class RayCast3DStudio:
                        "Import a TTF/OTF file to auto-generate all glyphs, then fine-tune individual characters in the editor.",
                   font=('Consolas', 9), justify='left').pack(padx=10, pady=10)
 
-    def _load_font_from_h(self):
-        """Parse the existing font.h and load font_data from it."""
-        font_h_path = os.path.join(ASSETS_DIR, "font.h")
-        if not os.path.exists(font_h_path):
-            return False
-
-        try:
-            import re
-            with open(font_h_path, 'r') as f:
-                content = f.read()
-
-            # Find the Font[] array data (between { and };)
-            match = re.search(r'static\s+const\s+uint8_t\s+Font\[\]\s*=\s*\{(.*?)\};', content, re.DOTALL)
-            if not match:
-                return False
-
-            array_body = match.group(1)
-
-            # Extract all byte values (hex like 0xFF or decimal like 127)
-            # Each line has 5 values + a comment
-            byte_values = []
-            for line in array_body.split('\n'):
-                # Strip comments
-                line = line.split('//')[0].strip()
-                if not line:
-                    continue
-                # Handle preprocessor directives - skip #if/#else/#endif but include data lines
-                if line.startswith('#'):
-                    continue
-                # Find all numeric values
-                for token in re.findall(r'0x[0-9A-Fa-f]+|\d+', line):
-                    if token.startswith('0x') or token.startswith('0X'):
-                        byte_values.append(int(token, 16))
-                    else:
-                        byte_values.append(int(token))
-
-            # Should be 255 * 5 = 1275 bytes (chars 0-254)
-            # Due to #if blocks, we may have extra data. Take exactly 255 chars worth.
-            if len(byte_values) < 255 * 5:
-                return False
-
-            self.font_data = []
-            for i in range(255):
-                offset = i * 5
-                self.font_data.append(list(byte_values[offset:offset + 5]))
-
-            return True
-        except Exception as e:
-            print(f"Error parsing font.h: {e}")
-            return False
-
     def _get_default_font_data(self):
         """Return the default ASCII 5x7 font data (255 chars x 5 bytes)."""
         # Standard ASCII font from Adafruit glcdfont.c
@@ -1133,10 +1082,9 @@ class RayCast3DStudio:
         return default
 
     def _init_font_data(self):
-        """Initialize font data from font.h or defaults."""
+        """Initialize font data to defaults if not already set."""
         if self.font_data is None:
-            if not self._load_font_from_h():
-                self.font_data = self._get_default_font_data()
+            self.font_data = self._get_default_font_data()
 
     def _refresh_font_grid(self):
         """Redraw the character map grid on the font tab canvas."""
@@ -3840,12 +3788,12 @@ class RayCast3DStudio:
                     color = Color.from_dict(cd)
                     self.colors.append(color)
 
-            # Load font data
+            # Load font from project
             if 'font_data' in project:
                 self.font_data = project['font_data']
-                self.font_path = project.get('font_path')
-                if self.font_path:
-                    self.font_info_label.config(text=f"Font: {os.path.basename(self.font_path)} (5x8)")
+            self.font_path = project.get('font_path')
+            if self.font_path:
+                self.font_info_label.config(text=f"Font: {os.path.basename(self.font_path)} (5x8)")
 
             # Update UI
             self._refresh_texture_list()
