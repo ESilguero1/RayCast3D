@@ -2,7 +2,7 @@ var searchData=
 [
   ['features_0',['Features',['../index.html#autotoc_md9',1,'']]],
   ['fixed_20point_20math_1',['Fixed-Point Math',['../group__Fixed.html',1,'']]],
-  ['fixed_20point_20math_20q16_2016_2',['Fixed-Point Math (Q16.16)',['../index.html#autotoc_md14',1,'']]],
+  ['fixed_20point_20math_20q16_2016_2',['Fixed-Point Math (Q16.16)',['../index.html#autotoc_md13',1,'']]],
   ['fixed_5f2pi_3',['FIXED_2PI',['../group__Fixed.html#ga75da2009a6d38315da3a6b7162b77cea',1,'fixed.h']]],
   ['fixed_5fcos_4',['fixed_cos',['../group__Fixed.html#ga7200673488af8c6468dbe92816e423c4',1,'Fixed_Cos(fixed_t angle):&#160;fixed.c'],['../group__Fixed.html#ga7200673488af8c6468dbe92816e423c4',1,'Fixed_Cos(fixed_t angle):&#160;fixed.c']]],
   ['fixed_5fdeg_5fto_5frad_5',['FIXED_DEG_TO_RAD',['../group__Fixed.html#gae098ed83c8156d23009299bc2321392a',1,'fixed.h']]],
