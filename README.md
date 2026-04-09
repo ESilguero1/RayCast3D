@@ -52,8 +52,6 @@ int main(void) {
 }
 ```
 
-See the **RayCast3D_Demo** project in ValvanoWare for a complete working example and reference.
-
 ## Hardware Requirements
 
 - MSPM0 MCU
